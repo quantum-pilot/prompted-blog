@@ -53,3 +53,5 @@ Why not merge both markdown generation and diff generation? We can rename it to 
 The minimal output is getting to me. Can we already switch to a modern markdown rendering tool. It's not a necessity to use markdown package. We can split the markdown generation from python and use a docker-based tool instead and it will run as a separate step. Also, instructions.txt is not inside posts but in in root because it applies to the blog as a whole. We should create diffs for that as well in the python script.
 
 Instead of downloading wget and downloading css, I have put `github-markdown.css` into assets, we already mount data, now we can use the CSS from assets for generation. Can your rewrite the script? We don't even need our own dockerfile here.
+
+The CSS seems to be added to HTML but not being used anywhere. Is it even supposed to make a difference? Also, no need to call pandoc command for running the container. It is already an entrypoint which is why it's causing an error.
