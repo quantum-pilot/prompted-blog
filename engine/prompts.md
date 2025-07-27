@@ -42,3 +42,10 @@ Don't use react. Can explore other frameworks if necessary, but first thing woul
 One idea is that we can have one engine/diff-json.py which does os.walk on the posts and generates the markdown content and necessary diffs for all files. It will be a replace function because it will replace existing files in json cache which also helps with updates to old posts.
 
 Why not merge both markdown generation and diff generation? We can rename it to generate.py as it does all the work.
+
+1. The markdown theme is very basic. I want something modern. I want server-side rendered GH pages like blog post view of my posts. I'm sure there are libraries or tools that offer this?
+2. You are doing a git diff on files directly but we are tracking the diff of each revision for a file, save it as a versioned JSON diff for that file and use that for rendering the diff - again in a Github-like preview. Single file with all revisions and diffs for a file or multiple versioned JSON files containing that revision and only that diff - your call.
+3. Rename output.html to index.html
+4. This render also does not deal with unicode chars as you can see in the screenshot.
+
+![minimal](../assets/minimal-md.jpg)
