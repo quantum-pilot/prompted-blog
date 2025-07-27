@@ -1,7 +1,7 @@
-import os
 import subprocess
 import json
 from pathlib import Path
+import shutil
 
 POSTS = Path("posts")
 ROOT_FILES = [Path("instructions.txt")]
@@ -22,27 +22,25 @@ def get_parent_commit(sha):
     return result[1] if len(result) > 1 else None
 
 
-def get_diff_between_commits(path, base, head):
-    result = subprocess.run([
-        "git", "diff", f"{base}..{head}", "--", str(path)
-    ], capture_output=True, text=True)
-    return result.stdout
+def get_raw_diff(path, base, head):
+    return subprocess.run([
+        "git", "diff", f"{base}..{head}", "--no-color", "--", str(path)
+    ], capture_output=True, text=True).stdout
 
 
 def write_diffs_for_file(post_dir, rel_path):
     cache_dir = post_dir / CACHE / rel_path.name
+    if cache_dir.exists():
+        shutil.rmtree(cache_dir)
     cache_dir.mkdir(parents=True, exist_ok=True)
+
     commits = get_commit_history(rel_path)
-    with (cache_dir / "revisions.json").open("w") as revs:
-        json.dump(commits, revs, indent=2)
+    (cache_dir / "revisions.json").write_text(json.dumps(commits, indent=2))
+
     for i in range(1, len(commits)):
         base, head = commits[i - 1], commits[i]
-        diff_file = cache_dir / f"{i}.json"
-        if diff_file.exists():
-            continue
-        diff = get_diff_between_commits(rel_path, base, head)
-        with diff_file.open("w") as f:
-            json.dump({"from": base, "to": head, "diff": diff}, f, indent=2)
+        diff = get_raw_diff(rel_path, base, head)
+        (cache_dir / f"{i}.diff").write_text(diff)
 
 
 def main():

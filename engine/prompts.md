@@ -70,3 +70,7 @@ Let's change frontend html now. Also change cloudflare font-awesome to refer to 
 Reminder that instructions is global.
 
 When the history mode is activated, the button should be highlighted to show that it's enabled, so that when it's clicked again, it's disabled and we go back to the normal post render without any diffs. In history mode, I want the diffs in color for all those files and the files must be side by side (similar to a table-like container with three columns) showing the visual contrast of changes made (similar to Github PRs). Each file individually is vertically scrollable, but if it fits within the screen, then there is no scrolling.
+
+When history mode is enabled, we can put all three files outside the main div container so that they can span up to 90% of page width rather than fitting them within the div container dedicated for markdown posts.
+For diff, I am noticing several things, like the diff header need not be mentioned since we only show one file. --- a and +++ b does not have to be included at all. We can display line numbers as a thin column to the left of each file so that we don't render it like @@ -43,3 +43,5 @@ and it will be easier to read.
+Can we use diff2html instead and work on raw diffs? Let's make changes to python script to emit raw diffs instead. Let's also remove all the operating directories so that we don't accumulate junk.
