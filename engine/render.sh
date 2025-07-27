@@ -27,5 +27,5 @@ for POST_DIR in posts/*/; do
 done
 
 if [ -n "$LATEST_POST" ]; then
-  echo "{\"relpath\": \"${LATEST_POST%/}\"}" > latest.json
+  echo "\"${LATEST_POST%/}\"" > latest.json
 fi

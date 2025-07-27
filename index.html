@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title>Prompted Blog</title>
   <link rel="stylesheet" href="assets/github-markdown.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
@@ -29,15 +30,16 @@
     }
     .history-button {
       position: absolute;
-      right: -5rem;
-      top: 0.5rem;
-      transform: rotate(-90deg);
-      transform-origin: right top;
-      background: #f6f8fa;
-      border: 1px solid #d1d5da;
-      padding: 0.3rem 0.6rem;
-      font-size: 0.9rem;
+      right: -3rem;
+      top: 1rem;
+      background: none;
+      border: none;
+      font-size: 1.4rem;
+      color: #57606a;
       cursor: pointer;
+    }
+    .history-button:hover {
+      color: #24292f;
     }
     .nav-button {
       position: fixed;
@@ -55,6 +57,14 @@
     .next-post {
       right: 0.5rem;
     }
+    .diff-panel {
+      border: 1px solid #d0d7de;
+      margin-bottom: 2rem;
+      padding: 1rem;
+      background: #f6f8fa;
+      font-family: monospace;
+      white-space: pre-wrap;
+    }
   </style>
 </head>
 <body>
@@ -63,22 +73,49 @@
   <header class="header">
     <h1>Prompted Blog</h1>
     <p class="description">Prompt-driven commit history as a blog. One prompt at a time.</p>
-    <button class="history-button" onclick="location.search='?history_enabled=true'">Prompt History</button>
+    <button class="history-button" id="history-trigger" title="Show Prompt History">
+      <i class="fas fa-history"></i>
+    </button>
   </header>
   <main id="latest-post" class="markdown-body">
     <!-- Latest post will be injected here -->
   </main>
+  <div id="diff-output"></div>
   <script>
+    const searchParams = new URLSearchParams(location.search);
+    const diffOutput = document.getElementById('diff-output');
+
     fetch('latest.json')
       .then(res => res.json())
-      .then(obj => fetch(`${obj.relpath}/index.html`))
-      .then(res => res.text())
-      .then(html => {
-        const temp = document.createElement('div');
-        temp.innerHTML = html;
-        const post = temp.querySelector('.markdown-body');
-        if (post) document.getElementById('latest-post').appendChild(post);
+      .then(path => {
+        if (searchParams.get('history_enabled')) {
+          ['prompts.txt', 'instructions.txt', 'output.md'].forEach(file => {
+            fetch(`${path}/diff_cache/${file}/v1.json`)
+              .then(res => res.json())
+              .then(json => {
+                const block = document.createElement('div');
+                block.className = 'diff-panel';
+                block.textContent = `--- ${file} @ v${json.version} ---\n\n` + json.content;
+                diffOutput.appendChild(block);
+              });
+          });
+        } else {
+          fetch(`${path}/index.html`)
+            .then(res => res.text())
+            .then(html => {
+              const temp = document.createElement('div');
+              temp.innerHTML = html;
+              const post = temp.querySelector('.markdown-body');
+              if (post) document.getElementById('latest-post').appendChild(post);
+            });
+        }
       });
+
+    document.getElementById('history-trigger').addEventListener('click', () => {
+      const url = new URL(window.location);
+      url.searchParams.set('history_enabled', 'true');
+      window.location = url.toString();
+    });
   </script>
 </body>
 </html>
