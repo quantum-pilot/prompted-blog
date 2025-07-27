@@ -26,6 +26,22 @@ Yes, it was that obvious. No, I didn’t see it.
 
 > *LLM quick‑fixes shine when the problem lives in a known flow, library, or tool. If you’re wrestling with an npm package published yesterday at 3 a.m., you’re on your own.*
 
+# Agents and Field Work
+
+LLMs make a decent \$20/mo assistant on an infinite loop. Need a project name? Hand it a half‑baked brief and watch it spit out domains, ping WHOIS, filter out the taken ones, then suggest alternates. Half the list is junk, the rest are unregistered gems.
+
+*(First screenshot of freshly‑claimed domains goes here.)*
+
+Bootstrapping tiny tools is the same trick: the repo [quantum‑pilot/like‑button](https://github.com/quantum-pilot/like-button) rolled off the prompt assembly line in a few hours. Not a 10×‑engineer showcase—just proof that skipping boilerplate is better than reading boilerplate.
+
+Research? Point it at “journal apps,” let it crawl patents, pricing pages, and UX autopsies, then skim the debris. I’ll drop the markdown excerpt next:
+
+```markdown
+[ will drop markdown excerpt here ]
+```
+
+> *Treat it like an overeager intern: let it wander, check its work, keep the good bits.*
+
 ---
 
 ## custom instructions

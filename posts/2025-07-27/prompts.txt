@@ -22,3 +22,17 @@ Add a note at the bottom in a blockquote saying this works only if it's a known 
 This section is good. We can freeze it here. Can you write an aggregation of all the instructions you know and have learned in this conversation to establish a human review in this loop? I'll set all of it as custom instruction and we can restart this chat for the next section. Add it in a separate below section in the markdown with heading "custom instructions". Move the underline to before that heading.
 
 Can you modify the custom instruction to include the whole idea described to you along with the list of instructions?
+
+Don't touch previous sections or custom instructions part unless explicitly asked - use it only for context. Use the below to write the second section.
+
+Next section would be about agents & field work - attempting to solve a problem in loop. Where it mattered the most for me was in coming up with names for projects, looking for potential domains available, bootstrapping a project with known or unknown frameworks (especially small ones), exploring strategies for taking it to a product - all purely driven by textual description of ideas and decisions (sometimes images as well). Once I gave it the problem description, it will go do something about it - some good, some bad, but again, up to the human to decide what to do about it. Treating it exactly like a \$20/mo assistant I've never had.
+
+For the first example with domain search, I'll say that ChatGPT gave me name suggestions and looked for unregistered domains in loop after which the first screenshot of me owning domains will be linked, so leave space for that.
+
+Next example is for bootstrapping projects - I would link [https://github.com/quantum-pilot/like-button](https://github.com/quantum-pilot/like-button) which was developed entirely through prompts within a few hours. I'm not talking about full blown 10x engineer projects, I'm only talking about how bootstrapping is a pain when you just want something done for your usage. I can extend later from that as I have the expertise and every decision was taken and reviewed by me during the process.
+
+Next example is for researching a journal app - excerpt from its research here:
+
+\[ will drop markdown excerpt here ]
+
+It's kickass to have some researching bot which does a lot of field work in a domain where you don't have enough experience. You can learn from it just like how your assistant can complement your weaknesses.
