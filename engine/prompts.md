@@ -55,3 +55,5 @@ The minimal output is getting to me. Can we already switch to a modern markdown 
 Instead of downloading wget and downloading css, I have put `github-markdown.css` into assets, we already mount data, now we can use the CSS from assets for generation. Can your rewrite the script? We don't even need our own dockerfile here.
 
 The CSS seems to be added to HTML but not being used anywhere. Is it even supposed to make a difference? Also, no need to call pandoc command for running the container. It is already an entrypoint which is why it's causing an error.
+
+This emits the necessary GH-flavored rendered markdown in index html. Let's write the homepage layout in a separate canvas. The blog header would be "Prompted Blog" and below that would be a brief one-liner description of what this idea is. When the home page is loaded, it should fetch the latest post render and inline it below the header - one approach for the latest post is to configure or set it during generation time. Write the homepage html with necessary css and js files. If you want to change render.sh, do it in the same canvas.
