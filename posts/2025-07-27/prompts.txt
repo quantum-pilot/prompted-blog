@@ -43,3 +43,5 @@ Before the domains screenshot, mention that it's a list of domains I own based o
 Need better wording for "not a 10x engineer showcase" - it's fine, but it should also emphasize that it's not efficient to work on bigger projects with LLMs pointing to this article https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/
 The whole sentence about research comes off as if you're showing off. Can you tune it down a bit? Rephrase with some humility.
 Don't touch the first section or custom instructions.
+
+Better. Second section is frozen. Update/replace custom instructions to reflect on what you learned now so that I can change it for next. Maintain current format.
