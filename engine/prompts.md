@@ -74,3 +74,9 @@ When the history mode is activated, the button should be highlighted to show tha
 When history mode is enabled, we can put all three files outside the main div container so that they can span up to 90% of page width rather than fitting them within the div container dedicated for markdown posts.
 For diff, I am noticing several things, like the diff header need not be mentioned since we only show one file. --- a and +++ b does not have to be included at all. We can display line numbers as a thin column to the left of each file so that we don't render it like @@ -43,3 +43,5 @@ and it will be easier to read.
 Can we use diff2html instead and work on raw diffs? Let's make changes to python script to emit raw diffs instead. Let's also remove all the operating directories so that we don't accumulate junk.
+
+Let's change html now.
+I've added both these files for usage
+assets/diff2html.min.css
+assets/diff2html.min.js
+Remember what I said earlier on keeping the diff containers out of the main container so that we can use 90% of available window width.
