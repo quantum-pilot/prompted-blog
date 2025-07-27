@@ -3,6 +3,8 @@ Earlier instructions are for writing blog posts. Now we are building the blog.
 First version of this blog would be very simple.
 
 Repository structure looks like this:
+
+```
 prompted-blog/
 ├── .git/
 ├── assets
@@ -13,6 +15,7 @@ prompted-blog/
     └── 2025-07-27
         ├── output.md
         └── prompts.txt
+```
 
 There is only one post in posts directory right now.
 Assume that git dot dir will exist in this dir, so diffs on prompts, instructions and output can be generated as JSON by using git commands.
@@ -37,3 +40,5 @@ Use one canvas per file. Only work on one file at a time. Ask if you decide to w
 Don't use react. Can explore other frameworks if necessary, but first thing would be to setup project. Write a markdown containing all necessary build or setup scripts with necessary file names before touching product logic.
 
 One idea is that we can have one engine/diff-json.py which does os.walk on the posts and generates the markdown content and necessary diffs for all files. It will be a replace function because it will replace existing files in json cache which also helps with updates to old posts.
+
+Why not merge both markdown generation and diff generation? We can rename it to generate.py as it does all the work.

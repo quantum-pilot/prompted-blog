@@ -32,7 +32,7 @@ Need a project name? An available domain? Boilerplate that actually runs? A sket
 
 ChatGPT handed me a curated list of unregistered domains, checked WHOIS in a loop, and I bought the best ones on the spot.
 
-![Screenshot of domains I'd bought immediately after ChatGPT research](assets/bought-domains.jpg)
+![Screenshot of domains I'd bought immediately after ChatGPT research](../../assets/bought-domains.jpg)
 
 Bootstrapping tiny tools is the same trick: the repo [quantum-pilot/like-button](https://github.com/quantum-pilot/like-button) appeared after a few hours of prompt‑driven back‑and‑forth. It’s proof that skipping boilerplate beats reading it—but don’t expect miracles. Scaling this approach to full operating‑system work is still slower than a focused human team (see [METR’s study](https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/)).
 
