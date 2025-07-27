@@ -37,6 +37,13 @@ def write_diffs_for_file(post_dir, rel_path):
     commits = get_commit_history(rel_path)
     (cache_dir / "revisions.json").write_text(json.dumps(commits, indent=2))
 
+    # write initial full file content as 0.txt
+    if commits:
+        first_commit = commits[0]
+        initial_content = get_file_content(rel_path, first_commit)
+        (cache_dir / "0.txt").write_text(initial_content)
+        (cache_dir / "0.diff").write_text(f"Initial version of {rel_path}\n")
+
     for i in range(1, len(commits)):
         base, head = commits[i - 1], commits[i]
         diff = get_raw_diff(rel_path, base, head)
