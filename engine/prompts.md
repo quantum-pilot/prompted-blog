@@ -68,3 +68,5 @@ Let's revisit diff generation in python. Right now we are generating full file c
 
 Let's change frontend html now. Also change cloudflare font-awesome to refer to local "assets/font-awesome-6.4.0.css"
 Reminder that instructions is global.
+
+When the history mode is activated, the button should be highlighted to show that it's enabled, so that when it's clicked again, it's disabled and we go back to the normal post render without any diffs. In history mode, I want the diffs in color for all those files and the files must be side by side (similar to a table-like container with three columns) showing the visual contrast of changes made (similar to Github PRs). Each file individually is vertically scrollable, but if it fits within the screen, then there is no scrolling.

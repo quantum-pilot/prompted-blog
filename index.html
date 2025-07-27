@@ -38,6 +38,9 @@
       color: #57606a;
       cursor: pointer;
     }
+    .history-button.active {
+      color: #0969da;
+    }
     .history-button:hover {
       color: #24292f;
     }
@@ -57,13 +60,29 @@
     .next-post {
       right: 0.5rem;
     }
+    #diff-output {
+      display: flex;
+      gap: 1rem;
+      justify-content: space-between;
+    }
     .diff-panel {
+      flex: 1;
+      min-width: 0;
+      max-height: 90vh;
+      overflow-y: auto;
       border: 1px solid #d0d7de;
-      margin-bottom: 2rem;
-      padding: 1rem;
       background: #f6f8fa;
       font-family: monospace;
       white-space: pre-wrap;
+      padding: 0.5rem;
+    }
+    .diff-panel ins {
+      background-color: #e6ffed;
+      text-decoration: none;
+    }
+    .diff-panel del {
+      background-color: #ffeef0;
+      text-decoration: line-through;
     }
   </style>
 </head>
@@ -73,7 +92,7 @@
   <header class="header">
     <h1>Prompted Blog</h1>
     <p class="description">Prompt-driven commit history as a blog. One prompt at a time.</p>
-    <button class="history-button" id="history-trigger" title="Show Prompt History">
+    <button class="history-button" id="history-trigger" title="Toggle Prompt History">
       <i class="fas fa-history"></i>
     </button>
   </header>
@@ -82,13 +101,18 @@
   </main>
   <div id="diff-output"></div>
   <script>
-    const searchParams = new URLSearchParams(location.search);
+    const url = new URL(window.location);
+    const isHistory = url.searchParams.get('history_enabled') === 'true';
     const diffOutput = document.getElementById('diff-output');
+    const historyBtn = document.getElementById('history-trigger');
+
+    if (isHistory) historyBtn.classList.add('active');
 
     fetch('latest.json')
       .then(res => res.json())
       .then(path => {
-        if (searchParams.get('history_enabled')) {
+        if (isHistory) {
+          document.getElementById('latest-post').style.display = 'none';
           const targets = [
             { path: 'instructions.txt', dir: '.' },
             { path: 'prompts.txt', dir: path },
@@ -108,7 +132,9 @@
                     .then(json => {
                       const block = document.createElement('div');
                       block.className = 'diff-panel';
-                      block.textContent = `--- ${fname} @ ${json.from} → ${json.to} ---\n\n` + json.diff;
+                      block.innerHTML = `<strong>${fname}</strong><br>--- ${json.from} → ${json.to} ---<br><br>` +
+                        json.diff.replace(/^\+.*$/gm, '<ins>$&</ins>')
+                                .replace(/^\-.*$/gm, '<del>$&</del>');
                       diffOutput.appendChild(block);
                     })
                     .catch(() => {
@@ -132,9 +158,13 @@
         }
       });
 
-    document.getElementById('history-trigger').addEventListener('click', () => {
-      const url = new URL(window.location);
-      url.searchParams.set('history_enabled', 'true');
+    historyBtn.addEventListener('click', () => {
+      const active = historyBtn.classList.contains('active');
+      if (active) {
+        url.searchParams.delete('history_enabled');
+      } else {
+        url.searchParams.set('history_enabled', 'true');
+      }
       window.location = url.toString();
     });
   </script>
