@@ -78,6 +78,31 @@
       max-height: 90vh;
       min-width: 0;
     }
+    #revision-scroller {
+      position: fixed;
+      bottom: 5%;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .rev-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #ccc;
+      cursor: pointer;
+    }
+    .rev-dot.active {
+      background: #333;
+    }
+    .rev-scroll-icon {
+      width: 24px;
+      height: 24px;
+      background: url('assets/scroll-icon.svg') center center no-repeat;
+      background-size: contain;
+    }
   </style>
 </head>
 <body>
@@ -94,6 +119,7 @@
     <!-- Latest post will be injected here -->
   </main>
   <div id="diff-output"></div>
+  <div id="revision-scroller"></div>
 
   <script src="assets/diff2html.min.js"></script>
   <script>
@@ -101,6 +127,7 @@
     const isHistory = url.searchParams.get('history_enabled') === 'true';
     const diffOutput = document.getElementById('diff-output');
     const historyBtn = document.getElementById('history-trigger');
+    const revScroller = document.getElementById('revision-scroller');
 
     if (isHistory) historyBtn.classList.add('active');
 
@@ -119,50 +146,72 @@
           const order = targets.map(t => t.path);
           const blockMap = new Map(order.map(k => [k, null]));
 
-          targets.forEach(({ path: fname, dir }) => {
+          const revisionsCount = [];
+
+          let maxRevs = 0;
+
+          Promise.all(targets.map(({ path: fname, dir }) =>
             fetch(`${dir}/diff_cache/${fname}/revisions.json`)
               .then(res => res.json())
               .then(revisions => {
-                let rev = revisions.length - 1;
-                const tryLoad = () => {
-                  if (rev <= 0) {
+                revisionsCount.push(revisions.length);
+                maxRevs = Math.max(maxRevs, revisions.length);
+                return { fname, dir, revisions };
+              })
+          )).then(files => {
+            renderRevision(maxRevs - 1);
+
+            const dots = [];
+            for (let i = 0; i < maxRevs; i++) {
+              const dot = document.createElement('div');
+              dot.className = 'rev-dot';
+              if (i === maxRevs - 1) dot.classList.add('active');
+              dot.addEventListener('click', () => {
+                dots.forEach(d => d.classList.remove('active'));
+                dot.classList.add('active');
+                renderRevision(i);
+              });
+              dots.push(dot);
+              revScroller.appendChild(dot);
+            }
+
+            const scrollIcon = document.createElement('div');
+            scrollIcon.className = 'rev-scroll-icon';
+            revScroller.appendChild(scrollIcon);
+
+            function renderRevision(index) {
+              diffOutput.innerHTML = '';
+              files.forEach(({ fname, dir, revisions }) => {
+                if (index <= 0 || index >= revisions.length) return;
+                const file = `${dir}/diff_cache/${fname}/${index}.diff`;
+                fetch(file)
+                  .then(r => r.ok ? r.text() : Promise.reject())
+                  .then(raw => {
+                    const html = Diff2Html.html(raw, {
+                      drawFileList: false,
+                      matching: 'lines',
+                      outputFormat: 'side-by-side'
+                    });
+                    const container = document.createElement('div');
+                    container.className = 'diff-container';
+                    container.innerHTML = html;
+                    blockMap.set(fname, container);
+                  })
+                  .catch(() => {
+                    const fallback = document.createElement('div');
+                    fallback.className = 'diff-container';
+                    fallback.innerHTML = `<div style='padding:1rem; font-style:italic;'>No diff for <code>${fname}</code> at rev ${index}.</div>`;
+                    blockMap.set(fname, fallback);
+                  })
+                  .finally(() => {
                     order.forEach(k => {
                       const el = blockMap.get(k);
-                      if (el) diffOutput.appendChild(el);
+                      if (el && !diffOutput.contains(el)) diffOutput.appendChild(el);
                     });
-                    return;
-                  }
-                  const file = `${dir}/diff_cache/${fname}/${rev}.diff`;
-                  fetch(file)
-                    .then(r => r.ok ? r.text() : Promise.reject())
-                    .then(raw => {
-                      const html = Diff2Html.html(raw, {
-                        drawFileList: false,
-                        matching: 'lines',
-                        outputFormat: 'side-by-side'
-                      });
-                      const container = document.createElement('div');
-                      container.className = 'diff-container';
-                      container.innerHTML = html;
-                      blockMap.set(fname, container);
-                    })
-                    .catch(() => {
-                      const fallback = document.createElement('div');
-                      fallback.className = 'diff-container';
-                      fallback.innerHTML = `<div style='padding:1rem; font-style:italic;'>No recent diff for <code>${fname}</code>.</div>`;
-                      blockMap.set(fname, fallback);
-                    })
-                    .finally(() => {
-                      order.forEach(k => {
-                        const el = blockMap.get(k);
-                        if (el && !diffOutput.contains(el)) diffOutput.appendChild(el);
-                      });
-                    });
-                };
-                tryLoad();
+                  });
               });
+            }
           });
-
         } else {
           fetch(`${path}/index.html`)
             .then(res => res.text())

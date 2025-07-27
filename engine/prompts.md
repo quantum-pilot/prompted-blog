@@ -87,3 +87,18 @@ Do you see the problem? Body seems to have a margin and it's letting everything 
 Sure, but now it affects the entire blog post view. Blog has taken up all the width. We only want history to take up 90% of the space, post width (when history is disabled) should be how it was before, about 60% of the width. Also, let's not change the file order. Instructions should be first, then comes prompts and then comes output. I see the order in the array, but it still comes in random order in history view.
 
 There is a recursion or infinite loop in the diff fetch logic. The header is not in the center and the prompt history button always overflows out. A reminder that we should only show the last revision state for three files. If diff exists in that hash for that file, then it's highlighted, then the file is shown as is.
+
+> After this, I tried to improve the results by uploading `prompts.md`, `generate.py`, `render.sh` and `index.html` as project files and starting a new chat with the instructions below:
+>
+> prompts.md contains the entire user prompt which led to the creation of artifacts.
+> index.html is frontend.
+> generate.py is for generating diff cache from git tree
+> render.sh is the markdown rendering for blog posts.
+>
+> ![Main view](/assets/v1-main.jpg)
+>
+> ![Diff view](/assets/v1-diff.jpg)
+
+Use one canvas per file. Now we are working on index.html.
+
+Revisiting diff again, let's add a button with scroll icon 5% higher from the bottom of page (the icon should be similar to what appears when we press middle mouse to scroll a page in browser). Similar to page number elements in Google search, spaced gray circles represent individual revisions of all files in that post. The scroller will sit at the end indicating that it's the latest revision. It can be moved to the left to indicate that we have to switch to the previous revision. Left or right constraints are based on whether we're at the start or end of versions.
