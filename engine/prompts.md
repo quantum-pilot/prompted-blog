@@ -57,3 +57,5 @@ Instead of downloading wget and downloading css, I have put `github-markdown.css
 The CSS seems to be added to HTML but not being used anywhere. Is it even supposed to make a difference? Also, no need to call pandoc command for running the container. It is already an entrypoint which is why it's causing an error.
 
 This emits the necessary GH-flavored rendered markdown in index html. Let's write the homepage layout in a separate canvas. The blog header would be "Prompted Blog" and below that would be a brief one-liner description of what this idea is. When the home page is loaded, it should fetch the latest post render and inline it below the header - one approach for the latest post is to configure or set it during generation time. Write the homepage html with necessary css and js files. If you want to change render.sh, do it in the same canvas.
+
+I don't want static embedding. Change render.sh to emit all rendered posts and setting the latest post somewhere which can then be fetched by homepage. It must ignore diff_cache dirs.
