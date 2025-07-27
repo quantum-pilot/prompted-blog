@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>Prompted Blog</title>
   <link rel="stylesheet" href="assets/github-markdown.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="assets/font-awesome-6.4.0.css">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
@@ -89,16 +89,37 @@
       .then(res => res.json())
       .then(path => {
         if (searchParams.get('history_enabled')) {
-          ['prompts.txt', 'instructions.txt', 'output.md'].forEach(file => {
-            fetch(`${path}/diff_cache/${file}/v1.json`)
+          const targets = [
+            { path: 'instructions.txt', dir: '.' },
+            { path: 'prompts.txt', dir: path },
+            { path: 'output.md', dir: path }
+          ];
+
+          targets.forEach(({ path: fname, dir }) => {
+            fetch(`${dir}/diff_cache/${fname}/revisions.json`)
               .then(res => res.json())
-              .then(json => {
-                const block = document.createElement('div');
-                block.className = 'diff-panel';
-                block.textContent = `--- ${file} @ v${json.version} ---\n\n` + json.content;
-                diffOutput.appendChild(block);
+              .then(revisions => {
+                let rev = revisions.length - 1;
+                const tryLoad = () => {
+                  if (rev <= 0) return;
+                  const file = `${dir}/diff_cache/${fname}/${rev}.json`;
+                  fetch(file)
+                    .then(r => r.ok ? r.json() : Promise.reject())
+                    .then(json => {
+                      const block = document.createElement('div');
+                      block.className = 'diff-panel';
+                      block.textContent = `--- ${fname} @ ${json.from} → ${json.to} ---\n\n` + json.diff;
+                      diffOutput.appendChild(block);
+                    })
+                    .catch(() => {
+                      rev--;
+                      tryLoad();
+                    });
+                };
+                tryLoad();
               });
           });
+
         } else {
           fetch(`${path}/index.html`)
             .then(res => res.text())
