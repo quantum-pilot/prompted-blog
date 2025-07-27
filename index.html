@@ -17,7 +17,9 @@
     }
     .header {
       border-bottom: 1px solid #e1e4e8;
-      margin-bottom: 2rem;
+      margin: 0 auto 2rem;
+      max-width: 800px;
+      padding: 0 1rem;
       position: relative;
     }
     h1 {
@@ -31,7 +33,7 @@
     }
     .history-button {
       position: absolute;
-      right: -3rem;
+      right: 0.5rem;
       top: 1rem;
       background: none;
       border: none;
@@ -124,7 +126,10 @@
                 let rev = revisions.length - 1;
                 const tryLoad = () => {
                   if (rev <= 0) {
-                    order.forEach(k => blockMap.get(k) && diffOutput.appendChild(blockMap.get(k)));
+                    order.forEach(k => {
+                      const el = blockMap.get(k);
+                      if (el) diffOutput.appendChild(el);
+                    });
                     return;
                   }
                   const file = `${dir}/diff_cache/${fname}/${rev}.diff`;
@@ -140,11 +145,18 @@
                       container.className = 'diff-container';
                       container.innerHTML = html;
                       blockMap.set(fname, container);
-                      tryLoad();
                     })
                     .catch(() => {
-                      rev--;
-                      tryLoad();
+                      const fallback = document.createElement('div');
+                      fallback.className = 'diff-container';
+                      fallback.innerHTML = `<div style='padding:1rem; font-style:italic;'>No recent diff for <code>${fname}</code>.</div>`;
+                      blockMap.set(fname, fallback);
+                    })
+                    .finally(() => {
+                      order.forEach(k => {
+                        const el = blockMap.get(k);
+                        if (el && !diffOutput.contains(el)) diffOutput.appendChild(el);
+                      });
                     });
                 };
                 tryLoad();

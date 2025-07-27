@@ -85,3 +85,5 @@ Do you see the problem? Body seems to have a margin and it's letting everything 
 ![](/assets/margin-offset.jpg)
 
 Sure, but now it affects the entire blog post view. Blog has taken up all the width. We only want history to take up 90% of the space, post width (when history is disabled) should be how it was before, about 60% of the width. Also, let's not change the file order. Instructions should be first, then comes prompts and then comes output. I see the order in the array, but it still comes in random order in history view.
+
+There is a recursion or infinite loop in the diff fetch logic. The header is not in the center and the prompt history button always overflows out. A reminder that we should only show the last revision state for three files. If diff exists in that hash for that file, then it's highlighted, then the file is shown as is.
