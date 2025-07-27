@@ -102,3 +102,5 @@ There is a recursion or infinite loop in the diff fetch logic. The header is not
 Use one canvas per file. Now we are working on index.html.
 
 Revisiting diff again, let's add a button with scroll icon 5% higher from the bottom of page (the icon should be similar to what appears when we press middle mouse to scroll a page in browser). Similar to page number elements in Google search, spaced gray circles represent individual revisions of all files in that post. The scroller will sit at the end indicating that it's the latest revision. It can be moved to the left to indicate that we have to switch to the previous revision. Left or right constraints are based on whether we're at the start or end of versions.
+
+For each version, I want the full file with a highlighted diff. Can we generate full files along with the diff in python script? Use the script in project as base and build up on it in a new canvas. By default the diff should contain the file contents as well based on line numbers. The diff tool should still highlight the diff, but the remainder of the file is still scrollable.

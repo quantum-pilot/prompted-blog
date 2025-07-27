@@ -15,17 +15,17 @@ def get_commit_history(path):
     return result.stdout.strip().splitlines()[::-1]  # oldest to newest
 
 
-def get_parent_commit(sha):
-    result = subprocess.run([
-        "git", "rev-list", "--parents", "-n", "1", sha
-    ], capture_output=True, text=True).stdout.strip().split()
-    return result[1] if len(result) > 1 else None
-
-
 def get_raw_diff(path, base, head):
     return subprocess.run([
         "git", "diff", f"{base}..{head}", "--no-color", "--", str(path)
     ], capture_output=True, text=True).stdout
+
+
+def get_file_content(path, commit):
+    result = subprocess.run([
+        "git", "show", f"{commit}:{path}"
+    ], capture_output=True, text=True)
+    return result.stdout
 
 
 def write_diffs_for_file(post_dir, rel_path):
@@ -40,7 +40,10 @@ def write_diffs_for_file(post_dir, rel_path):
     for i in range(1, len(commits)):
         base, head = commits[i - 1], commits[i]
         diff = get_raw_diff(rel_path, base, head)
+        full_content = get_file_content(rel_path, head)
+
         (cache_dir / f"{i}.diff").write_text(diff)
+        (cache_dir / f"{i}.txt").write_text(full_content)
 
 
 def main():
