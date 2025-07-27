@@ -1,14 +1,9 @@
 POST_DIR=$1
 MD_FILE=$POST_DIR/output.md
 HTML_FILE=$POST_DIR/index.html
+CSS_FILE=assets/github-markdown.css
 
-wget https://raw.githubusercontent.com/sindresorhus/github-markdown-css/main/github-markdown.css -O github-markdown.css
-
-# Mount local CSS via absolute path
-docker build -t md-render engine/
-docker run --rm \
-  -v "$PWD":/data \
-  md-render \
+docker run --rm -v "$PWD":/data pandoc/core:3.1 \
   pandoc "/data/$MD_FILE" -f markdown -t html5 \
-  --css=/data/assets/github-markdown.css \
+  --css="/data/$CSS_FILE" \
   -s -o "/data/$HTML_FILE"
