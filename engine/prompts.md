@@ -80,3 +80,6 @@ I've added both these files for usage
 assets/diff2html.min.css
 assets/diff2html.min.js
 Remember what I said earlier on keeping the diff containers out of the main container so that we can use 90% of available window width.
+
+Do you see the problem? Body seems to have a margin and it's letting everything overflow out of the window.
+![](/assets/margin-offset.jpg)
