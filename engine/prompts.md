@@ -106,3 +106,5 @@ Revisiting diff again, let's add a button with scroll icon 5% higher from the bo
 For each version, I want the full file with a highlighted diff. Can we generate full files along with the diff in python script? Use the script in project as base and build up on it in a new canvas. By default the diff should contain the file contents as well based on line numbers. The diff tool should still highlight the diff, but the remainder of the file is still scrollable.
 
 It looks like this ignores the initial state of the file? We can call it `0.txt` and `0.diff` - it's basically the creation of the file which may or may not contain contents right?
+
+Let's change index.html to use this. Remember how I asked for it?
