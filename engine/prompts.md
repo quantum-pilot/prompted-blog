@@ -83,3 +83,5 @@ Remember what I said earlier on keeping the diff containers out of the main cont
 
 Do you see the problem? Body seems to have a margin and it's letting everything overflow out of the window.
 ![](/assets/margin-offset.jpg)
+
+Sure, but now it affects the entire blog post view. Blog has taken up all the width. We only want history to take up 90% of the space, post width (when history is disabled) should be how it was before, about 60% of the width. Also, let's not change the file order. Instructions should be first, then comes prompts and then comes output. I see the order in the array, but it still comes in random order in history view.

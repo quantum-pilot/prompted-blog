@@ -13,6 +13,7 @@
       margin: 0;
       padding: 0;
       position: relative;
+      overflow-x: hidden;
     }
     .header {
       border-bottom: 1px solid #e1e4e8;
@@ -87,7 +88,7 @@
       <i class="fas fa-history"></i>
     </button>
   </header>
-  <main id="latest-post" class="markdown-body">
+  <main id="latest-post" class="markdown-body" style="max-width: 800px; margin: 2rem auto; padding: 0 1rem;">
     <!-- Latest post will be injected here -->
   </main>
   <div id="diff-output"></div>
@@ -113,25 +114,33 @@
             { path: 'output.md', dir: path }
           ];
 
+          const order = targets.map(t => t.path);
+          const blockMap = new Map(order.map(k => [k, null]));
+
           targets.forEach(({ path: fname, dir }) => {
             fetch(`${dir}/diff_cache/${fname}/revisions.json`)
               .then(res => res.json())
               .then(revisions => {
                 let rev = revisions.length - 1;
                 const tryLoad = () => {
-                  if (rev <= 0) return;
+                  if (rev <= 0) {
+                    order.forEach(k => blockMap.get(k) && diffOutput.appendChild(blockMap.get(k)));
+                    return;
+                  }
                   const file = `${dir}/diff_cache/${fname}/${rev}.diff`;
                   fetch(file)
                     .then(r => r.ok ? r.text() : Promise.reject())
                     .then(raw => {
-                      const container = document.createElement('div');
-                      container.className = 'diff-container';
-                      container.innerHTML = Diff2Html.html(raw, {
+                      const html = Diff2Html.html(raw, {
                         drawFileList: false,
                         matching: 'lines',
                         outputFormat: 'side-by-side'
                       });
-                      diffOutput.appendChild(container);
+                      const container = document.createElement('div');
+                      container.className = 'diff-container';
+                      container.innerHTML = html;
+                      blockMap.set(fname, container);
+                      tryLoad();
                     })
                     .catch(() => {
                       rev--;
