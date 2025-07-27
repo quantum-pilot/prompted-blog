@@ -11,3 +11,10 @@ As the experienced senior programmer but inexperienced zsh user I am, I searched
 Add links to typst and kagi.
 
 Write this first section in markdown format into a canvas. Always prefer updating the canvas and don't respond in chat.
+
+No jokes in title - keep it simple, in this case, it's about fixing absurd syntax errors.
+No need for individual titles. The section is a title, that's it.
+Follow my style of writing so that it's convincing that I wrote it and not you, but don't spare your jokes or sarcasm.
+No need for complicated literature like Newyorker - we're only writing a tech blog.
+Use markdown inline links.
+Add a note at the bottom in a blockquote saying this works only if it's a known flow, library or tool, not for an npm lib released yday.
