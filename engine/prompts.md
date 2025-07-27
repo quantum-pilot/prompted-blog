@@ -61,3 +61,5 @@ This emits the necessary GH-flavored rendered markdown in index html. Let's writ
 I don't want static embedding. Change render.sh to emit all rendered posts and setting the latest post somewhere which can then be fetched by homepage. It must ignore diff_cache dirs.
 
 Let's rewrite the fetch logic to fetch this json.
+
+Now comes the functionality. Let's add a button for prompt history somewhere. Next to header or outside of div container slightly to the right or left? Note that we will also have previous and next post buttons on the far  left and right edges. You can add them now. Only make the necessary changes. If something is untouched, drop a comment as placeholder for unchanged lines.

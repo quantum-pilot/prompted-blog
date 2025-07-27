@@ -11,10 +11,12 @@
       margin: 2rem auto;
       max-width: 800px;
       padding: 0 1rem;
+      position: relative;
     }
     .header {
       border-bottom: 1px solid #e1e4e8;
       margin-bottom: 2rem;
+      position: relative;
     }
     h1 {
       font-size: 2.5rem;
@@ -25,12 +27,43 @@
       font-size: 1.1rem;
       margin: 0.5rem 0 1.5rem;
     }
+    .history-button {
+      position: absolute;
+      right: -5rem;
+      top: 0.5rem;
+      transform: rotate(-90deg);
+      transform-origin: right top;
+      background: #f6f8fa;
+      border: 1px solid #d1d5da;
+      padding: 0.3rem 0.6rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+    .nav-button {
+      position: fixed;
+      top: 50%;
+      transform: translateY(-50%);
+      background: #f6f8fa;
+      border: 1px solid #d1d5da;
+      padding: 0.3rem 0.6rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+    .prev-post {
+      left: 0.5rem;
+    }
+    .next-post {
+      right: 0.5rem;
+    }
   </style>
 </head>
 <body>
+  <button class="nav-button prev-post">← Prev</button>
+  <button class="nav-button next-post">Next →</button>
   <header class="header">
     <h1>Prompted Blog</h1>
     <p class="description">Prompt-driven commit history as a blog. One prompt at a time.</p>
+    <button class="history-button" onclick="location.search='?history_enabled=true'">Prompt History</button>
   </header>
   <main id="latest-post" class="markdown-body">
     <!-- Latest post will be injected here -->
