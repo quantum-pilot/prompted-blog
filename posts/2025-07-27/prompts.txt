@@ -18,3 +18,5 @@ Follow my style of writing so that it's convincing that I wrote it and not you, 
 No need for complicated literature like Newyorker - we're only writing a tech blog.
 Use markdown inline links.
 Add a note at the bottom in a blockquote saying this works only if it's a known flow, library or tool, not for an npm lib released yday.
+
+This section is good. We can freeze it here. Can you write an aggregation of all the instructions you know and have learned in this conversation to establish a human review in this loop? I'll set all of it as custom instruction and we can restart this chat for the next section. Add it in a separate below section in the markdown with heading "custom instructions". Move the underline to before that heading.
