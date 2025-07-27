@@ -36,7 +36,9 @@
     <!-- Latest post will be injected here -->
   </main>
   <script>
-    fetch('posts/2025-07-27/index.html')
+    fetch('latest.json')
+      .then(res => res.json())
+      .then(obj => fetch(`${obj.relpath}/index.html`))
       .then(res => res.text())
       .then(html => {
         const temp = document.createElement('div');
