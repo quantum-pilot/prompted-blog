@@ -1,0 +1,13 @@
+First post would be about list of things LLMs can do that you never thought they would. First case for that would be simple absurd syntax errors.
+
+When I tried out typst, I wanted to run a compile-loop every second to see the output whenever I wanted. So I tried this in zsh
+while true; do typst compile resume.typ source/resume.pdf || true; do typst compile --input redacted=true resume.typ source/resume-redacted.pdf || true; sleep 1; done
+
+I got:
+zsh: parse error near `do'
+
+As the experienced senior programmer but inexperienced zsh user I am, I searched for the exact error in Kagi and I was unable to find anything that would help, so in 5 mins, I started blaming zsh and then I posted it in ChatGPT, which immediately gave me the fix. After this, I will include the exact output.
+
+Add links to typst and kagi.
+
+Write this first section in markdown format into a canvas. Always prefer updating the canvas and don't respond in chat.
