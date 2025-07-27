@@ -26,21 +26,21 @@ Yes, it was that obvious. No, I didn’t see it.
 
 > *LLM quick‑fixes shine when the problem lives in a known flow, library, or tool. If you’re wrestling with an npm package published yesterday at 3 a.m., you’re on your own.*
 
-# Agents and Field Work
+# Field Work: Domains, Boilerplate, Rollout
 
-LLMs make a decent \$20/mo assistant on an infinite loop. Need a project name? Hand it a half‑baked brief and watch it spit out domains, ping WHOIS, filter out the taken ones, then suggest alternates. Half the list is junk, the rest are unregistered gems.
+Need a project name? An available domain? Boilerplate that actually runs? A sketch of rollout strategies? The hurdles are shorter now—if you’re willing to poke around and learn.
 
-*(First screenshot of freshly‑claimed domains goes here.)*
+ChatGPT handed me a curated list of unregistered domains, checked WHOIS in a loop, and I bought the best ones on the spot. *(Screenshot of those domains goes here.)*
 
-Bootstrapping tiny tools is the same trick: the repo [quantum‑pilot/like‑button](https://github.com/quantum-pilot/like-button) rolled off the prompt assembly line in a few hours. Not a 10×‑engineer showcase—just proof that skipping boilerplate is better than reading boilerplate.
+Bootstrapping tiny tools is the same trick: the repo [quantum-pilot/like-button](https://github.com/quantum-pilot/like-button) appeared after a few hours of prompt‑driven back‑and‑forth. It’s proof that skipping boilerplate beats reading it—but don’t expect miracles. Scaling this approach to full operating‑system work is still slower than a focused human team (see [METR’s study](https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/)).
 
-Research? Point it at “journal apps,” let it crawl patents, pricing pages, and UX autopsies, then skim the debris. I’ll drop the markdown excerpt next:
+For research, I gave it an open‑ended brief on journal apps and let it collect pricing pages, patents, and UX write‑ups. The raw excerpt is next; refinement comes later.
 
 ```markdown
 [ will drop markdown excerpt here ]
 ```
 
-> *Treat it like an overeager intern: let it wander, check its work, keep the good bits.*
+> *Treat it like an eager intern: let it explore, verify the output, keep what helps.*
 
 ---
 

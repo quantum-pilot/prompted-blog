@@ -36,3 +36,10 @@ Next example is for researching a journal app - excerpt from its research here:
 \[ will drop markdown excerpt here ]
 
 It's kickass to have some researching bot which does a lot of field work in a domain where you don't have enough experience. You can learn from it just like how your assistant can complement your weaknesses.
+
+There are so many topics on agents. I like field work, but the title can be better. Make it Field Work: Domains, Boilerplate, Rollout.
+Need a project name should be something like need a project name? available domain? boilerplate? rollout strategies? As long as you're willing to learn, the hurdles are now shorter. Doesn't have to be exactly as this.
+Before the domains screenshot, mention that it's a list of domains I own based on suggestions from chatgpt.
+Need better wording for "not a 10x engineer showcase" - it's fine, but it should also emphasize that it's not efficient to work on bigger projects with LLMs pointing to this article https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/
+The whole sentence about research comes off as if you're showing off. Can you tune it down a bit? Rephrase with some humility.
+Don't touch the first section or custom instructions.
