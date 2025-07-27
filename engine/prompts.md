@@ -49,3 +49,5 @@ Why not merge both markdown generation and diff generation? We can rename it to 
 4. This render also does not deal with unicode chars as you can see in the screenshot.
 
 ![minimal](../assets/minimal-md.jpg)
+
+The minimal output is getting to me. Can we already switch to a modern markdown rendering tool. It's not a necessity to use markdown package. We can split the markdown generation from python and use a docker-based tool instead and it will run as a separate step. Also, instructions.txt is not inside posts but in in root because it applies to the blog as a whole. We should create diffs for that as well in the python script.

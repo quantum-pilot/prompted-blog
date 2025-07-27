@@ -2,11 +2,11 @@ import os
 import subprocess
 import json
 from pathlib import Path
-import markdown
-import datetime
 
-ROOT = Path("posts")
+POSTS = Path("posts")
+ROOT_FILES = [Path("instructions.txt")]
 CACHE = "diff_cache"
+
 
 def get_git_versions(path):
     result = subprocess.run([
@@ -14,12 +14,14 @@ def get_git_versions(path):
     ], capture_output=True, text=True)
     return result.stdout.strip().splitlines()
 
+
 def get_version_diff(path, commit):
     return subprocess.run([
         "git", "show", f"{commit}:{path}"], capture_output=True, text=True).stdout
 
-def write_versioned_diffs(post_dir, rel_path):
-    cache_dir = post_dir / CACHE / rel_path.name
+
+def write_versioned_diffs(target_dir, rel_path):
+    cache_dir = target_dir / CACHE / rel_path.name
     cache_dir.mkdir(parents=True, exist_ok=True)
     versions = get_git_versions(rel_path)
     for i, commit in enumerate(reversed(versions)):
@@ -28,24 +30,20 @@ def write_versioned_diffs(post_dir, rel_path):
         with out.open("w") as f:
             json.dump({"version": i+1, "commit": commit, "content": content}, f, indent=2)
 
-def write_html(md_path):
-    html_out = md_path.parent / "index.html"
-    with md_path.open("r", encoding="utf-8") as f:
-        md_text = f.read()
-    html = markdown.markdown(md_text)
-    with html_out.open("w", encoding="utf-8") as f:
-        f.write(html)
 
 def main():
-    for post in ROOT.iterdir():
+    for post in POSTS.iterdir():
         if not post.is_dir():
             continue
-        for file in ("prompts.txt", "instructions.txt", "output.md"):
+        for file in ("prompts.txt", "output.md"):
             fpath = post / file
             if fpath.exists():
                 write_versioned_diffs(post, fpath)
-                if fpath.suffix == ".md":
-                    write_html(fpath)
+
+    for path in ROOT_FILES:
+        if path.exists():
+            write_versioned_diffs(path.parent, path)
+
 
 if __name__ == "__main__":
     main()
