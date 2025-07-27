@@ -8,41 +8,55 @@ ROOT_FILES = [Path("instructions.txt")]
 CACHE = "diff_cache"
 
 
-def get_git_versions(path):
+def get_commit_history(path):
     result = subprocess.run([
         "git", "log", "--pretty=format:%H", str(path)
     ], capture_output=True, text=True)
-    return result.stdout.strip().splitlines()
+    return result.stdout.strip().splitlines()[::-1]  # oldest to newest
 
 
-def get_version_diff(path, commit):
-    return subprocess.run([
-        "git", "show", f"{commit}:{path}"], capture_output=True, text=True).stdout
+def get_parent_commit(sha):
+    result = subprocess.run([
+        "git", "rev-list", "--parents", "-n", "1", sha
+    ], capture_output=True, text=True).stdout.strip().split()
+    return result[1] if len(result) > 1 else None
 
 
-def write_versioned_diffs(target_dir, rel_path):
-    cache_dir = target_dir / CACHE / rel_path.name
+def get_diff_between_commits(path, base, head):
+    result = subprocess.run([
+        "git", "diff", f"{base}..{head}", "--", str(path)
+    ], capture_output=True, text=True)
+    return result.stdout
+
+
+def write_diffs_for_file(post_dir, rel_path):
+    cache_dir = post_dir / CACHE / rel_path.name
     cache_dir.mkdir(parents=True, exist_ok=True)
-    versions = get_git_versions(rel_path)
-    for i, commit in enumerate(reversed(versions)):
-        content = get_version_diff(rel_path, commit)
-        out = cache_dir / f"v{i+1}.json"
-        with out.open("w") as f:
-            json.dump({"version": i+1, "commit": commit, "content": content}, f, indent=2)
+    commits = get_commit_history(rel_path)
+    with (cache_dir / "revisions.json").open("w") as revs:
+        json.dump(commits, revs, indent=2)
+    for i in range(1, len(commits)):
+        base, head = commits[i - 1], commits[i]
+        diff_file = cache_dir / f"{i}.json"
+        if diff_file.exists():
+            continue
+        diff = get_diff_between_commits(rel_path, base, head)
+        with diff_file.open("w") as f:
+            json.dump({"from": base, "to": head, "diff": diff}, f, indent=2)
 
 
 def main():
     for post in POSTS.iterdir():
-        if not post.is_dir():
+        if not post.is_dir() or post.name == CACHE:
             continue
-        for file in ("prompts.txt", "output.md"):
-            fpath = post / file
+        for fname in ("prompts.txt", "output.md"):
+            fpath = post / fname
             if fpath.exists():
-                write_versioned_diffs(post, fpath)
+                write_diffs_for_file(post, fpath)
 
     for path in ROOT_FILES:
         if path.exists():
-            write_versioned_diffs(path.parent, path)
+            write_diffs_for_file(path.parent, path)
 
 
 if __name__ == "__main__":

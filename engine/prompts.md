@@ -63,3 +63,5 @@ I don't want static embedding. Change render.sh to emit all rendered posts and s
 Let's rewrite the fetch logic to fetch this json.
 
 Now comes the functionality. Let's add a button for prompt history somewhere. Next to header or outside of div container slightly to the right or left? Note that we will also have previous and next post buttons on the far  left and right edges. You can add them now. Only make the necessary changes. If something is untouched, drop a comment as placeholder for unchanged lines.
+
+Let's revisit diff generation in python. Right now we are generating full file content and storing in json which is a lot of load. Let's obtain and store a list of commit hashes for each post, and generate diffs of individual files for each SHA hash relative to their parent hash. Once we get the revisions for a post, we check if the diff json exists for each file progressively, starting from the last revision and work our way to the first ever revision. If diff exists, it gets rendered for that file in the view. If it doesn't exist, it will remain static. Let's implement this logic in python script first.
