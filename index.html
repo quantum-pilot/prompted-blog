@@ -79,6 +79,57 @@
       display: flex;
       flex-direction: column;
     }
+    .instructions-container {
+      position: fixed !important;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 50vw;
+      height: 50vh;
+      background: white;
+      border: 2px solid #d1d5da;
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      z-index: 1000;
+      flex: none !important;
+    }
+    .diff-header {
+      background: #f6f8fa;
+      border-bottom: 1px solid #d1d5da;
+      padding: 0.5rem 1rem;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .instructions-btn {
+      background: #0969da;
+      color: white;
+      border: none;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+    .instructions-btn:hover {
+      background: #0550ae;
+    }
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: #656d76;
+      padding: 0;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .close-btn:hover {
+      color: #24292f;
+    }
     .diff-full {
       white-space: pre-wrap;
       padding: 1rem;

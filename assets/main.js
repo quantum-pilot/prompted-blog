@@ -32,11 +32,11 @@ fetch('latest.json')
     document.getElementById('latest-post').style.display = 'none';
 
     const targets = [
-      { name: 'instructions.txt', dir: '.' },
-      { name: 'prompts.txt',      dir: basePath },
-      { name: 'output.md',        dir: basePath }
+      { name: 'instructions.txt', dir: '.', displayName: 'Instructions' },
+      { name: 'prompts.txt',      dir: basePath, displayName: 'Prompts' },
+      { name: 'output.md',        dir: basePath, displayName: 'Output' }
     ];
-    const order = targets.map(t => t.name);
+    const order = ['prompts.txt', 'output.md']; // only show these two by default
     let maxRevs = 0;
 
     // revisions
@@ -126,14 +126,54 @@ fetch('latest.json')
         function inject(fname, src, unchanged) {
           const html = Diff2Html.html(src, DIFF_OPTS);
           const wrap = document.createElement('div');
-          wrap.className = 'diff-container';
-          wrap.innerHTML = html;
+          wrap.className = fname === 'instructions.txt' ? 'diff-container instructions-container' : 'diff-container';
+          wrap.id = `${fname}-container`;
+
+          // Add title header
+          const target = targets.find(t => t.name === fname);
+          const header = document.createElement('div');
+          header.className = 'diff-header';
+          header.textContent = target.displayName;
+
+          // Add Instructions button to Prompts header
+          if (fname === 'prompts.txt') {
+            const instructionsBtn = document.createElement('button');
+            instructionsBtn.className = 'instructions-btn';
+            instructionsBtn.textContent = 'Instructions';
+            instructionsBtn.onclick = () => toggleInstructions(true);
+            header.appendChild(instructionsBtn);
+          }
+
+          // Add close button to Instructions header
+          if (fname === 'instructions.txt') {
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'close-btn';
+            closeBtn.textContent = '×';
+            closeBtn.onclick = () => toggleInstructions(false);
+            header.appendChild(closeBtn);
+            wrap.style.display = 'none'; // hidden by default
+          }
+
+          wrap.appendChild(header);
+          wrap.innerHTML += html;
+
           if (unchanged) {
             const tag = wrap.querySelector('.d2h-tag');
             if (tag) tag.remove();
           }
+
           blocks.set(fname, wrap);
-          if ([...blocks.values()].every(Boolean)) order.forEach(k => diffOutput.appendChild(blocks.get(k)));
+
+          // Show instructions separately from main containers
+          if (fname === 'instructions.txt') {
+            diffOutput.appendChild(wrap);
+          } else if ([...blocks.values()].filter(b => b && !b.classList.contains('instructions-container')).length === order.length) {
+            order.forEach(k => {
+              if (blocks.get(k) && !blocks.get(k).classList.contains('instructions-container')) {
+                diffOutput.appendChild(blocks.get(k));
+              }
+            });
+          }
         }
       }
 
@@ -162,7 +202,15 @@ fetch('latest.json')
     });
   });
 
-// toggle
+// toggle instructions overlay
+function toggleInstructions(show) {
+  const instructionsContainer = document.getElementById('instructions.txt-container');
+  if (instructionsContainer) {
+    instructionsContainer.style.display = show ? 'flex' : 'none';
+  }
+}
+
+// toggle history
 historyBtn.addEventListener('click', () => {
   historyBtn.classList.toggle('active');
   if (isHistory) url.searchParams.delete('history_enabled');
