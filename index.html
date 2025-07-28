@@ -131,6 +131,7 @@
   <div id="diff-output"></div>
   <div id="revision-scroller"></div>
   <script src="assets/diff2html.min.js"></script>
+  <script src="assets/diff2html.min.js"></script>
   <script>
     const url = new URL(window.location);
     const isHistory = url.searchParams.get('history_enabled') === 'true';
@@ -151,7 +152,6 @@
             { path: 'output.md', dir: path }
           ];
           const order = targets.map(t => t.path);
-          const blockMap = new Map(order.map(k => [k, null]));
 
           let maxRevs = 0;
 
@@ -185,6 +185,8 @@
 
             function renderRevision(index) {
               diffOutput.innerHTML = '';
+              const blockMap = new Map(order.map(k => [k, null]));
+
               files.forEach(({ fname, dir, revisions }) => {
                 let revIndex = index;
                 while (revIndex >= 0 && revIndex >= revisions.length) revIndex--;
@@ -218,10 +220,13 @@
                   fallback.innerHTML = `<div style='padding:1rem; font-style:italic;'>No data for <code>${fname}</code> at rev ${index}.</div>`;
                   blockMap.set(fname, fallback);
                 }).finally(() => {
-                  order.forEach(k => {
-                    const el = blockMap.get(k);
-                    if (el && !diffOutput.contains(el)) diffOutput.appendChild(el);
-                  });
+                  const allFilled = order.every(k => blockMap.get(k));
+                  if (allFilled) {
+                    order.forEach(k => {
+                      const el = blockMap.get(k);
+                      if (el) diffOutput.appendChild(el);
+                    });
+                  }
                 });
               });
             }
