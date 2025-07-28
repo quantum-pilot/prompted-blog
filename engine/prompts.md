@@ -149,3 +149,5 @@ We should display the remainder of contents of file within the diff. If diff doe
 Can we inline the additions and deletions in the same file? This way we only show one file. We should avoid duplicating lines if content has not changed there. Prefer brief comments instead of writing full blown documentation.
 
 Inline diff is great, but this is not showing the full file in the diff. How can we squeeze the contents around the diff into the view?
+
+Works. Instead of showing the latest revision, fix a page to a revision - if diff exists for the file in the revision, show it like how it is currently. If it does not, then show the file contents corresponding to that version. Make sure "changed" is not shown at the top of the file in difftool indicating that no change has been made in that revision for that file.
