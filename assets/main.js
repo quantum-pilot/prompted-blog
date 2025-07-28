@@ -167,11 +167,15 @@ function clamp(v, min, max) { return Math.min(Math.max(v, min), max); }
 
 // synthetic full‑file diff when unchanged
 function buildUnchanged(name, lines) {
+  if (lines.length === 0) lines = [''];
+  // add dummy header only for unchanged files to fix diff2html first-line parsing
   return [
     `--- a/${name}`,
     `+++ b/${name}`,
+    `@@ -0,0 +1,${lines.length} @@`,
+    ` `, // dummy line for diff2html parsing
     `@@ -1,${lines.length} +1,${lines.length} @@`,
-    ...lines.map(l => ' ' + l)
+    ...lines.map(l => ` ${l}`)
   ].join('\n');
 }
 
@@ -182,6 +186,21 @@ function expandDiff(diffText, fullLines) {
   const out = [];
   let i = 0;
   while (i < src.length && !src[i].startsWith('@@')) out.push(src[i++]);
+  
+  // check if diff starts at line 1
+  let startsAtLineOne = false;
+  if (i < src.length) {
+    const firstHunk = src[i];
+    const m = /@@ -(\d+)/.exec(firstHunk);
+    startsAtLineOne = m && +m[1] === 1;
+  }
+  
+  // add dummy header if diff doesn't start at line 1
+  if (!startsAtLineOne) {
+    out.push(`@@ -0,0 +1,${fullLines.length} @@`);
+    out.push(` `); // dummy line
+  }
+  
   let prevNew = 1;
   while (i < src.length) {
     const head = src[i];
