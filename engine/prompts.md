@@ -146,3 +146,5 @@ Work on one canvas per file. Use brief comments over descriptive ones.
 
 We are working on main.js - use the existing file in project as base.
 We should display the remainder of contents of file within the diff. If diff does not exist, we should still populate the diff view with the contents so that it shows all the contents of the file with line numbers. We are already using diff2html, check index.html for inspiration. Do not append the complete file. We should extend the lines around the diff to include file contents of that version instead, while preserving formatting.
+
+Can we inline the additions and deletions in the same file? This way we only show one file. We should avoid duplicating lines if content has not changed there. Prefer brief comments instead of writing full blown documentation.
