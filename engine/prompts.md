@@ -112,3 +112,5 @@ Let's change index.html to use this. Remember how I asked for it?
 The diff may not always exist - for example, instructions are modified barely, but prompts and output can always change. Sometimes outputs have to be fixed so prompts will stay the same. Instead of attempting to fetch all files, we can check if the revision exists in revisions.json and if it does not, we go for whichever revision exists before that - basically the previous index.
 
 The pagination logic is off. Old file views are not removed properly and accumulates when we switch pages.
+
+We need the diffs to extend with the file instead of having it separately. This means, places where we don't have diffs, the tool will still display the last version of the file inside diff tool. This is what Github does, can we do the same? Let's write an assets/main.js with all contents of the custom javascript. We can later include this in the html.
