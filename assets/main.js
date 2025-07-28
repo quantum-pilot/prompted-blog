@@ -185,7 +185,16 @@ function expandDiff(diffText, fullLines) {
   const src = diffText.split('\n');
   const out = [];
   let i = 0;
-  while (i < src.length && !src[i].startsWith('@@')) out.push(src[i++]);
+  while (i < src.length && !src[i].startsWith('@@')) {
+    let line = src[i++];
+    // Replace full paths with just filename in diff headers
+    if (line.startsWith('--- a/') || line.startsWith('+++ b/')) {
+      const parts = line.split('/');
+      const filename = parts[parts.length - 1];
+      line = line.substring(0, 6) + filename;
+    }
+    out.push(line);
+  }
 
   // check if diff starts at line 1
   let startsAtLineOne = false;

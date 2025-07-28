@@ -217,3 +217,5 @@ This javascript file is invoked inn index.html in root. You can go through engin
 Line numbers are static now, but the file content is scrollable. The first line (unless it's diff) is still ignored probably because it is treated as a diff header. We could generate a diff header for files when there is no diff at line 1 - just for diff2html so that it ignores it and continues with actual file. It should be added only when the file has no diff at line 1. If diff already exists for line 1, then no need to add it manually.
 
 Set both the dummy lines with -0,0 to +0 so that both the old and new views start at line 1. Let's also ignore overflow-y auto in diff-container.
+
+Instead of full path for prompts.txt and output.md in diff tool view when history mode is enabled, just say prompts.txt or output.md directly.
