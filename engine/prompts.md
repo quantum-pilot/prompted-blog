@@ -108,3 +108,5 @@ For each version, I want the full file with a highlighted diff. Can we generate 
 It looks like this ignores the initial state of the file? We can call it `0.txt` and `0.diff` - it's basically the creation of the file which may or may not contain contents right?
 
 Let's change index.html to use this. Remember how I asked for it?
+
+The diff may not always exist - for example, instructions are modified barely, but prompts and output can always change. Sometimes outputs have to be fixed so prompts will stay the same. Instead of attempting to fetch all files, we can check if the revision exists in revisions.json and if it does not, we go for whichever revision exists before that - basically the previous index.

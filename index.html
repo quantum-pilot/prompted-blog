@@ -154,7 +154,6 @@
           const blockMap = new Map(order.map(k => [k, null]));
 
           let maxRevs = 0;
-          const allRevisions = [];
 
           Promise.all(targets.map(({ path: fname, dir }) =>
             fetch(`${dir}/diff_cache/${fname}/revisions.json`)
@@ -186,9 +185,13 @@
 
             function renderRevision(index) {
               diffOutput.innerHTML = '';
-              files.forEach(({ fname, dir }) => {
-                const diffPath = `${dir}/diff_cache/${fname}/${index}.diff`;
-                const txtPath = `${dir}/diff_cache/${fname}/${index}.txt`;
+              files.forEach(({ fname, dir, revisions }) => {
+                let revIndex = index;
+                while (revIndex >= 0 && revIndex >= revisions.length) revIndex--;
+                if (revIndex < 0) return;
+
+                const diffPath = `${dir}/diff_cache/${fname}/${revIndex}.diff`;
+                const txtPath = `${dir}/diff_cache/${fname}/${revIndex}.txt`;
 
                 Promise.all([
                   fetch(diffPath).then(r => r.ok ? r.text() : Promise.reject()),
