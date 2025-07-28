@@ -207,3 +207,5 @@ Works. Instead of showing the latest revision, fix a page to a revision - if dif
 Use brief comments instead of descriptive comments or explanations. We are working on diff view over files index.html and main.js. Create new canvas one for each, start with main.js. If index.html needs to be updated, let me know in chat.
 
 As you can see in diff.jpg, instructions.txt has no file changes, but it should still show the file contents at that version. If you look at post markdown in image, the line number states later at line 3 instead of line 1 in the file.
+
+We do not have to fetch the last version for all files - each file's revisions.json (fetched) contains a list of hashes. We can modify generate.py to include date from Git commit. Let's work on a new canvas for that using existing generate.py as base.
