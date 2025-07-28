@@ -151,3 +151,59 @@ Can we inline the additions and deletions in the same file? This way we only sho
 Inline diff is great, but this is not showing the full file in the diff. How can we squeeze the contents around the diff into the view?
 
 Works. Instead of showing the latest revision, fix a page to a revision - if diff exists for the file in the revision, show it like how it is currently. If it does not, then show the file contents corresponding to that version. Make sure "changed" is not shown at the top of the file in difftool indicating that no change has been made in that revision for that file.
+
+> ChatGPT once again started having dementia or schizophrenia, asked it to emit custom instructions again for a new chat, this time it will be with 4.1 instead of o3. as it's advertise for "quick coding and analysis".
+>
+> ### Custom instructions v2
+>
+> **Only edit `index.html` (HTML + CSS) and `main.js` (client JS).**
+>
+> Frontend containers in `index.html`:
+>
+> * `#latest-post` – slot for rendered HTML of the newest post.
+> * `#diff-output` – Diff2Html target pane.
+> * `#revision-scroller` – row of clickable dots (one per revision).
+> * `#history-trigger`, `.prev-post`, `.next-post` – navigation controls.
+>
+> Main workflow in `main.js`:
+>
+> **Parse URL flags:**
+>    * `?history_enabled=true` → show *history* view.
+>    * `?rev=N` (optional) → pin UI to a specific revision.
+>
+> **Latest (default) view**
+>    * Fetch `latest.json` → inject `${path}/index.html` into `#latest-post`.
+>
+> **History view**
+>    * Hide `#latest-post`; highlight `#history-trigger`.
+>    * For the selected revision (`rev`), load `.diff` *if it exists* **or** the raw file snapshot.
+>      * If a diff exists, merge it with unchanged context lines so the Diff2Html **inline** (single-pane, `outputFormat:'line-by-line'`) view shows the *entire* file, unchanged lines included, no duplicates.
+>      * If no diff, synthesize a unified diff that marks every line as neutral; suppress the “changed” banner so the header doesn’t imply edits.
+>    * Build / update the dot scroller; clicking a dot sets `rev` via `history.replaceState` and re-renders without reload.
+>
+> **Nav buttons** `.prev-post`, `.next-post` remain to be wired (future work).
+>
+> Diff rendering:
+>
+> * **Inline (+/–) highlighting, single copy of each unchanged line.**
+> * Full-file context always visible; line numbers preserved.
+> * Brief, minimal code comments—avoid verbose docs in source.
+>
+> Use these rules for any future modifications or new features.
+>
+> **Project files:**
+> - prompts.md contains the entire user prompt which led to the creation of artifacts.
+> - index.html is frontend
+> - main.js is the custom javascript
+> - generate.py is for generating diff cache from git tree (used in server, only for understanding logic)
+> - render.sh is the markdown rendering for blog posts (used in server, only for understanding logic)
+> - main.jpg is the current main view
+> - diff.jpg is the current diff view
+>
+> ![v2-diff.jpg](/assets/v2-diff.jpg)
+
+> And then I regreted going to 4.1 because it was worse. So I went back to o3.
+
+Use brief comments instead of descriptive comments or explanations. We are working on diff view over files index.html and main.js. Create new canvas one for each, start with main.js. If index.html needs to be updated, let me know in chat.
+
+As you can see in diff.jpg, instructions.txt has no file changes, but it should still show the file contents at that version. If you look at post markdown in image, the line number states later at line 3 instead of line 1 in the file.

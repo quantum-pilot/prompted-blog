@@ -9,13 +9,17 @@ const revScroller = document.getElementById('revision-scroller');
 
 if (isHistory) historyBtn.classList.add('active');
 
-const DIFF_OPTS = { drawFileList: false, matching: 'words', outputFormat: 'line-by-line' };
+const DIFF_OPTS = {
+  drawFileList: false,
+  matching: 'words',
+  outputFormat: 'line-by-line'
+};
 
 fetch('latest.json')
   .then(r => r.json())
   .then(basePath => {
     if (!isHistory) {
-      // normal mode → just show latest post
+      // latest view
       fetch(`${basePath}/index.html`).then(r => r.text()).then(html => {
         const tmp = document.createElement('div');
         tmp.innerHTML = html;
@@ -35,7 +39,7 @@ fetch('latest.json')
     const order = targets.map(t => t.name);
     let maxRevs = 0;
 
-    // load revision metadata
+    // revisions
     Promise.all(targets.map(({ name, dir }) =>
       fetch(`${dir}/diff_cache/${name}/revisions.json`)
         .then(r => r.json())
@@ -43,12 +47,11 @@ fetch('latest.json')
     )).then(files => {
       buildScroller(maxRevs);
 
-      // pick revision (defaults to latest)
       const revIdx = clamp(fixedRev ?? (maxRevs - 1), 0, maxRevs - 1);
       setActiveDot(revIdx);
       renderRev(revIdx);
 
-      /* ---------------- helpers ---------------- */
+      /* -------- helpers -------- */
       function renderRev(idx) {
         diffOutput.innerHTML = '';
         const blocks = new Map(order.map(k => [k, null]));
@@ -104,7 +107,7 @@ fetch('latest.json')
     });
   });
 
-// history toggle
+// toggle
 historyBtn.addEventListener('click', () => {
   historyBtn.classList.toggle('active');
   if (isHistory) url.searchParams.delete('history_enabled');
@@ -112,24 +115,25 @@ historyBtn.addEventListener('click', () => {
   window.location = url.toString();
 });
 
-/* ---------- utils ---------- */
+/* ---- utils ---- */
 function clamp(v, min, max) { return Math.min(Math.max(v, min), max); }
 
+// synthetic full‑file diff when unchanged
 function buildUnchanged(name, lines) {
   return [
     `--- a/${name}`,
     `+++ b/${name}`,
+    `@@ -1,${lines.length} +1,${lines.length} @@`,
     ...lines.map(l => ' ' + l)
   ].join('\n');
 }
 
-// fills gaps with unchanged lines so whole file is visible
+// inject context lines into diff
 function expandDiff(diffText, fullLines) {
   if (!diffText) return null;
   const src = diffText.split('\n');
   const out = [];
   let i = 0;
-  // headers
   while (i < src.length && !src[i].startsWith('@@')) out.push(src[i++]);
   let prevNew = 1;
   while (i < src.length) {
