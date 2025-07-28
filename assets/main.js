@@ -172,7 +172,7 @@ function buildUnchanged(name, lines) {
   return [
     `--- a/${name}`,
     `+++ b/${name}`,
-    `@@ -0,0 +1,${lines.length} @@`,
+    `@@ -0,0 +0,0 @@`,
     ` `, // dummy line for diff2html parsing
     `@@ -1,${lines.length} +1,${lines.length} @@`,
     ...lines.map(l => ` ${l}`)
@@ -186,7 +186,7 @@ function expandDiff(diffText, fullLines) {
   const out = [];
   let i = 0;
   while (i < src.length && !src[i].startsWith('@@')) out.push(src[i++]);
-  
+
   // check if diff starts at line 1
   let startsAtLineOne = false;
   if (i < src.length) {
@@ -194,13 +194,13 @@ function expandDiff(diffText, fullLines) {
     const m = /@@ -(\d+)/.exec(firstHunk);
     startsAtLineOne = m && +m[1] === 1;
   }
-  
+
   // add dummy header if diff doesn't start at line 1
   if (!startsAtLineOne) {
-    out.push(`@@ -0,0 +1,${fullLines.length} @@`);
+    out.push(`@@ -0,0 +0,0 @@`);
     out.push(` `); // dummy line
   }
-  
+
   let prevNew = 1;
   while (i < src.length) {
     const head = src[i];
