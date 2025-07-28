@@ -82,15 +82,23 @@ fetch('latest.json')
             const diffPath = `${dir}/diff_cache/${name}/${fileInRev.revIdx}.diff`;
             const txtPath = `${dir}/diff_cache/${name}/${fileInRev.revIdx}.txt`;
 
-            Promise.all([
-              fetch(diffPath).then(r => r.ok ? r.text() : null),
-              fetch(txtPath).then(r => r.ok ? r.text() : '')
-            ]).then(([diff, txt]) => {
-              const full = txt.split('\n');
-              const unchanged = !diff;
-              const final = unchanged ? buildUnchanged(name, full) : expandDiff(diff, full);
-              inject(name, final, unchanged);
-            });
+            if (fileInRev.revIdx === 0) {
+              // first revision - show as all additions
+              fetch(txtPath).then(r => r.ok ? r.text() : '').then(txt => {
+                const final = buildFirstRevision(name, txt.split('\n'));
+                inject(name, final, false);
+              });
+            } else {
+              Promise.all([
+                fetch(diffPath).then(r => r.ok ? r.text() : null),
+                fetch(txtPath).then(r => r.ok ? r.text() : '')
+              ]).then(([diff, txt]) => {
+                const full = txt.split('\n');
+                const unchanged = !diff;
+                const final = unchanged ? buildUnchanged(name, full) : expandDiff(diff, full);
+                inject(name, final, unchanged);
+              });
+            }
           } else {
             // find most recent version of this file before current revision
             let mostRecentIdx = -1;
@@ -176,6 +184,17 @@ function buildUnchanged(name, lines) {
     ` `, // dummy line for diff2html parsing
     `@@ -1,${lines.length} +1,${lines.length} @@`,
     ...lines.map(l => ` ${l}`)
+  ].join('\n');
+}
+
+// first revision as all additions
+function buildFirstRevision(name, lines) {
+  if (lines.length === 0) lines = [''];
+  return [
+    `--- a/${name}`,
+    `+++ b/${name}`,
+    `@@ -0,0 +1,${lines.length} @@`,
+    ...lines.map(l => `+${l}`)
   ].join('\n');
 }
 

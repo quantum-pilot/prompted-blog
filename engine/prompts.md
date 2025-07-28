@@ -219,3 +219,5 @@ Line numbers are static now, but the file content is scrollable. The first line 
 Set both the dummy lines with -0,0 to +0 so that both the old and new views start at line 1. Let's also ignore overflow-y auto in diff-container.
 
 Instead of full path for prompts.txt and output.md in diff tool view when history mode is enabled, just say prompts.txt or output.md directly.
+
+We can assume 0.diff does not make sense as there is no parent, so we can ignore fetching it. But we have to fetch 0.txt and show the entire contents in the first page as additions in diff tool view. Currently, this is empty when we scroll to page 1.
