@@ -114,3 +114,8 @@ The diff may not always exist - for example, instructions are modified barely, b
 The pagination logic is off. Old file views are not removed properly and accumulates when we switch pages.
 
 We need the diffs to extend with the file instead of having it separately. This means, places where we don't have diffs, the tool will still display the last version of the file inside diff tool. This is what Github does, can we do the same? Let's write an assets/main.js with all contents of the custom javascript. We can later include this in the html.
+
+> I received an emoji in response - I realized that the model got switched to 4o suddenly (which could only make buggy changes) and when I switched back to o3, it started crashing every time I tried to update the canvas, so I updated the project files with the latest prompts, files (instructions) and started another chat.
+
+We are working on main.js
+We should display the remainder of contents of file within the diff. If diff does not exist, we should still populate the diff view with the contents so that it shows the file with line numbers. We can also get rid of old view in diff. We can only have the new view.
