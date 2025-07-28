@@ -43,8 +43,24 @@ fetch('latest.json')
     Promise.all(targets.map(({ name, dir }) =>
       fetch(`${dir}/diff_cache/${name}/revisions.json`)
         .then(r => r.json())
-        .then(list => { maxRevs = Math.max(maxRevs, list.length); return { name, dir, list }; })
+        .then(list => ({ name, dir, list }))
     )).then(files => {
+      // merge all revisions with date and sort
+      const allRevisions = new Map();
+      files.forEach(({ name, dir, list }) => {
+        list.forEach((rev, idx) => {
+          const key = rev.date;
+          if (!allRevisions.has(key)) {
+            allRevisions.set(key, { date: rev.date, files: new Map() });
+          }
+          allRevisions.get(key).files.set(name, { name, dir, revIdx: idx, hash: rev.hash });
+        });
+      });
+
+      const sortedRevisions = Array.from(allRevisions.values())
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+      maxRevs = sortedRevisions.length;
       buildScroller(maxRevs);
 
       const revIdx = clamp(fixedRev ?? (maxRevs - 1), 0, maxRevs - 1);
@@ -55,20 +71,48 @@ fetch('latest.json')
       function renderRev(idx) {
         diffOutput.innerHTML = '';
         const blocks = new Map(order.map(k => [k, null]));
+        const currentRev = sortedRevisions[idx];
 
-        files.forEach(({ name, dir }) => {
-          const diffPath = `${dir}/diff_cache/${name}/${idx}.diff`;
-          const txtPath  = `${dir}/diff_cache/${name}/${idx}.txt`;
+        // for each target file, find most recent version up to current revision
+        targets.forEach(({ name, dir }) => {
+          const fileInRev = currentRev.files.get(name);
 
-          Promise.all([
-            fetch(diffPath).then(r => r.ok ? r.text() : null),
-            fetch(txtPath).then(r => r.ok ? r.text() : '')
-          ]).then(([diff, txt]) => {
-            const full = txt.split('\n');
-            const unchanged = !diff;
-            const final = unchanged ? buildUnchanged(name, full) : expandDiff(diff, full);
-            inject(name, final, unchanged);
-          });
+          if (fileInRev) {
+            // file changed in this revision
+            const diffPath = `${dir}/diff_cache/${name}/${fileInRev.revIdx}.diff`;
+            const txtPath = `${dir}/diff_cache/${name}/${fileInRev.revIdx}.txt`;
+
+            Promise.all([
+              fetch(diffPath).then(r => r.ok ? r.text() : null),
+              fetch(txtPath).then(r => r.ok ? r.text() : '')
+            ]).then(([diff, txt]) => {
+              const full = txt.split('\n');
+              const unchanged = !diff;
+              const final = unchanged ? buildUnchanged(name, full) : expandDiff(diff, full);
+              inject(name, final, unchanged);
+            });
+          } else {
+            // find most recent version of this file before current revision
+            let mostRecentIdx = -1;
+            for (let i = idx - 1; i >= 0; i--) {
+              if (sortedRevisions[i].files.has(name)) {
+                mostRecentIdx = sortedRevisions[i].files.get(name).revIdx;
+                break;
+              }
+            }
+
+            if (mostRecentIdx >= 0) {
+              const txtPath = `${dir}/diff_cache/${name}/${mostRecentIdx}.txt`;
+              fetch(txtPath).then(r => r.ok ? r.text() : '').then(txt => {
+                const full = txt.split('\n');
+                const final = buildUnchanged(name, full);
+                inject(name, final, true);
+              });
+            } else {
+              // no previous version, show empty
+              inject(name, buildUnchanged(name, []), true);
+            }
+          }
         });
 
         function inject(fname, src, unchanged) {
@@ -101,8 +145,11 @@ fetch('latest.json')
           revScroller.appendChild(d);
         }
         revScroller.appendChild(Object.assign(document.createElement('div'), { className: 'rev-scroll-icon' }));
+      }
 
-        function setActiveDot(i) { dots.forEach((x, idx) => x.classList.toggle('active', idx === i)); }
+      function setActiveDot(i) {
+        const dots = revScroller.querySelectorAll('.rev-dot');
+        dots.forEach((x, idx) => x.classList.toggle('active', idx === i));
       }
     });
   });

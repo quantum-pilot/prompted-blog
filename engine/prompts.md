@@ -209,3 +209,7 @@ Use brief comments instead of descriptive comments or explanations. We are worki
 As you can see in diff.jpg, instructions.txt has no file changes, but it should still show the file contents at that version. If you look at post markdown in image, the line number states later at line 3 instead of line 1 in the file.
 
 We do not have to fetch the last version for all files - each file's revisions.json (fetched) contains a list of hashes. We can modify generate.py to include date from Git commit. Let's work on a new canvas for that using existing generate.py as base.
+
+> At this point, I was tired of copy-pasting stuff from o3, so I switched to Claude Code.
+
+This javascript file is invoked inn index.html in root. You can go through engine/prompts.md to see how this has evolved. All artifacts have been generated. We are fetching individual revisions for a file. See revisions.json for any file in diff_cache dir and it'll contain a list of hash and datetime. We can use this to merge and sort all the revisions. After that, if a file contains a diff, it'll be shown surrounded by the file contents, otherwise the latest full content version will be displayed.
