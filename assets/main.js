@@ -85,7 +85,8 @@ fetch('latest.json')
             if (fileInRev.revIdx === 0) {
               // first revision - show as all additions
               fetch(txtPath).then(r => r.ok ? r.text() : '').then(txt => {
-                const final = buildFirstRevision(name, txt.split('\n'));
+                const target = targets.find(t => t.name === name);
+                const final = buildFirstRevision(target.displayName, txt.split('\n'));
                 inject(name, final, false);
               });
             } else {
@@ -95,7 +96,8 @@ fetch('latest.json')
               ]).then(([diff, txt]) => {
                 const full = txt.split('\n');
                 const unchanged = !diff;
-                const final = unchanged ? buildUnchanged(name, full) : expandDiff(diff, full);
+                const target = targets.find(t => t.name === name);
+                const final = unchanged ? buildUnchanged(target.displayName, full) : expandDiff(diff, full);
                 inject(name, final, unchanged);
               });
             }
@@ -113,49 +115,59 @@ fetch('latest.json')
               const txtPath = `${dir}/diff_cache/${name}/${mostRecentIdx}.txt`;
               fetch(txtPath).then(r => r.ok ? r.text() : '').then(txt => {
                 const full = txt.split('\n');
-                const final = buildUnchanged(name, full);
+                const target = targets.find(t => t.name === name);
+                const final = buildUnchanged(target.displayName, full);
                 inject(name, final, true);
               });
             } else {
               // no previous version, show empty
-              inject(name, buildUnchanged(name, []), true);
+              const target = targets.find(t => t.name === name);
+              inject(name, buildUnchanged(target.displayName, []), true);
             }
           }
         });
 
         function inject(fname, src, unchanged) {
-          const html = Diff2Html.html(src, DIFF_OPTS);
+          // Replace filename in diff with display name
+          const target = targets.find(t => t.name === fname);
+          const modifiedSrc = src.replace(new RegExp(`--- a/${fname}`, 'g'), `--- a/${target.displayName}`)
+                                 .replace(new RegExp(`\\+\\+\\+ b/${fname}`, 'g'), `+++ b/${target.displayName}`);
+          
+          const html = Diff2Html.html(modifiedSrc, DIFF_OPTS);
           const wrap = document.createElement('div');
           wrap.className = fname === 'instructions.txt' ? 'diff-container instructions-container' : 'diff-container';
           wrap.id = `${fname}-container`;
+          wrap.style.position = 'relative'; // for absolute positioned buttons
 
-          // Add title header
-          const target = targets.find(t => t.name === fname);
-          const header = document.createElement('div');
-          header.className = 'diff-header';
-          header.textContent = target.displayName;
+          // Set the diff content first
+          wrap.innerHTML = html;
 
-          // Add Instructions button to Prompts header
+          // Add Instructions button to Prompts container (no header needed)
           if (fname === 'prompts.txt') {
             const instructionsBtn = document.createElement('button');
             instructionsBtn.className = 'instructions-btn';
             instructionsBtn.textContent = 'Instructions';
             instructionsBtn.onclick = () => toggleInstructions(true);
-            header.appendChild(instructionsBtn);
+            instructionsBtn.style.position = 'absolute';
+            instructionsBtn.style.top = '0.5rem';
+            instructionsBtn.style.right = '0.5rem';
+            instructionsBtn.style.zIndex = '10';
+            wrap.appendChild(instructionsBtn);
           }
 
-          // Add close button to Instructions header
+          // Add close button to Instructions container
           if (fname === 'instructions.txt') {
             const closeBtn = document.createElement('button');
             closeBtn.className = 'close-btn';
             closeBtn.textContent = '×';
             closeBtn.onclick = () => toggleInstructions(false);
-            header.appendChild(closeBtn);
+            closeBtn.style.position = 'absolute';
+            closeBtn.style.top = '0.5rem';
+            closeBtn.style.right = '0.5rem';
+            closeBtn.style.zIndex = '10';
+            wrap.appendChild(closeBtn);
             wrap.style.display = 'none'; // hidden by default
           }
-
-          wrap.appendChild(header);
-          wrap.innerHTML += html;
 
           if (unchanged) {
             const tag = wrap.querySelector('.d2h-tag');
