@@ -118,29 +118,28 @@ We need the diffs to extend with the file instead of having it separately. This 
 > I received an emoji in response - I realized that the model got switched to 4o suddenly (which could only make buggy changes) and when I switched back to o3, it started crashing every time I tried to update the canvas, so I updated the project files with the latest prompts, files (instructions) and started another chat, for which I had to write more to bring it up to speed. I asked o3 to give me custom instructions based on the project files:
 >
 > "Give me brief custom instructions for LLM to continue building the blog engine based on prompts.md in project files. It will only work on index.html and main.js, so use those for understanding current logic in plaintext."
-
-### New custom instructions
-
-Follow these points when extending the blog engine.
-
-**Only touch** `index.html` (markup/CSS) and `main.js` (client logic).
-
-**Current logic refresher (from the two files)**
-* `main.js` fetches `latest.json`; if the URL flag `?history_enabled=true` is absent it injects the latest post’s rendered HTML into `#latest-post`.
-* With the flag present it:
-  1. Hides the latest post container.
-  2. Loads *instructions.txt*, the current folder’s `prompts.txt`, and `output.md` commit histories from each file’s `diff_cache/**`, using **Diff2Html** to render side-by-side diffs.
-  3. Builds a revision “dot” scroller and updates the diff view when a dot is clicked.
-* Two nav buttons (`.prev-post`, `.next-post`) are present but not yet wired.
-
-**Project files:**
-- prompts.md contains the entire user prompt which led to the creation of artifacts.
-- index.html is frontend
-- main.js is the custom javascript
-- generate.py is for generating diff cache from git tree
-- render.sh is the markdown rendering for blog posts
-- v1-main.jpg is the current main view
-- v1-diff.jpg is the current diff view
+>
+> ### Custom instructions for LLM
+> Follow these points when extending the blog engine.
+>
+> **Only touch** `index.html` (markup/CSS) and `main.js` (client logic).
+>
+> **Current logic refresher (from the two files)**
+> * `main.js` fetches `latest.json`; if the URL flag `?history_enabled=true` is absent it injects the latest post’s rendered HTML into `#latest-post`.
+> * With the flag present it:
+>   1. Hides the latest post container.
+>   2. Loads *instructions.txt*, the current folder’s `prompts.txt`, and `output.md` commit histories from each file’s `diff_cache/**`, using **Diff2Html** to render side-by-side diffs.
+>   3. Builds a revision “dot” scroller and updates the diff view when a dot is clicked.
+> * Two nav buttons (`.prev-post`, `.next-post`) are present but not yet wired.
+>
+> **Project files:**
+> - prompts.md contains the entire user prompt which led to the creation of artifacts.
+> - index.html is frontend
+> - main.js is the custom javascript
+> - generate.py is for generating diff cache from git tree
+> - render.sh is the markdown rendering for blog posts
+> - v1-main.jpg is the current main view
+> - v1-diff.jpg is the current diff view
 
 Work on one canvas per file. Use brief comments over descriptive ones.
 
