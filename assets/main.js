@@ -132,7 +132,7 @@ fetch('latest.json')
           const target = targets.find(t => t.name === fname);
           const modifiedSrc = src.replace(new RegExp(`--- a/${fname}`, 'g'), `--- a/${target.displayName}`)
                                  .replace(new RegExp(`\\+\\+\\+ b/${fname}`, 'g'), `+++ b/${target.displayName}`);
-          
+
           const html = Diff2Html.html(modifiedSrc, DIFF_OPTS);
           const wrap = document.createElement('div');
           wrap.className = fname === 'instructions.txt' ? 'diff-container instructions-container' : 'diff-container';
@@ -152,7 +152,8 @@ fetch('latest.json')
             instructionsBtn.style.top = '0.5rem';
             instructionsBtn.style.right = '0.5rem';
             instructionsBtn.style.zIndex = '10';
-            wrap.appendChild(instructionsBtn);
+            const fileWrapper = wrap.querySelector('.d2h-file-header');
+            fileWrapper.appendChild(instructionsBtn);
           }
 
           // Add close button to Instructions container

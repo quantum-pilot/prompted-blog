@@ -231,3 +231,5 @@ Set prompts and output container height to 75vh, and keep the scroller at 5% fro
 > o3 and Claude hit a wall with an open issue in diff2html https://github.com/rtfpessoa/diff2html/issues/99 which stopped us from wrapping, so I wrote a hack for overriding two classes of diff2html.
 
 Right now, the entire diff container is scrollable, let's fix the file header so that it does not get scrolled away. Only the contents must be scrolled. The header in question is d2h-file-header, this is a separate container on top of diff container, but both of them are stacked together and scroll together. We can fix the header but let the diff content scroll by itself.
+
+Let's do the same for Instructions button. Check how instructions button is created in main.js. It is a child of d2h-wrapper and sibling of d2h-file-wrapper. One solution is to make it a child of d2h-file-header.
