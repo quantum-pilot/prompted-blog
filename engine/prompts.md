@@ -227,3 +227,5 @@ Right now, all three files are showed simultaneously. Let's fetch them the same 
 Can you check if the button is properly fetched and event listener attached to it? Can we disable filenames in git diff view? If not, can we give file names as what we want to show (Prompts instead of prompts.txt) and get rid of the additional header for the container? Because now there is Prompts and then there is filename prompts.txt and similar for other file views.
 
 Set prompts and output container height to 75vh, and keep the scroller at 5% from bottom. Note that this is happening in diff tool view for each file. We could set overflow-y to auto for diff-container and set max-height for both containers to be 75vh.
+
+> o3 and Claude hit a wall with an open issue in diff2html https://github.com/rtfpessoa/diff2html/issues/99 which stopped us from wrapping, so I wrote a hack for overriding two classes of diff2html.
