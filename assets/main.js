@@ -185,6 +185,11 @@ fetch('latest.json')
             if (tag) tag.remove();
           }
 
+          // Auto-scroll to first change if there are modifications
+          if (!unchanged && fname !== 'instructions.txt') {
+            setTimeout(() => scrollToFirstChange(wrap), 100);
+          }
+
           blocks.set(fname, wrap);
 
           // Show instructions separately from main containers
@@ -221,6 +226,23 @@ fetch('latest.json')
       function setActiveDot(i) {
         const dots = revScroller.querySelectorAll('.rev-dot');
         dots.forEach((x, idx) => x.classList.toggle('active', idx === i));
+      }
+
+      function scrollToFirstChange(container) {
+        // Find the first line with changes (added, deleted, or modified)
+        const firstChange = container.querySelector('.d2h-ins, .d2h-del, .d2h-change');
+        if (firstChange) {
+          // Scroll the container to show the change with some offset from the top
+          const containerRect = container.getBoundingClientRect();
+          const changeRect = firstChange.getBoundingClientRect();
+          const offset = changeRect.top - containerRect.top;
+          
+          // Scroll to position the change near the top of the container (with 100px offset)
+          container.scrollTo({
+            top: container.scrollTop + offset - 100,
+            behavior: 'smooth'
+          });
+        }
       }
     });
   });

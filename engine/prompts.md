@@ -235,3 +235,5 @@ Right now, the entire diff container is scrollable, let's fix the file header so
 Let's do the same for Instructions button. Check how instructions button is created in main.js. It is a child of d2h-wrapper and sibling of d2h-file-wrapper. One solution is to make it a child of d2h-file-header.
 
 Instructions button is simply blue now. We should change it to something light. If changes were made to instructions diff, the button must indicate that changes have been made so that it enables someone to view that change. Make necessary decisions on colors and text as necessary. Also append instructions close button to d2h-file-wrapper as before.
+
+When a diff view loads, can we scroll the container to the area where the diff line number exists. A change can be made at any part of the file, but since file content and diff is aggregated, it can be out of view.
