@@ -146,7 +146,16 @@ fetch('latest.json')
           if (fname === 'prompts.txt') {
             const instructionsBtn = document.createElement('button');
             instructionsBtn.className = 'instructions-btn';
-            instructionsBtn.textContent = 'Instructions';
+
+            // Check if instructions.txt has changes in this revision
+            const instructionsHasChanges = currentRev.files.has('instructions.txt');
+            if (instructionsHasChanges) {
+              instructionsBtn.classList.add('has-changes');
+              instructionsBtn.textContent = 'Instructions (Updated)';
+            } else {
+              instructionsBtn.textContent = 'Instructions';
+            }
+
             instructionsBtn.onclick = () => toggleInstructions(true);
             instructionsBtn.style.position = 'absolute';
             instructionsBtn.style.top = '0.5rem';
@@ -166,7 +175,8 @@ fetch('latest.json')
             closeBtn.style.top = '0.5rem';
             closeBtn.style.right = '0.5rem';
             closeBtn.style.zIndex = '10';
-            wrap.appendChild(closeBtn);
+            const fileWrapper = wrap.querySelector('.d2h-file-header');
+            fileWrapper.appendChild(closeBtn);
             wrap.style.display = 'none'; // hidden by default
           }
 

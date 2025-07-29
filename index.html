@@ -104,16 +104,28 @@
       align-items: center;
     }
     .instructions-btn {
-      background: #0969da;
-      color: white;
-      border: none;
+      background: #f6f8fa;
+      color: #24292f;
+      border: 1px solid #d1d5da;
       padding: 0.25rem 0.5rem;
       border-radius: 4px;
       font-size: 0.8rem;
       cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
     }
     .instructions-btn:hover {
-      background: #0550ae;
+      background: #f3f4f6;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+    }
+    .instructions-btn.has-changes {
+      background: #fff3cd;
+      color: #856404;
+      border-color: #ffeaa7;
+      box-shadow: 0 1px 3px rgba(133, 100, 4, 0.2), 0 1px 2px rgba(133, 100, 4, 0.1);
+    }
+    .instructions-btn.has-changes:hover {
+      background: #ffeaa7;
+      box-shadow: 0 4px 6px rgba(133, 100, 4, 0.2), 0 2px 4px rgba(133, 100, 4, 0.1);
     }
     .close-btn {
       background: none;

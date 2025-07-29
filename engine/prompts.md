@@ -233,3 +233,5 @@ Set prompts and output container height to 75vh, and keep the scroller at 5% fro
 Right now, the entire diff container is scrollable, let's fix the file header so that it does not get scrolled away. Only the contents must be scrolled. The header in question is d2h-file-header, this is a separate container on top of diff container, but both of them are stacked together and scroll together. We can fix the header but let the diff content scroll by itself.
 
 Let's do the same for Instructions button. Check how instructions button is created in main.js. It is a child of d2h-wrapper and sibling of d2h-file-wrapper. One solution is to make it a child of d2h-file-header.
+
+Instructions button is simply blue now. We should change it to something light. If changes were made to instructions diff, the button must indicate that changes have been made so that it enables someone to view that change. Make necessary decisions on colors and text as necessary. Also append instructions close button to d2h-file-wrapper as before.
