@@ -229,3 +229,5 @@ Can you check if the button is properly fetched and event listener attached to i
 Set prompts and output container height to 75vh, and keep the scroller at 5% from bottom. Note that this is happening in diff tool view for each file. We could set overflow-y to auto for diff-container and set max-height for both containers to be 75vh.
 
 > o3 and Claude hit a wall with an open issue in diff2html https://github.com/rtfpessoa/diff2html/issues/99 which stopped us from wrapping, so I wrote a hack for overriding two classes of diff2html.
+
+Right now, the entire diff container is scrollable, let's fix the file header so that it does not get scrolled away. Only the contents must be scrolled. The header in question is d2h-file-header, this is a separate container on top of diff container, but both of them are stacked together and scroll together. We can fix the header but let the diff content scroll by itself.
