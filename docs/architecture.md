@@ -12,7 +12,7 @@ Prompted Blog is designed for anyone who feels an LLM with personality can write
 
 ### Technology Stack
 
-- **Frontend**: Vanilla javascript
+- **Frontend**: TypeScript with Web Components
 - **Backend**: Any static server
 
 ### Architecture Decision Rationale
@@ -24,7 +24,18 @@ Prompted Blog is designed for anyone who feels an LLM with personality can write
 ## Frontend Design
 
 ### Component Structure
-To be updated after TypeScript migration
+
+**TypeScript Web Components Architecture:**
+- `<blog-header>` - Header with history toggle functionality
+- `<post-viewer>` - Latest post rendering component  
+- `<diff-viewer>` - Two-pane diff visualization (Prompts | Output)
+- `<revision-scroller>` - Dot navigation for revision history
+- `<instructions-modal>` - Floating instructions overlay
+
+**Service Layer:**
+- `ApiService` - Handles all HTTP requests and caching
+- `UrlService` - Manages URL parameters and navigation state  
+- `AppCoordinator` - Central coordinator connecting all components
 
 ### Key Features Implemented
 
@@ -32,10 +43,10 @@ To be updated after TypeScript migration
 
 ## Development Phases
 
-### Phase 1: Core Blog Engine ⏳ (2/4 stories completed)
+### Phase 1: Core Blog Engine ⏳ (3/4 stories completed)
 - Basic blog structure ✅
 - Diff history visualization ✅
-- TypeScript and Web Components Migration
+- TypeScript and Web Components Migration ✅
 - Multi-post navigation and architecture
 
 ## Technical Implementation Details
@@ -49,7 +60,7 @@ For every post and global custom instruction:
 4. Aggregate `revisions.json` containing revisions with timestamps
 5. Update `latest.json` with latest post date
 
-### UI Diff View (`assets/main.js`)
+### UI Diff View (TypeScript Components)
 
 1. Fetch `latest.json`
 2. If history is enabled:

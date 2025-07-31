@@ -147,12 +147,24 @@ export class DiffViewer extends HTMLElement {
       if (tag) tag.remove();
     }
 
-    // Make file header sticky
-    const header = container.querySelector('.d2h-file-header') as HTMLElement;
-    if (header) {
-      header.style.position = 'sticky';
-      header.style.top = '0';
-      header.style.zIndex = '10';
+    // Apply sticky header styling (the container already has overflow-y: auto from CSS)
+    const fileHeader = container.querySelector('.d2h-file-header') as HTMLElement;
+    const fileContent = container.querySelector('.d2h-file-diff') as HTMLElement;
+    
+    if (fileHeader) {
+      // Ensure header stays sticky within the scrolling container
+      fileHeader.style.position = 'sticky';
+      fileHeader.style.top = '0';
+      fileHeader.style.zIndex = '10';
+      fileHeader.style.backgroundColor = '#f6f8fa';
+    }
+    
+    // IMPORTANT: Remove any overflow styling from the content area
+    // The container itself should handle all scrolling
+    if (fileContent) {
+      fileContent.style.overflow = 'visible';
+      fileContent.style.overflowY = 'visible';
+      fileContent.style.maxHeight = 'none';
     }
 
     // Auto-scroll to first change if there are modifications
@@ -197,6 +209,7 @@ export class DiffViewer extends HTMLElement {
 
   private scrollToFirstChange(container: HTMLElement) {
     const firstChange = container.querySelector('.d2h-ins, .d2h-del, .d2h-change');
+    
     if (firstChange) {
       const containerRect = container.getBoundingClientRect();
       const changeRect = firstChange.getBoundingClientRect();

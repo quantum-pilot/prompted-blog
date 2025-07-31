@@ -190,6 +190,11 @@
       top: 0;
       z-index: 10;
     }
+
+    /* Fix line numbers to scroll with content - override diff2html positioning */
+    diff-viewer td {
+      position: static !important;
+    }
   </style>
 </head>
 <body>
@@ -198,36 +203,20 @@
   <!-- New TypeScript component -->
   <blog-header></blog-header>
 
-  <!-- Original header (hidden for testing) -->
-  <header class="header" style="display: none;">
-    <h1>Prompted Blog</h1>
-    <p class="description">Prompt-driven commit history as a blog. One prompt at a time.</p>
-    <button class="history-button" id="history-trigger" title="Toggle Prompt History">
-      <i class="fas fa-history"></i>
-    </button>
-  </header>
   <!-- New TypeScript component -->
   <post-viewer></post-viewer>
 
-  <!-- Original main (hidden for testing) -->
-  <main id="latest-post" class="markdown-body" style="max-width: 800px; margin: 2rem auto; padding: 0 1rem; display: none;"></main>
-  
+
   <!-- New TypeScript component -->
   <diff-viewer></diff-viewer>
-  
-  <!-- Original diff output (hidden for testing) -->
-  <div id="diff-output" style="display: none;"></div>
-  
+
+
   <!-- New TypeScript component -->
   <instructions-modal></instructions-modal>
   <!-- New TypeScript component -->
   <revision-scroller></revision-scroller>
-  
-  <!-- Original revision scroller (hidden for testing) -->
-  <div id="revision-scroller" style="display: none;"></div>
+
   <script src="assets/diff2html.min.js"></script>
-  <script src="assets/diff2html.min.js"></script>
-  <script src="assets/main.js"></script>
   <script type="module" src="dist/main.js"></script>
 </body>
 </html>

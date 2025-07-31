@@ -8,8 +8,8 @@ This file provides guidance to Claude Code when working with code in this reposi
 
 1. **`docs/team.md`** - Our workflow process for story-driven development
 2. **`docs/plan.md`** - Current progress and next story to work on
-4. **`docs/architecture.md`** - Up-to-date architecture and design of current implementation
 3. **`docs/technicals.md`** - Index and overview of what the individual documents in `docs/technicals` directory address.
+4. **`docs/architecture.md`** - Up-to-date architecture and design of current implementation
 5. **`docs/technicals/`** - Historical record of architectural decisions, solutions to major bugs, development workflow, migration, UI/UX patterns, etc.
 
 **Key workflow reminders:**
@@ -27,21 +27,19 @@ Prompted Blog is a markdown-based blog where each post documents the iterative d
 
 This is the current development process. It is subjected to change as the project evolves.
 
-### Current (Phase 1.1-1.2)
-- `python engine/generate.py` - Generates artifacts to be used by static server
-- `./engine/render.sh` - Generates rendered markdown in HTML using a docker container
-- `python -m http.server` - Runs a simple static server at root
-
-### After TypeScript Migration (Phase 1.3+)
-- `npm run build` or `pnpm build` - Compiles TypeScript and prepares assets
-- `npm run dev` or `pnpm dev` - Development server with hot reload
+### Current (Phase 1.3+) - TypeScript Architecture
+- `npm run build` - Compiles TypeScript and copies assets to dist/
+- `npm run dev` - TypeScript watch mode for development  
+- `npm run serve` - Start Python server
 - `python engine/generate.py` - Generates artifacts to be used by static server
 - `./engine/render.sh` - Generates rendered markdown in HTML using a docker container
 
 ## Architecture Overview
 
-### Frontend (index.html + assets/main.js):
-  - Vanilla JS with imported assets like `diff2html.min.js`, `github-markdown.css`, etc.
+### Frontend (TypeScript Web Components):
+  - TypeScript with Web Components following Plain Vanilla Web principles
+  - Component architecture: `<blog-header>`, `<post-viewer>`, `<diff-viewer>`, `<revision-scroller>`, `<instructions-modal>`
+  - Service layer: ApiService, UrlService, AppCoordinator for data management
   - Clean, GitHub-style markdown renderer for normal blog view
   - History mode showing side-by-side diffs of three key files
   - Revision scroller with dots to navigate through different iterations

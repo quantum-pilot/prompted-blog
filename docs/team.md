@@ -72,9 +72,8 @@ This workflow ensures we maintain quality, capture knowledge, and make steady pr
 ### 7. Story Completion
 **Claude's Actions (after human confirms success):**
 - Update todo list to completed
-- Mark story as ✅ **Completed** in the corresponding phase directory in `docs/plan/{phase}.md`
-- Update progress tracking in the `docs/plan.md`
-- Update `docs/technicals.md` or relevant `docs/technicals/*.md` with lessons learned
+- **Follow complete post-story documentation checklist** (see Story Completion Documentation Workflow below)
+- Verify no content duplication across documentation
 
 ## Documentation Updates
 
@@ -147,3 +146,49 @@ Claude: "Great! Marking Story X.Y as completed. Moving to next story..."
 - Quality of human verification feedback
 - Documentation completeness
 - Knowledge capture effectiveness
+
+## Story Completion Documentation Workflow
+
+**This comprehensive checklist must be followed after every story completion:**
+
+### 1. Update Progress Tracking
+- [ ] Mark story as ✅ **Completed** in `docs/plan/phase-{N}.md`
+- [ ] Update progress counters in `docs/plan.md` 
+- [ ] Update next priority in `docs/plan.md`
+
+### 2. Update Current Architecture (if architecture changed)
+- [ ] Update technology stack in `docs/architecture.md`
+- [ ] Update component structure if changed
+- [ ] Update development phase progress  
+- [ ] Update technical implementation details if changed
+
+### 3. Document Technical Decisions (if significant decisions made)
+- [ ] Create or update relevant file in `docs/technicals/` directory
+- [ ] Follow `docs/technicals.md` index to determine which file needs updates
+- [ ] For major changes (migrations, new patterns), create dedicated document
+- [ ] Update `docs/technicals.md` index if new document created
+
+### 4. Update Development Workflow (if build/commands changed)
+- [ ] Update `CLAUDE.md` development commands if build process changed
+- [ ] Update `docs/technicals/development_workflow.md` if workflow changed  
+- [ ] Reference detailed technical docs instead of duplicating content
+
+### 5. Verify Documentation Consistency
+- [ ] **Check for content duplication** across all documentation files
+- [ ] **Ensure cross-references work** and point to correct locations
+- [ ] **Verify single source of truth** for complex topics (no duplicate explanations)
+- [ ] Update reading order in `CLAUDE.md` if document structure changed
+
+### 6. Quality Check Documentation Structure
+- [ ] Run comprehensive analysis of all docs/ files if major documentation changes made
+- [ ] Remove duplicate content and replace with proper references
+- [ ] Ensure each document has focused, distinct purpose
+
+**Example:** Story 1.3 (TypeScript Migration) required:
+- Progress tracking updates ✅
+- Architecture updates (technology stack, component structure) ✅  
+- New technical document (`frontend_migration.md`) ✅
+- Development workflow updates (npm commands) ✅
+- **Documentation deduplication analysis and cleanup** ✅
+
+**Critical:** Steps 5-6 are essential for maintaining clean, maintainable documentation as the project grows. Always verify no duplication exists after significant changes.
