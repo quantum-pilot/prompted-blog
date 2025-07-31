@@ -1,0 +1,16 @@
+{
+  "name": "prompted-blog",
+  "version": "1.0.0",
+  "description": "Prompt-driven commit history as a blog",
+  "type": "module",
+  "scripts": {
+    "build": "tsc && npm run copy-assets",
+    "dev": "tsc --watch",
+    "copy-assets": "mkdir -p dist/assets && cp assets/*.css assets/*.js assets/*.svg dist/assets/ 2>/dev/null || true",
+    "serve": "python -m http.server 8000"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0",
+    "@types/node": "^20.0.0"
+  }
+}

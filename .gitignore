@@ -1,2 +1,4 @@
 posts/**/index.html
 **/diff_cache
+dist/
+node_modules/

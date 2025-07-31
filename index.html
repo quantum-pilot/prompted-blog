@@ -195,7 +195,11 @@
 <body>
   <button class="nav-button prev-post">← Prev</button>
   <button class="nav-button next-post">Next →</button>
-  <header class="header">
+  <!-- New TypeScript component -->
+  <blog-header></blog-header>
+
+  <!-- Original header (hidden for testing) -->
+  <header class="header" style="display: none;">
     <h1>Prompted Blog</h1>
     <p class="description">Prompt-driven commit history as a blog. One prompt at a time.</p>
     <button class="history-button" id="history-trigger" title="Toggle Prompt History">
@@ -208,5 +212,6 @@
   <script src="assets/diff2html.min.js"></script>
   <script src="assets/diff2html.min.js"></script>
   <script src="assets/main.js"></script>
+  <script type="module" src="dist/main.js"></script>
 </body>
 </html>
