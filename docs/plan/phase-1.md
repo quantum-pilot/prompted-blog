@@ -63,7 +63,47 @@
 - **Build Testing**: Verify clean builds with no TypeScript errors or warnings
 - **Manual Testing**: Test all user interactions (history toggle, revision navigation, instructions modal, auto-scroll)
 
-### Story 1.4: Multi-post navigation and architecture
+### Story 1.4: CSS Architecture and Organization
+**Status:** ⏳ **Pending**
+
+**As a developer, I want organized, maintainable CSS that follows component architecture principles.**
+
+**Overview:** Extract CSS from the monolithic `<style>` block in `index.html` into a well-organized file structure that mirrors the TypeScript component architecture. This improves maintainability, reduces index.html complexity, and makes styles easier to locate and modify.
+
+**Acceptance Criteria:**
+- **Organized File Structure**: CSS organized into logical files by component and functionality
+- **No Visual Regression**: All existing styling and functionality preserved identically
+- **Maintainable Architecture**: Easy to find and modify component-specific styles
+- **Clean HTML**: index.html uses single CSS import instead of large `<style>` block
+- **Build Integration**: CSS files properly included in build process
+
+**Technical Implementation:**
+- **File Structure**:
+  ```
+  assets/css/
+  ├── main.css                    # Entry point, imports all files
+  ├── base.css                    # Global styles (body, typography)
+  ├── layout.css                  # Overall layout and positioning
+  └── components/
+      ├── blog-header.css         # Header, title, history button
+      ├── post-viewer.css         # Post content styling
+      ├── diff-viewer.css         # Diff containers, headers, scrolling
+      ├── revision-scroller.css   # Dot navigation
+      ├── instructions-modal.css  # Modal overlay and content
+      └── navigation.css          # Prev/next buttons
+  ```
+- **CSS Import Strategy**: Use `@import` statements in `main.css` to load component files
+- **Build Process**: Update npm scripts to copy CSS files to dist/
+- **HTML Cleanup**: Replace `<style>` block with `<link rel="stylesheet" href="assets/css/main.css">`
+
+**Testing:**
+- **Visual Regression Testing**: Verify all components look and behave identically
+- **Cross-browser Testing**: Ensure CSS imports work correctly in all browsers
+- **Build Testing**: Verify CSS files are properly copied and accessible
+- **Component Testing**: Test each component's styling in isolation
+- **Integration Testing**: Verify no style conflicts or missing imports
+
+### Story 1.5: Multi-post navigation and architecture
 **Status:** ⏳ **Pending**
 
 **As a reader, I want to navigate through multiple posts with URLs and not just the latest post**

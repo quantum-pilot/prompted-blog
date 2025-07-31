@@ -17,9 +17,9 @@ Major architectural decisions and their rationales. Key topics include:
 
 ### [UI/UX Patterns](./technicals/ui_ux_patterns.md)
 Comprehensive guide to UI/UX patterns and component decisions. Covers:
-- Diff view
-- Enhanced navigation and accessibility features
-- Responsive design
+- CSS architecture and organization strategies
+- Component-based styling approaches
+- Responsive design patterns
 
 ### [Bug Fixes](./technicals/bug_fixes.md)
 Documentation of significant bugs and their fixes. Includes:
