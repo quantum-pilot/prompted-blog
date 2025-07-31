@@ -206,9 +206,25 @@
       <i class="fas fa-history"></i>
     </button>
   </header>
-  <main id="latest-post" class="markdown-body" style="max-width: 800px; margin: 2rem auto; padding: 0 1rem;"></main>
-  <div id="diff-output"></div>
-  <div id="revision-scroller"></div>
+  <!-- New TypeScript component -->
+  <post-viewer></post-viewer>
+
+  <!-- Original main (hidden for testing) -->
+  <main id="latest-post" class="markdown-body" style="max-width: 800px; margin: 2rem auto; padding: 0 1rem; display: none;"></main>
+  
+  <!-- New TypeScript component -->
+  <diff-viewer></diff-viewer>
+  
+  <!-- Original diff output (hidden for testing) -->
+  <div id="diff-output" style="display: none;"></div>
+  
+  <!-- New TypeScript component -->
+  <instructions-modal></instructions-modal>
+  <!-- New TypeScript component -->
+  <revision-scroller></revision-scroller>
+  
+  <!-- Original revision scroller (hidden for testing) -->
+  <div id="revision-scroller" style="display: none;"></div>
   <script src="assets/diff2html.min.js"></script>
   <script src="assets/diff2html.min.js"></script>
   <script src="assets/main.js"></script>
