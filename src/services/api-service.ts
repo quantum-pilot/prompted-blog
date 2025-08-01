@@ -51,15 +51,26 @@ export class ApiService {
       return this.cache.get(cacheKey);
     }
 
-    try {
-      const response = await fetch(`${basePath}/index.html`);
-      const html = await response.text();
-      this.cache.set(cacheKey, html);
-      return html;
-    } catch (error) {
-      console.error('Failed to fetch post content:', error);
-      throw error;
-    }
+    return this.errorHandler.wrap(
+      async () => {
+        const response = await fetch(`${basePath}/index.html`);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        const html = await response.text();
+        this.cache.set(cacheKey, html);
+        return html;
+      },
+      {
+        message: `Failed to fetch post content for ${basePath}`,
+        code: 'POST_CONTENT_ERROR',
+        context: { basePath }
+      },
+      {
+        showUserMessage: true,
+        fallbackValue: '<p>Failed to load post content.</p>'
+      }
+    );
   }
 
   // Fetch file revisions
@@ -135,17 +146,25 @@ export class ApiService {
       return this.cache.get(cacheKey);
     }
 
-    try {
-      const response = await fetch(`${dir}/diff_cache/${fileName}/${revisionIndex}.diff`);
-      if (!response.ok) return null;
-      
-      const diff = await response.text();
-      this.cache.set(cacheKey, diff);
-      return diff;
-    } catch (error) {
-      console.error(`Failed to fetch diff for ${fileName} at revision ${revisionIndex}:`, error);
-      return null;
-    }
+    return this.errorHandler.wrap(
+      async () => {
+        const response = await fetch(`${dir}/diff_cache/${fileName}/${revisionIndex}.diff`);
+        if (!response.ok) return null;
+        
+        const diff = await response.text();
+        this.cache.set(cacheKey, diff);
+        return diff;
+      },
+      {
+        message: `Failed to fetch diff for ${fileName} at revision ${revisionIndex}`,
+        code: 'DIFF_FETCH_ERROR',
+        context: { fileName, dir, revisionIndex }
+      },
+      {
+        showUserMessage: false,
+        fallbackValue: null
+      }
+    );
   }
 
   // Fetch full file content at specific revision
@@ -155,17 +174,25 @@ export class ApiService {
       return this.cache.get(cacheKey);
     }
 
-    try {
-      const response = await fetch(`${dir}/diff_cache/${fileName}/${revisionIndex}.txt`);
-      if (!response.ok) return '';
-      
-      const content = await response.text();
-      this.cache.set(cacheKey, content);
-      return content;
-    } catch (error) {
-      console.error(`Failed to fetch content for ${fileName} at revision ${revisionIndex}:`, error);
-      return '';
-    }
+    return this.errorHandler.wrap(
+      async () => {
+        const response = await fetch(`${dir}/diff_cache/${fileName}/${revisionIndex}.txt`);
+        if (!response.ok) return '';
+        
+        const content = await response.text();
+        this.cache.set(cacheKey, content);
+        return content;
+      },
+      {
+        message: `Failed to fetch content for ${fileName} at revision ${revisionIndex}`,
+        code: 'FILE_CONTENT_ERROR',
+        context: { fileName, dir, revisionIndex }
+      },
+      {
+        showUserMessage: false,
+        fallbackValue: ''
+      }
+    );
   }
 
   // Clear cache
@@ -180,21 +207,36 @@ export class ApiService {
       return this.cache.get(cacheKey);
     }
 
-    try {
-      const response = await fetch('posts.json');
-      const posts: string[] = await response.json();
-      this.cache.set(cacheKey, posts);
-      return posts;
-    } catch (error) {
-      console.error('Failed to fetch post list:', error);
-      // Fallback: try to get latest post only
-      try {
-        const latest = await this.getLatestPost();
-        return [latest];
-      } catch {
-        return [];
+    return this.errorHandler.wrap(
+      async () => {
+        const response = await fetch('posts.json');
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        const posts: string[] = await response.json();
+        this.cache.set(cacheKey, posts);
+        return posts;
+      },
+      {
+        message: 'Failed to fetch post list',
+        code: 'POST_LIST_ERROR'
+      },
+      {
+        showUserMessage: false,
+        fallbackValue: async () => {
+          // Fallback: try to get latest post only
+          try {
+            const latest = await this.getLatestPost();
+            return [latest];
+          } catch {
+            return [];
+          }
+        }
       }
-    }
+    ).then(result => {
+      // Handle async fallback function
+      return typeof result === 'function' ? result() : result;
+    });
   }
 
   // Get adjacent posts for navigation

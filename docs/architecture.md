@@ -32,7 +32,7 @@ The application uses TypeScript Web Components with a service-oriented architect
 - `<revision-scroller>` - Continuous line navigation with draggable thumb for revision history
 - `<instructions-modal>` - Floating instructions overlay
 
-The service layer provides shared functionality across components including API handling, URL management, component coordination, diff rendering, and error handling.
+The service layer provides shared functionality across components including API handling, URL management, component coordination, diff rendering, and centralized error handling with user-friendly fallbacks.
 
 **For detailed component architecture and migration decisions, see:** `docs/technicals/frontend_migration.md`
 
@@ -46,7 +46,7 @@ The service layer provides shared functionality across components including API 
    - Auto-scroll to first change with visual change indicators
    - Uses diff2html for professional rendering with mobile space optimization
 
-2. **Multi-post Navigation** - Hash-based routing (#/posts/YYYY-MM-DD/) with responsive prev/next buttons for browsing posts.
+2. **Multi-post Navigation** - Hash-based routing (#/posts/YYYY-MM-DD/) with responsive prev/next buttons for browsing posts. Enhanced with comprehensive type safety through AdjacentPosts interface and utility functions for consistent navigation state management.
 
 3. **Mobile-First Responsive Design** - CSS-only responsive design with established breakpoints:
    - Mobile: 320px-768px with tabbed interface and touch-friendly interactions
@@ -56,6 +56,7 @@ The service layer provides shared functionality across components including API 
 4. **Theme System** - Comprehensive light/dark mode with CSS custom properties:
    - Automatic system preference detection (prefers-color-scheme)
    - localStorage persistence for user choice
+   - Header-mounted toggle component with responsive dual-icon design
    - Semantic color variables for consistent theming
    - GitHub-style diff colors for professional dark theme integration
 

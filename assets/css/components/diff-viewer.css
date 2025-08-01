@@ -141,6 +141,10 @@
 }
 
 .instructions-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 10;
   background: var(--button-bg);
   color: var(--text-primary);
   border: 1px solid var(--button-border);

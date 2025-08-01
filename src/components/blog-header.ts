@@ -1,7 +1,9 @@
 import { BaseComponent } from '../utils/base-component.js';
+import { themeManager } from '../utils/theme-manager.js';
 
 export class BlogHeader extends BaseComponent {
   private historyButton!: HTMLButtonElement;
+  private themeToggle!: HTMLButtonElement;
   private prevButton!: HTMLButtonElement;
   private nextButton!: HTMLButtonElement;
   private isHistoryActive: boolean = false;
@@ -22,8 +24,22 @@ export class BlogHeader extends BaseComponent {
   }
 
   private render() {
+    const currentTheme = themeManager.getTheme();
+    const themeTitle = `Switch to ${currentTheme === 'light' ? 'dark' : 'light'} theme`;
+    
     this.innerHTML = `
       <header class="header">
+        <div class="theme-toggle" id="theme-toggle" title="${themeTitle}">
+          <div class="theme-toggle-track">
+            <div class="theme-toggle-slider ${currentTheme}"></div>
+            <div class="theme-icon dark-icon">
+              <i class="fas fa-moon"></i>
+            </div>
+            <div class="theme-icon light-icon">
+              <i class="fas fa-sun"></i>
+            </div>
+          </div>
+        </div>
         <div class="header-content">
           <h1>Prompted Blog</h1>
           <p class="description">Prompt-driven commit history as a blog. One prompt at a time.</p>
@@ -45,16 +61,19 @@ export class BlogHeader extends BaseComponent {
     `;
     
     this.historyButton = this.querySelector('#history-trigger') as HTMLButtonElement;
+    this.themeToggle = this.querySelector('#theme-toggle') as HTMLButtonElement;
     this.prevButton = this.querySelector('#prev-button') as HTMLButtonElement;
     this.nextButton = this.querySelector('#next-button') as HTMLButtonElement;
   }
 
   private attachEventListeners() {
     const historyHandler = () => this.toggleHistory();
+    const themeHandler = () => this.toggleTheme();
     const prevHandler = async () => await this.navigateToPrev();
     const nextHandler = async () => await this.navigateToNext();
 
     this.addManagedEventListener(this.historyButton, 'click', historyHandler);
+    this.addManagedEventListener(this.themeToggle, 'click', themeHandler);
     this.addManagedEventListener(this.prevButton, 'click', prevHandler);
     this.addManagedEventListener(this.nextButton, 'click', nextHandler);
   }
@@ -63,6 +82,23 @@ export class BlogHeader extends BaseComponent {
     this.isHistoryActive = !this.isHistoryActive;
     this.historyButton.classList.toggle('active', this.isHistoryActive);
     this.urlService.setHistoryEnabled(this.isHistoryActive);
+  }
+
+  private toggleTheme() {
+    themeManager.toggleTheme();
+    this.updateThemeButton();
+  }
+
+  private updateThemeButton() {
+    const currentTheme = themeManager.getTheme();
+    const slider = this.themeToggle.querySelector('.theme-toggle-slider') as HTMLElement;
+    const themeTitle = `Switch to ${currentTheme === 'light' ? 'dark' : 'light'} theme`;
+    
+    // Update slider position
+    slider.className = `theme-toggle-slider ${currentTheme}`;
+    
+    // Update tooltip
+    this.themeToggle.title = themeTitle;
   }
 
   private async navigateToPrev() {

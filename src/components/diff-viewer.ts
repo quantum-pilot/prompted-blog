@@ -41,10 +41,8 @@ export class DiffViewer extends BaseComponent {
   }
 
   connectedCallback() {
-    console.log('🎯 DIFF-VIEWER V2025.01.01 LOADING!');
     // Force update if this element has old content
     if (!this.querySelector('.diff-viewer-container')) {
-      console.log('🔄 Detected old structure, forcing update...');
       this.innerHTML = ''; // Clear old content
     }
     this.render();
@@ -63,7 +61,7 @@ export class DiffViewer extends BaseComponent {
           <button class="tab-button" data-tab="prompts">
             <span class="tab-title">
               <span class="tab-main">
-                <span class="tab-icon">📝</span>
+                <span class="tab-icon"><i class="fas fa-edit"></i></span>
                 Prompts
               </span>
             </span>
@@ -71,7 +69,7 @@ export class DiffViewer extends BaseComponent {
           <button class="tab-button active" data-tab="output">
             <span class="tab-title">
               <span class="tab-main">
-                <span class="tab-icon">📄</span>
+                <span class="tab-icon"><i class="fas fa-file-alt"></i></span>
                 Output
               </span>
             </span>
@@ -79,7 +77,7 @@ export class DiffViewer extends BaseComponent {
           <button class="tab-button" data-tab="instructions">
             <span class="tab-title">
               <span class="tab-main">
-                <span class="tab-icon">📋</span>
+                <span class="tab-icon"><i class="fas fa-list-alt"></i></span>
                 Instructions
               </span>
             </span>
@@ -185,14 +183,6 @@ export class DiffViewer extends BaseComponent {
     for (const { name, displayName } of targets) {
       const container = document.createElement('div');
       container.className = 'diff-container';
-      container.style.cssText = `
-        flex: 1;
-        max-height: 75vh;
-        min-width: 0;
-        display: flex;
-        flex-direction: column;
-        overflow-y: auto;
-      `;
 
       containers.set(name, container);
       this.diffContainer.appendChild(container);
@@ -269,19 +259,19 @@ export class DiffViewer extends BaseComponent {
 
     if (promptsTab) {
       const hasChanges = revision.files.has('prompts.txt');
-      promptsTab.innerHTML = this.createTabContent('📝', 'Prompts', hasChanges);
+      promptsTab.innerHTML = this.createTabContent('<i class="fas fa-edit"></i>', 'Prompts', hasChanges);
       promptsTab.classList.toggle('has-changes', hasChanges);
     }
 
     if (outputTab) {
       const hasChanges = revision.files.has('output.md');
-      outputTab.innerHTML = this.createTabContent('📄', 'Output', hasChanges);
+      outputTab.innerHTML = this.createTabContent('<i class="fas fa-file-alt"></i>', 'Output', hasChanges);
       outputTab.classList.toggle('has-changes', hasChanges);
     }
 
     if (instructionsTab) {
       const hasChanges = revision.files.has('instructions.txt');
-      instructionsTab.innerHTML = this.createTabContent('📋', 'Instructions', hasChanges);
+      instructionsTab.innerHTML = this.createTabContent('<i class="fas fa-list-alt"></i>', 'Instructions', hasChanges);
       instructionsTab.classList.toggle('has-changes', hasChanges);
     }
   }
@@ -305,20 +295,6 @@ export class DiffViewer extends BaseComponent {
     const button = document.createElement('button');
     button.className = `instructions-btn ${instructionsHasChanges ? 'has-changes' : ''}`;
     button.textContent = instructionsHasChanges ? 'Instructions (Updated)' : 'Instructions';
-    button.style.cssText = `
-      position: absolute;
-      top: 0.5rem;
-      right: 0.5rem;
-      z-index: 10;
-      background: ${instructionsHasChanges ? '#fff3cd' : '#f6f8fa'};
-      color: ${instructionsHasChanges ? '#856404' : '#24292f'};
-      border: 1px solid ${instructionsHasChanges ? '#ffeaa7' : '#d1d5da'};
-      padding: 0.25rem 0.5rem;
-      border-radius: 4px;
-      font-size: 0.8rem;
-      cursor: pointer;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
-    `;
 
     const handler = () => {
       const modal = document.querySelector('instructions-modal') as any;

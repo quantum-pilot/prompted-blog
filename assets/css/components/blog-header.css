@@ -33,6 +33,108 @@
   line-height: 1.4;
 }
 
+.theme-toggle {
+  position: absolute;
+  left: 1rem;
+  top: 1rem;
+  cursor: pointer;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.theme-toggle:focus {
+  outline: 2px solid var(--focus-outline);
+  outline-offset: 2px;
+}
+
+.theme-toggle-track {
+  position: relative;
+  width: 60px;
+  height: 30px;
+  background: var(--button-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px;
+  transition: all 0.3s ease;
+}
+
+.theme-toggle:hover .theme-toggle-track {
+  background: var(--button-bg-hover);
+  border-color: var(--text-secondary);
+}
+
+.theme-toggle-slider {
+  position: absolute;
+  top: 2px;
+  width: 26px;
+  height: 26px;
+  background: var(--text-primary);
+  border-radius: 50%;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  z-index: 2;
+}
+
+.theme-toggle-slider.dark {
+  left: 2px;
+}
+
+.theme-toggle-slider.light {
+  left: 32px;
+}
+
+.theme-icon {
+  position: absolute;
+  z-index: 1;
+  font-size: 16px;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  top: 2px;
+}
+
+.dark-icon {
+  left: 2px; /* Centered with dark mode slider position */
+  color: var(--accent-blue, #4a9eff);
+}
+
+.light-icon {
+  left: 32px; /* Centered with light mode slider position */
+  color: var(--accent-orange, #ff8c00);
+}
+
+/* Active state styling - enlarge active icon */
+.theme-toggle-slider.dark ~ .dark-icon {
+  color: var(--bg-primary);
+  font-size: 22px;
+  z-index: 3;
+}
+
+.theme-toggle-slider.light ~ .light-icon {
+  color: var(--bg-primary);
+  font-size: 22px;
+  z-index: 3;
+}
+
+/* Inactive state - make slightly larger than before but smaller than active */
+.theme-toggle-slider.dark ~ .light-icon {
+  font-size: 14px;
+}
+
+.theme-toggle-slider.light ~ .dark-icon {
+  font-size: 14px;
+}
+
 .history-button {
   position: absolute;
   right: 1rem;
@@ -99,6 +201,59 @@
     margin: 0.25rem 0 0.75rem;
   }
   
+  .theme-toggle {
+    left: 0.5rem;
+    top: 0.75rem;
+    min-width: 44px;
+    min-height: 44px;
+  }
+  
+  .theme-toggle-track {
+    width: 50px;
+    height: 26px;
+  }
+  
+  .theme-toggle-slider {
+    width: 22px;
+    height: 22px;
+  }
+  
+  .theme-toggle-slider.light {
+    left: 26px;
+  }
+  
+  .theme-icon {
+    width: 22px;
+    height: 22px;
+    font-size: 14px;
+  }
+  
+  .dark-icon {
+    left: 2px; /* Matches mobile slider position */
+  }
+  
+  .light-icon {
+    left: 26px; /* Matches mobile slider position */
+  }
+  
+  /* Active state for mobile */
+  .theme-toggle-slider.dark ~ .dark-icon {
+    font-size: 18px;
+  }
+  
+  .theme-toggle-slider.light ~ .light-icon {
+    font-size: 18px;
+  }
+  
+  /* Inactive state for mobile */
+  .theme-toggle-slider.dark ~ .light-icon {
+    font-size: 12px;
+  }
+  
+  .theme-toggle-slider.light ~ .dark-icon {
+    font-size: 12px;
+  }
+  
   .history-button {
     right: 0.5rem;
     font-size: 1.2rem;
@@ -119,7 +274,7 @@
   }
   
   .header-content {
-    padding-right: 50px;
+    padding-right: 50px; /* Space for history button */
   }
   
   .header h1 {
@@ -129,6 +284,57 @@
   .header .description {
     font-size: 0.85rem;
     margin: 0.25rem 0 0.5rem;
+  }
+  
+  .theme-toggle {
+    left: 0.25rem;
+    top: 0.5rem;
+  }
+  
+  .theme-toggle-track {
+    width: 45px;
+    height: 24px;
+  }
+  
+  .theme-toggle-slider {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .theme-toggle-slider.light {
+    left: 23px;
+  }
+  
+  .theme-icon {
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+  }
+  
+  .dark-icon {
+    left: 2px; /* Matches small mobile slider position */
+  }
+  
+  .light-icon {
+    left: 23px; /* Matches small mobile slider position */
+  }
+  
+  /* Active state for small mobile */
+  .theme-toggle-slider.dark ~ .dark-icon {
+    font-size: 16px;
+  }
+  
+  .theme-toggle-slider.light ~ .light-icon {
+    font-size: 16px;
+  }
+  
+  /* Inactive state for small mobile */
+  .theme-toggle-slider.dark ~ .light-icon {
+    font-size: 10px;
+  }
+  
+  .theme-toggle-slider.light ~ .dark-icon {
+    font-size: 10px;
   }
   
   .history-button {

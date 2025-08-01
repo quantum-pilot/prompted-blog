@@ -40,5 +40,7 @@ Comprehensive documentation of migration from javascript to TypeScript and Web C
 ### [Code Quality Patterns](./technicals/code_quality_patterns.md)
 Established patterns for memory management, error handling, and type safety including:
 - Component lifecycle and cleanup patterns
-- Centralized error handling system
+- Centralized error handling system with ErrorHandler.wrap() implementation
+- CSS architecture and code cleanliness standards
 - TypeScript interface standards and development guidelines
+- Debug statement cleanup and production code standards

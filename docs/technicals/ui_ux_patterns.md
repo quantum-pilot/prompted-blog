@@ -23,7 +23,7 @@
 
 ### Responsive Breakpoint Strategy
 **Standard Breakpoints:**
-- **Mobile:** ≤768px 
+- **Mobile:** ≤768px
 - **Tablet:** 769px-1024px
 - **Desktop:** ≥1025px
 
@@ -111,6 +111,16 @@
 **Solution:** Separate override file (`diff2html-dark-overrides.css`) with GitHub's actual dark theme colors.
 
 **Key Insight:** Using actual GitHub rgba values creates professional, eye-friendly diff styling.
+
+### Theme Toggle Component (Story 2.5)
+**UI Pattern:** Custom sliding toggle with dual-icon design for intuitive theme switching.
+
+**Key Design Elements:**
+- Active theme icon enlargement for clear visual feedback
+- Top-left positioning with responsive padding adjustments
+- Responsive sizing (20px mobile, 22px desktop) with smooth CSS transitions
+
+**Technical Integration:** Direct integration with existing theme manager, maintaining localStorage persistence and instant theme switching.
 
 ## Key Lessons Learned
 

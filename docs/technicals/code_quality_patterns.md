@@ -11,18 +11,18 @@
 ```typescript
 class SampleComponent extends HTMLElement {
   private eventListeners: Array<{ element: Element; event: string; handler: EventListener }> = [];
-  
+
   connectedCallback() {
     // Setup and track listeners
     const handler = this.handleClick.bind(this);
     document.addEventListener('click', handler);
     this.eventListeners.push({ element: document, event: 'click', handler });
   }
-  
+
   disconnectedCallback() {
     this.cleanup();
   }
-  
+
   private cleanup() {
     this.eventListeners.forEach(({ element, event, handler }) => {
       element.removeEventListener(event, handler);
@@ -41,14 +41,14 @@ class SampleComponent extends HTMLElement {
 
 ### ErrorHandler Pattern
 
-**Problem:** Inconsistent error handling across components led to poor user experience and debugging difficulties.
+**Problem:** Inconsistent error handling across components led to poor user experience and debugging difficulties. Previously, components used raw `console.error()` calls which provided no user feedback and inconsistent error reporting.
 
 **Solution:** Centralized ErrorHandler utility (`src/utils/error-handler.ts`) with context-aware error methods:
 
 ```typescript
 // Specialized error methods for different scenarios
 handleApiError(error, context) // Network/API failures with user notifications
-handleRenderError(error, context) // Component rendering issues with fallback content  
+handleRenderError(error, context) // Component rendering issues with fallback content
 handleNavigationError(error, context) // Navigation failures
 ```
 
@@ -61,11 +61,19 @@ return this.errorHandler.wrap(
 );
 ```
 
+**Implementation in ApiService:**
+All ApiService methods now use ErrorHandler.wrap() instead of console.error:
+- `getPostContent()` - User-friendly error with fallback HTML content
+- `getDiff()` - Silent error handling with null fallback for optional diffs
+- `getFileContent()` - Silent error handling with empty string fallback
+- `getPostList()` - Fallback to latest post only if full list fails
+
 **Benefits:**
 - Consistent error handling across all components
-- User-friendly error notifications
+- User-friendly error notifications where appropriate
 - Structured error logging for debugging
 - Fallback values prevent application breakage
+- Eliminates raw console.error usage throughout codebase
 
 ## Type Safety Standards
 
@@ -99,6 +107,38 @@ interface AdjacentPosts {
 - Type all service methods and component properties
 - Maintain interface documentation in single types file
 
+## CSS Architecture and Code Cleanliness
+
+### CSS Class Organization
+
+**Problem:** Inline styles scattered throughout components made maintenance difficult and violated separation of concerns.
+
+**Solution:** Systematic extraction of styling to CSS classes with semantic naming:
+
+**Examples of improvements:**
+- `.diff-container` styles moved from inline to `diff-viewer.css`
+- `.instructions-btn` styling consolidated in dedicated CSS classes
+- Eliminated style attributes in favor of class-based styling
+
+**Benefits:**
+- Consistent styling patterns across components
+- Easier maintenance and theme application
+- Better separation of concerns (structure vs presentation)
+- Improved CSS organization and readability
+
+### Debug Statement Cleanup
+
+**Problem:** Debug console.log statements persisted in production code, creating console noise.
+
+**Solution:** Systematic removal of debug statements from all components:
+- Removed console.log from DiffViewer `connectedCallback()`
+- Ensured only intentional error logging through ErrorHandler remains
+
+**Benefits:**
+- Clean console output in production
+- Reduced JavaScript execution overhead
+- Professional application behavior
+
 ## Development Standards
 
 ### Quality Gates
@@ -106,9 +146,11 @@ interface AdjacentPosts {
 All new code must meet these standards:
 
 1. **Memory Management**: Components must implement `disconnectedCallback()` with cleanup
-2. **Error Handling**: Use centralized ErrorHandler for all error scenarios  
+2. **Error Handling**: Use centralized ErrorHandler for all error scenarios
 3. **Type Safety**: No `any` types - define proper interfaces
 4. **Event Management**: Track and clean up event listeners systematically
+5. **CSS Organization**: Use CSS classes instead of inline styles
+6. **Debug Cleanliness**: No console.log statements in production code
 
 ### Testing Requirements
 
@@ -202,7 +244,7 @@ static async renderFileRevision(
 All components now extend BaseComponent:
 - **blog-header**: Converted to use centralized services and event management
 - **diff-viewer**: Eliminated custom event tracking, uses renderFileRevision method
-- **instructions-modal**: Uses renderFileRevision method, centralized event management  
+- **instructions-modal**: Uses renderFileRevision method, centralized event management
 - **revision-scroller**: Centralized event management
 - **post-viewer**: Fixed error handling consistency, centralized services
 
