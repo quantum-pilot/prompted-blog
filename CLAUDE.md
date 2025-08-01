@@ -15,11 +15,12 @@ This file provides guidance to Claude Code when working with code in this reposi
 Once all docs are read, check for `docs/verified.json`. If it's not today's date, verify consistency in docs, prompt human for ambiguity and put today's date into `docs/verified.json` file.
 
 **Key workflow reminders:**
-- Follow `docs/plan.md` to identify current phase, go to `docs/plan/{phase}.md` to pick a story and update the plan as necessary.
+- Follow `docs/plan.md` to identify current phase, go to `docs/plan/phase-{number}.md` (e.g., phase-1.md) to pick a story
 - Always use the TodoWrite tool to track story progress
 - Follow the exact human verification format from `docs/team.md`
-- Update `docs/architecture.md` on changes to current architecture after each story.
-- Follow `docs/technicals.md` to see how individual documents need to be updated inside `docs/technicals/` directory. Existing list of documents cover majority of scenarios, but create documents if necessary.
+- Update `docs/architecture.md` on changes to current architecture after each story
+- Follow `docs/technicals.md` to see how individual documents need to be updated inside `docs/technicals/` directory
+- When creating new technical docs, ensure they don't duplicate existing content
 
 ## Overview
 
@@ -32,11 +33,6 @@ See `docs/technicals/development_workflow.md` for complete development process a
 ## Architecture Overview
 
 See `docs/architecture.md` for detailed architecture information including component structure, technology stack, and implementation details.
-
-### Backend (engine/):
-  - generate.py - Walks git history to create diff cache as JSON
-  - render.sh - Converts markdown to HTML using GitHub-flavored styling
-  - Generated artifacts will be deployed to object storage
 
 ## Development Notes
 

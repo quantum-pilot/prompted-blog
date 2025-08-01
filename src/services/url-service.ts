@@ -1,13 +1,23 @@
 export class UrlService {
   private static instance: UrlService;
+  private hashChangeListeners: ((postPath: string | null) => void)[] = [];
 
-  private constructor() {}
+  private constructor() {
+    this.setupHashListener();
+  }
 
   static getInstance(): UrlService {
     if (!UrlService.instance) {
       UrlService.instance = new UrlService();
     }
     return UrlService.instance;
+  }
+
+  private setupHashListener(): void {
+    window.addEventListener('hashchange', () => {
+      const postPath = this.getPostPathFromHash();
+      this.hashChangeListeners.forEach(listener => listener(postPath));
+    });
   }
 
   // Get current URL object
@@ -79,5 +89,48 @@ export class UrlService {
   getBasePath(): string {
     const url = this.getUrl();
     return `${url.origin}${url.pathname}`;
+  }
+
+  // Get post path from hash (e.g., #/posts/2024-01-20/ returns "posts/2024-01-20")
+  getPostPathFromHash(): string | null {
+    const hash = window.location.hash;
+    const match = hash.match(/^#\/posts\/(\d{4}-\d{2}-\d{2})\/$/);
+    if (match) {
+      return `posts/${match[1]}`;
+    }
+    return null;
+  }
+
+  // Navigate to a specific post
+  navigateToPost(postPath: string): void {
+    const datePart = postPath.match(/posts\/(\d{4}-\d{2}-\d{2})/)?.[1];
+    if (datePart) {
+      const newHash = `#/posts/${datePart}/`;
+      // Just change the hash, the hashchange event will handle the rest
+      window.location.hash = newHash;
+    }
+  }
+
+  // Navigate to the root (latest post)
+  navigateToRoot(): void {
+    if (this.isHistoryEnabled()) {
+      window.location.hash = '#/';
+    } else {
+      window.location.hash = '#/';
+      window.location.reload();
+    }
+  }
+
+  // Listen for hash changes
+  onHashChange(listener: (postPath: string | null) => void): void {
+    this.hashChangeListeners.push(listener);
+  }
+
+  // Remove hash change listener
+  offHashChange(listener: (postPath: string | null) => void): void {
+    const index = this.hashChangeListeners.indexOf(listener);
+    if (index !== -1) {
+      this.hashChangeListeners.splice(index, 1);
+    }
   }
 }

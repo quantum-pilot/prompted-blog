@@ -21,10 +21,12 @@
 
 ### Multi-Post Architecture
 **Challenge:** Current system assumes single post.
-**Planned Solution:**
-- Post discovery from directory structure
-- URL routing for individual posts
-- Shared diff cache optimization
+**Implemented Solution:**
+- Hash-based routing (#/posts/YYYY-MM-DD/) for individual posts
+- posts.json file lists all available posts
+- Navigation buttons in header for prev/next browsing
+- ApiService handles post list and adjacent post discovery
+- AppCoordinator manages routing and content updates
 
 ### Search Implementation
 **Challenge:** Search across all revisions and files.

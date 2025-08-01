@@ -34,7 +34,17 @@ export class PostViewer extends HTMLElement {
     try {
       const response = await fetch('latest.json');
       const basePath: string = await response.json();
+      await this.loadPost(basePath);
+    } catch (error) {
+      console.error('Failed to load latest post:', error);
+      if (this.postContainer) {
+        this.postContainer.innerHTML = '<p>Failed to load latest post.</p>';
+      }
+    }
+  }
 
+  async loadPost(basePath: string) {
+    try {
       const postResponse = await fetch(`${basePath}/index.html`);
       const html = await postResponse.text();
 
@@ -43,12 +53,14 @@ export class PostViewer extends HTMLElement {
       const post = tmp.querySelector('.markdown-body');
 
       if (post && this.postContainer) {
+        // Clear existing content
+        this.postContainer.innerHTML = '';
         this.postContainer.appendChild(post);
       }
     } catch (error) {
-      console.error('Failed to load latest post:', error);
+      console.error(`Failed to load post from ${basePath}:`, error);
       if (this.postContainer) {
-        this.postContainer.innerHTML = '<p>Failed to load latest post.</p>';
+        this.postContainer.innerHTML = '<p>Failed to load post.</p>';
       }
     }
   }

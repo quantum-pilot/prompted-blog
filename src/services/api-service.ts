@@ -148,4 +148,43 @@ export class ApiService {
   clearCache(): void {
     this.cache.clear();
   }
+
+  // Fetch list of all posts
+  async getPostList(): Promise<string[]> {
+    const cacheKey = 'post-list';
+    if (this.cache.has(cacheKey)) {
+      return this.cache.get(cacheKey);
+    }
+
+    try {
+      const response = await fetch('posts.json');
+      const posts: string[] = await response.json();
+      this.cache.set(cacheKey, posts);
+      return posts;
+    } catch (error) {
+      console.error('Failed to fetch post list:', error);
+      // Fallback: try to get latest post only
+      try {
+        const latest = await this.getLatestPost();
+        return [latest];
+      } catch {
+        return [];
+      }
+    }
+  }
+
+  // Get adjacent posts for navigation
+  async getAdjacentPosts(currentPath: string): Promise<{ prev: string | null; next: string | null }> {
+    const posts = await this.getPostList();
+    const currentIndex = posts.indexOf(currentPath);
+    
+    if (currentIndex === -1) {
+      return { prev: null, next: null };
+    }
+
+    return {
+      prev: currentIndex > 0 ? posts[currentIndex - 1] : null,
+      next: currentIndex < posts.length - 1 ? posts[currentIndex + 1] : null
+    };
+  }
 }

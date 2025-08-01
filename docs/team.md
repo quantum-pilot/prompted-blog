@@ -9,7 +9,8 @@ This workflow ensures we maintain quality, capture knowledge, and make steady pr
 
 ### 1. Story Selection & Planning
 **Claude's Actions:**
-- Identify the phase from `docs/plan.md` and pick up the next ⏳ **Pending** story from `docs/plan/phase-{number}.md`
+- Identify the phase from `docs/plan.md` and pick up the next ⏳ **Pending** story from `docs/plan/phase-{number}.md` (e.g., phase-1.md)
+- If all stories in current phase are complete, inform human and ask about next phase
 - Review the story's acceptance criteria and testing requirements
 - If the story is ambiguous or needs input, prompt the human for clarification.
 - Create a brief implementation plan (2-3 bullet points)
@@ -72,7 +73,10 @@ This workflow ensures we maintain quality, capture knowledge, and make steady pr
 ### 7. Story Completion
 **Claude's Actions (after human confirms success):**
 - Update todo list to completed
-- **Follow complete post-story documentation checklist** (see Story Completion Documentation Workflow below)
+- Update story status to ✅ in phase file
+- Update progress tracking in docs/plan.md
+- Update docs/architecture.md if architecture changed
+- Update or create technical docs if new patterns established
 - Verify no content duplication across documentation
 
 ## Documentation Updates

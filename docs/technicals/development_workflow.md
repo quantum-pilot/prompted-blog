@@ -3,7 +3,7 @@
 
 ### Local Development
 1. Make content changes and commit to git
-2. Run `python engine/generate.py` and `./engine/render.sh` 
+2. Run `python engine/generate.py` and `./engine/render.sh` (generates posts.json automatically)
 3. Build TypeScript: `npm run build`
 4. Serve with `npm run serve`
 
@@ -22,3 +22,5 @@ Manual testing across browsers and mobile devices, focusing on diff2html integra
 - Plans should contain acceptance criteria, not implementation details
 - Architecture docs should reference technicals/ for detailed patterns
 - Each document should serve a distinct purpose and audience
+
+**Completed Stories**: Keep concise "What was built" sections in completed stories as historical record, even when removing detailed implementation notes. This preserves context of what was delivered even as architecture evolves.

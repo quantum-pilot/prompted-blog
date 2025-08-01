@@ -42,8 +42,24 @@ export class AppCoordinator {
       this.components.instructionsModal = document.querySelector('instructions-modal') as InstructionsModal;
       this.components.diffViewer = document.querySelector('diff-viewer') as DiffViewer;
 
-      // Get latest post path
-      this.basePath = await this.apiService.getLatestPost();
+      // Check if we have a specific post in the hash
+      const postFromHash = this.urlService.getPostPathFromHash();
+      
+      if (postFromHash) {
+        // Use the post from the hash
+        this.basePath = postFromHash;
+      } else {
+        // Get latest post path and navigate to it
+        this.basePath = await this.apiService.getLatestPost();
+        // Update URL to show the specific post
+        this.urlService.navigateToPost(this.basePath);
+        return; // navigateToPost will reload, so we exit here
+      }
+
+      // Update header with current post
+      if (this.components.header) {
+        await this.components.header.setCurrentPost(this.basePath);
+      }
 
       // Initialize based on current URL state
       if (this.urlService.isHistoryEnabled()) {
@@ -66,6 +82,11 @@ export class AppCoordinator {
     this.components.revisionScroller?.setVisible(false);
     this.components.instructionsModal?.setVisible(false);
     this.components.diffViewer?.setVisible(false);
+
+    // Load the post content
+    if (this.components.postViewer) {
+      await this.components.postViewer.loadPost(this.basePath);
+    }
   }
 
   private async initHistoryMode(): Promise<void> {
@@ -163,6 +184,26 @@ export class AppCoordinator {
     // Handle browser back/forward buttons
     window.addEventListener('popstate', () => {
       this.init(); // Re-initialize based on new URL state
+    });
+
+    // Handle hash changes for post navigation
+    this.urlService.onHashChange(async (postPath) => {
+      if (postPath && postPath !== this.basePath) {
+        // Navigate to the new post
+        this.basePath = postPath;
+        
+        // Update header with current post
+        if (this.components.header) {
+          await this.components.header.setCurrentPost(this.basePath);
+        }
+
+        // Re-initialize based on current state
+        if (this.urlService.isHistoryEnabled()) {
+          await this.initHistoryMode();
+        } else {
+          await this.initNormalMode();
+        }
+      }
     });
   }
 

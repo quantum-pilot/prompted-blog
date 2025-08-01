@@ -1,5 +1,6 @@
 CSS_FILE=/assets/github-markdown.css
 LATEST_POST=""
+ALL_POSTS=()
 
 for POST_DIR in posts/*/; do
   [ -d "$POST_DIR" ] || continue
@@ -23,9 +24,15 @@ for POST_DIR in posts/*/; do
   } > "$HTML_FILE"
 
   LATEST_POST="$POST_DIR"
+  ALL_POSTS+=("${POST_DIR%/}")
 
 done
 
 if [ -n "$LATEST_POST" ]; then
   echo "\"${LATEST_POST%/}\"" > latest.json
+fi
+
+# Generate posts.json with all posts
+if [ ${#ALL_POSTS[@]} -gt 0 ]; then
+  printf '%s\n' "${ALL_POSTS[@]}" | jq -R . | jq -s . > posts.json
 fi
