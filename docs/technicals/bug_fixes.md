@@ -47,6 +47,15 @@
 - Major CSS cleanup opportunity: ~200 lines of redundant CSS eliminated while maintaining functionality
 **Files:** `theme.css`, `diff2html-dark-overrides.css`
 
+### Theme Manager Not Initializing on Page Load
+**Root Cause:** Theme manager singleton was imported but never actually instantiated during module loading
+**Key Insights:**
+- Simply importing the theme manager module doesn't trigger constructor execution
+- Theme manager needs to be explicitly accessed to create the singleton instance
+- Moving theme manager import to top of main.ts and accessing the instance forces proper initialization
+- The `data-theme` attribute is critical for diff2html dark theme overrides to work properly
+**Files:** `main.ts`, `theme-manager.ts`
+
 ## Quick Reference
 - **diff2html issues:** Check diff header generation
 - **CSS overflow:** Look for `white-space: nowrap` 
@@ -54,3 +63,4 @@
 - **Button positioning:** Use absolute positioning within existing containers
 - **iPad scrolling:** Check viewport height constraints and orientation-based layouts
 - **Dark theme colors:** Use GitHub's actual rgba values for professional diff styling
+- **Theme initialization:** Ensure theme manager singleton is accessed during module import

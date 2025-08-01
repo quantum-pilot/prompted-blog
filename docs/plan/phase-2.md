@@ -119,16 +119,17 @@ Enhance the Prompted Blog with modern, mobile-responsive UI/UX while preserving 
 **Technical patterns documented in:** `docs/technicals/ui_ux_patterns.md` - Theme System Architecture section
 
 ### BUG: Theme Manager Not Initializing Properly on Page Load
-**Status:** ⏳ **Pending**
+**Status:** ✅ **Completed**
 
-**Issue:** Theme manager is not properly initializing when the application loads, causing the data-theme attribute to be lost during navigation. Users must manually set the theme after each page navigation.
+**Issue:** Theme manager was not properly initializing when the application loaded, causing the data-theme attribute to never be set. This resulted in diff2html using light theme styling even when the system preferred dark theme.
 
 **What was built:**
-- Theme detection and initialization needs to be fixed
-- Ensure theme manager initializes before web components load
-- Fix theme persistence across navigation
+- Fixed theme manager initialization by moving import to top of main.ts and ensuring singleton instantiation
+- Added navigation listeners to ensure theme persists across page transitions
+- Enhanced theme manager with reapplyTheme method and periodic attribute checking
+- Theme now properly applies based on localStorage preference or system preference on initial load
 
-**Solution details to be documented in `docs/technicals/bug_fixes.md`**
+**Solution details in `docs/technicals/bug_fixes.md`**
 
 ---
 

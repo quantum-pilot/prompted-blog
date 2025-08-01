@@ -1,3 +1,9 @@
+// Initialize theme manager FIRST to ensure theme is applied before anything else loads
+import { themeManager } from './utils/theme-manager.js';
+
+// Access the themeManager to ensure singleton initialization occurs
+themeManager.getTheme();
+
 // Import and register components
 import './components/blog-header.js';
 import './components/post-viewer.js';
@@ -7,7 +13,6 @@ import './components/diff-viewer.js';
 
 // Import services
 import { AppCoordinator } from './services/app-coordinator.js';
-import { themeManager } from './utils/theme-manager.js';
 
 console.log('TypeScript components loaded!');
 
