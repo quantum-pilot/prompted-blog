@@ -4,13 +4,15 @@ This file provides guidance to Claude Code when working with code in this reposi
 
 ## Quick Start for New Sessions
 
-**Before starting any work, read these files in order:**
+**Before picking any story or starting any work, read these files in order:**
 
 1. **`docs/team.md`** - Our workflow process for story-driven development
 2. **`docs/plan.md`** - Current progress and next story to work on
 3. **`docs/technicals.md`** - Index and overview of what the individual documents in `docs/technicals` directory address.
 4. **`docs/architecture.md`** - Up-to-date architecture and design of current implementation
 5. **`docs/technicals/`** - Historical record of architectural decisions, solutions to major bugs, development workflow, migration, UI/UX patterns, etc.
+
+Once all docs are read, check for `docs/verified.json`. If it's not today's date, verify consistency in docs, prompt human for ambiguity and put today's date into `docs/verified.json` file.
 
 **Key workflow reminders:**
 - Follow `docs/plan.md` to identify current phase, go to `docs/plan/{phase}.md` to pick a story and update the plan as necessary.
@@ -25,24 +27,11 @@ Prompted Blog is a markdown-based blog where each post documents the iterative d
 
 ## Development Commands
 
-This is the current development process. It is subjected to change as the project evolves.
-
-### Current (Phase 1.3+) - TypeScript Architecture
-- `npm run build` - Compiles TypeScript and copies assets to dist/
-- `npm run dev` - TypeScript watch mode for development  
-- `npm run serve` - Start Python server
-- `python engine/generate.py` - Generates artifacts to be used by static server
-- `./engine/render.sh` - Generates rendered markdown in HTML using a docker container
+See `docs/technicals/development_workflow.md` for complete development process and workflow steps.
 
 ## Architecture Overview
 
-### Frontend (TypeScript Web Components):
-  - TypeScript with Web Components following Plain Vanilla Web principles
-  - Component architecture: `<blog-header>`, `<post-viewer>`, `<diff-viewer>`, `<revision-scroller>`, `<instructions-modal>`
-  - Service layer: ApiService, UrlService, AppCoordinator for data management
-  - Clean, GitHub-style markdown renderer for normal blog view
-  - History mode showing side-by-side diffs of three key files
-  - Revision scroller with dots to navigate through different iterations
+See `docs/architecture.md` for detailed architecture information including component structure, technology stack, and implementation details.
 
 ### Backend (engine/):
   - generate.py - Walks git history to create diff cache as JSON

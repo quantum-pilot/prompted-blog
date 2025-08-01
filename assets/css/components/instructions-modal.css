@@ -1,0 +1,95 @@
+/* Modal overlay and content */
+.instructions-container {
+  position: fixed !important;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 50vw;
+  height: 50vh;
+  background: white;
+  border: 2px solid #d1d5da;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  z-index: 1000;
+  flex: none !important;
+  display: flex;
+  flex-direction: column;
+}
+
+.instructions-container .diff-header {
+  background: #f6f8fa !important;
+  border-bottom: 1px solid #d1d5da !important;
+  padding: 0.5rem 1rem !important;
+  font-weight: 600 !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  border-radius: 6px 6px 0 0 !important;
+}
+
+.instructions-container .close-btn {
+  background: #f6f8fa !important;
+  border: 1px solid #d1d5da !important;
+  border-radius: 4px !important;
+  font-size: 1rem !important;
+  cursor: pointer !important;
+  color: #24292f !important;
+  padding: 0.25rem 0.5rem !important;
+  width: 28px !important;
+  height: 28px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06) !important;
+}
+
+.instructions-container .close-btn:hover {
+  background: #f3f4f6 !important;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06) !important;
+}
+
+#instructions-content {
+  /* Make it behave like a diff-container */
+  flex: 1;
+  max-height: 75vh;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 0 !important;
+  background: #f6f8fa !important;
+}
+
+/* Fix line numbers to scroll with content in instructions modal */
+.instructions-container .d2h-code-linenumber {
+  position: static !important;
+  display: table-cell !important;
+}
+
+/* Ensure diff content scrolls properly */  
+.instructions-container .d2h-file-diff {
+  overflow: visible !important;
+  position: relative !important;
+}
+
+/* Make sure line number cells don't have sticky positioning */
+.instructions-container td.d2h-code-linenumber {
+  position: static !important;
+}
+
+/* Ensure the diff wrapper doesn't interfere with scrolling */
+.instructions-container .d2h-code-wrapper {
+  position: static !important;
+}
+
+/* Remove instructions-specific overrides - now handled globally in base.css */
+
+/* Ensure diff content takes full container width */
+.instructions-container .d2h-file-wrapper {
+  width: 100% !important;
+}
+
+.instructions-container .d2h-code-table {
+  width: 100% !important;
+  table-layout: auto !important;
+}

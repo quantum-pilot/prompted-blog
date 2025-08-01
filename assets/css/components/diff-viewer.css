@@ -1,0 +1,78 @@
+/* Diff containers, headers, scrolling */
+.diff-container {
+  flex: 1;
+  max-height: 75vh;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.diff-header {
+  background: #f6f8fa;
+  border-bottom: 1px solid #d1d5da;
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.instructions-btn {
+  background: #f6f8fa;
+  color: #24292f;
+  border: 1px solid #d1d5da;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.instructions-btn:hover {
+  background: #f3f4f6;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+.instructions-btn.has-changes {
+  background: #fff3cd;
+  color: #856404;
+  border-color: #ffeaa7;
+  box-shadow: 0 1px 3px rgba(133, 100, 4, 0.2), 0 1px 2px rgba(133, 100, 4, 0.1);
+}
+
+.instructions-btn.has-changes:hover {
+  background: #ffeaa7;
+  box-shadow: 0 4px 6px rgba(133, 100, 4, 0.2), 0 2px 4px rgba(133, 100, 4, 0.1);
+}
+
+.diff-full {
+  white-space: normal;
+  padding: 1rem;
+  background: #f6f8fa;
+  border-top: 1px solid #d1d5da;
+  font-family: monospace;
+  font-size: 0.9rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Make file headers sticky within their containers */
+.d2h-file-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.d2h-code-line {
+  padding: 0;
+}
+
+diff-viewer td {
+  padding-left: 1%;
+}
+
+.d2h-code-line, .d2h-code-line-ctn {
+  display: inline;
+  white-space: initial;
+}

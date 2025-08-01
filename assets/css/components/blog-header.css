@@ -1,0 +1,19 @@
+/* Header, title, history button */
+.history-button {
+  position: absolute;
+  right: 0.5rem;
+  top: 1rem;
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  color: #57606a;
+  cursor: pointer;
+}
+
+.history-button.active {
+  color: #0969da;
+}
+
+.history-button:hover {
+  color: #24292f;
+}

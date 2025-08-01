@@ -1,4 +1,5 @@
 import { ApiService } from '../services/api-service.js';
+import { DiffRenderer } from '../services/diff-renderer.js';
 
 declare global {
   const Diff2Html: any;
@@ -91,8 +92,8 @@ export class DiffViewer extends HTMLElement {
         if (fileInRev.revIdx === 0) {
           // First revision - show as all additions
           const content = await this.apiService.getFileContent(name, dir, fileInRev.revIdx);
-          const diffContent = this.buildFirstRevision(displayName, content.split('\n'));
-          this.renderDiffInContainer(container, diffContent, false);
+          const diffContent = DiffRenderer.buildFirstRevision(displayName, content.split('\n'));
+          DiffRenderer.renderDiffInContainer(container, diffContent, false, 'line-by-line');
         } else {
           // Regular revision - show diff with context
           const [diff, content] = await Promise.all([
@@ -103,10 +104,10 @@ export class DiffViewer extends HTMLElement {
           const full = content.split('\n');
           const unchanged = !diff;
           const diffContent = unchanged ? 
-            this.buildUnchanged(displayName, full) : 
+            DiffRenderer.buildUnchanged(displayName, full) : 
             this.expandDiff(diff!, full, displayName);
           
-          this.renderDiffInContainer(container, diffContent, unchanged);
+          DiffRenderer.renderDiffInContainer(container, diffContent, unchanged, 'line-by-line');
         }
       } else {
         // Find most recent version of this file before current revision
@@ -120,8 +121,8 @@ export class DiffViewer extends HTMLElement {
         }
         
         const lines = mostRecentContent ? mostRecentContent.split('\n') : [];
-        const diffContent = this.buildUnchanged(displayName, lines);
-        this.renderDiffInContainer(container, diffContent, true);
+        const diffContent = DiffRenderer.buildUnchanged(displayName, lines);
+        DiffRenderer.renderDiffInContainer(container, diffContent, true, 'line-by-line');
       }
     }
 
@@ -132,46 +133,6 @@ export class DiffViewer extends HTMLElement {
     }
   }
 
-  private renderDiffInContainer(container: HTMLElement, diffContent: string, unchanged: boolean) {
-    const html = Diff2Html.html(diffContent, {
-      drawFileList: false,
-      matching: 'words',
-      outputFormat: 'line-by-line'
-    });
-    
-    container.innerHTML = html;
-
-    // Remove "changed" tag if unchanged
-    if (unchanged) {
-      const tag = container.querySelector('.d2h-tag');
-      if (tag) tag.remove();
-    }
-
-    // Apply sticky header styling (the container already has overflow-y: auto from CSS)
-    const fileHeader = container.querySelector('.d2h-file-header') as HTMLElement;
-    const fileContent = container.querySelector('.d2h-file-diff') as HTMLElement;
-    
-    if (fileHeader) {
-      // Ensure header stays sticky within the scrolling container
-      fileHeader.style.position = 'sticky';
-      fileHeader.style.top = '0';
-      fileHeader.style.zIndex = '10';
-      fileHeader.style.backgroundColor = '#f6f8fa';
-    }
-    
-    // IMPORTANT: Remove any overflow styling from the content area
-    // The container itself should handle all scrolling
-    if (fileContent) {
-      fileContent.style.overflow = 'visible';
-      fileContent.style.overflowY = 'visible';
-      fileContent.style.maxHeight = 'none';
-    }
-
-    // Auto-scroll to first change if there are modifications
-    if (!unchanged) {
-      setTimeout(() => this.scrollToFirstChange(container), 100);
-    }
-  }
 
   private addInstructionsButton(container: HTMLElement, revision: { date: string; files: Map<string, any> }) {
     const instructionsHasChanges = revision.files.has('instructions.txt');
@@ -207,44 +168,6 @@ export class DiffViewer extends HTMLElement {
     }
   }
 
-  private scrollToFirstChange(container: HTMLElement) {
-    const firstChange = container.querySelector('.d2h-ins, .d2h-del, .d2h-change');
-    
-    if (firstChange) {
-      const containerRect = container.getBoundingClientRect();
-      const changeRect = firstChange.getBoundingClientRect();
-      const offset = changeRect.top - containerRect.top;
-      
-      container.scrollTo({
-        top: container.scrollTop + offset - 100,
-        behavior: 'smooth'
-      });
-    }
-  }
-
-  // Build diff for unchanged files
-  private buildUnchanged(name: string, lines: string[]): string {
-    if (lines.length === 0) lines = [''];
-    return [
-      `--- a/${name}`,
-      `+++ b/${name}`,
-      `@@ -0,0 +0,0 @@`,
-      ` `, // dummy line for diff2html parsing
-      `@@ -1,${lines.length} +1,${lines.length} @@`,
-      ...lines.map(l => ` ${l}`)
-    ].join('\n');
-  }
-
-  // Build diff for first revision (all additions)
-  private buildFirstRevision(name: string, lines: string[]): string {
-    if (lines.length === 0) lines = [''];
-    return [
-      `--- a/${name}`,
-      `+++ b/${name}`,
-      `@@ -0,0 +1,${lines.length} @@`,
-      ...lines.map(l => `+${l}`)
-    ].join('\n');
-  }
 
   // Expand diff with full file context
   private expandDiff(diffText: string, fullLines: string[], displayName: string): string {

@@ -36,6 +36,7 @@ Prompted Blog is designed for anyone who feels an LLM with personality can write
 - `ApiService` - Handles all HTTP requests and caching
 - `UrlService` - Manages URL parameters and navigation state  
 - `AppCoordinator` - Central coordinator connecting all components
+- `DiffRenderer` - Shared service for rendering unified diff content across components
 
 ### Key Features Implemented
 
@@ -43,37 +44,22 @@ Prompted Blog is designed for anyone who feels an LLM with personality can write
 
 ## Development Phases
 
-### Phase 1: Core Blog Engine ⏳ (3/5 stories completed)
+### Phase 1: Core Blog Engine ⏳ (4/5 stories completed)
 - Basic blog structure ✅
 - Diff history visualization ✅
 - TypeScript and Web Components Migration ✅
-- CSS Architecture and Organization
+- CSS Architecture and Organization ✅
 - Multi-post navigation and architecture
 
-## Technical Implementation Details
+## Technical Implementation
 
-### Diff Generation (`generate.py`)
+### Backend (`generate.py`)
+- Walks git history to create `{rev}.diff` and `{rev}.txt` snapshots for each file
+- Generates `revisions.json` with timestamps and `latest.json` with latest post date
 
-For every post and global custom instruction:
-1. Fetch commit history of the files
-2. Generate diff from the previous version at `{num}.diff`
-3. Generate snapshot of file at a given version at `{num}.txt`
-4. Aggregate `revisions.json` containing revisions with timestamps
-5. Update `latest.json` with latest post date
-
-### UI Diff View (TypeScript Components)
-
-1. Fetch `latest.json`
-2. If history is enabled:
-    1. Fetch `revisions.json` for each file, merge and sort them by their timestamps
-    2. Most revision number is set in URL query parameter `rev`. If none is set, then use latest.
-    2. Find the associated snapshot for `prompts.txt` under `prompts.txt/{rev}.txt`, `output.md` under `output.md/{rev}.txt` inside `posts`. Do the same for `.diff` files for each target. Since `instructions.txt` is global, its snapshot and diff can be found at root.
-    3. Find the line numbers of diff headers in each `{rev}.diff`, prepend or append file content obtained from the snapshot `{rev}.txt` as necessary.
-    4. Render the entire diff in inline view with injected file contents using `diff2html` library.
-    5. First version must be shown entirely as additions since it will not have a diff.
-    6. Set the scroller to `rev` page.
-    7. `Instructions` button next to `Prompts` will toggle a modal for current instructions.
-        1. If instructions changed for that revision, the button will show `Changed` and appear as yellow.
-        2. Else: it will stay gray
-        3. Clicking close button will close the modal.
-3. Else: fetch `index.html` for that post and display directly
+### Frontend Flow
+1. Fetch `latest.json`, then `revisions.json` for history mode
+2. Load snapshots from `posts/{file}/{rev}.txt` (instructions from root)
+3. Inject file content into diffs and render with diff2html
+4. Instructions modal shows current revision with change indicator
+5. Revision scroller navigates via URL `rev` parameter

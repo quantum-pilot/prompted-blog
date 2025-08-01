@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc && npm run copy-assets",
     "dev": "tsc --watch",
-    "copy-assets": "mkdir -p dist/assets && cp assets/*.css assets/*.js assets/*.svg dist/assets/ 2>/dev/null || true",
+    "copy-assets": "mkdir -p dist/assets && cp assets/*.css assets/*.js assets/*.svg dist/assets/ 2>/dev/null || true && cp -r assets/css dist/assets/ 2>/dev/null || true",
     "serve": "python -m http.server 8000"
   },
   "devDependencies": {

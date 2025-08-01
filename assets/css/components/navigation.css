@@ -1,0 +1,19 @@
+/* Prev/next buttons */
+.nav-button {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #f6f8fa;
+  border: 1px solid #d1d5da;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.prev-post {
+  left: 0.5rem;
+}
+
+.next-post {
+  right: 0.5rem;
+}

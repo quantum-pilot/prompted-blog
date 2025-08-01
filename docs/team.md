@@ -77,21 +77,7 @@ This workflow ensures we maintain quality, capture knowledge, and make steady pr
 
 ## Documentation Updates
 
-### During Each Story
-**Claude should update these files as needed:**
-
-#### `CLAUDE.md` Updates
-- Add new commands or update existing if it has diverged
-- Update architecture notes if patterns change
-- Document any new dependencies or tools
-- Note any gotchas or important considerations
-
-#### `docs/technicals` Updates
-- Document technical decisions and rationale
-- Record issues encountered and solutions
-- Note what works well and what to avoid
-- Capture performance considerations
-- Document testing strategies that work
+Update `CLAUDE.md`, `docs/architecture.md`, and relevant `docs/technicals/` files after each story as needed.
 
 ## Quality Checks
 
@@ -125,20 +111,10 @@ Claude: "Great! Marking Story X.Y as completed. Moving to next story..."
 
 ## Emergency Procedures
 
-### If Story Becomes Too Complex
-- Break it down into smaller sub-tasks
-- Document the breakdown in the relevant document in `docs/technicals`
-- Get human approval for the new approach
-
-### If Architecture Changes Needed
-- Document the change rationale in `docs/technicals`
-- Update `docs/architecture.md` and `docs/architecture_decisions.md` as needed
-- Get human approval before major changes
-
-### If Stuck on Technical Issue
-- Document the issue in `docs/technicals`
-- Propose 2-3 alternative approaches
-- Ask human for guidance
+### If Issues Arise
+- Break complex stories into smaller tasks and get approval
+- Document architectural changes before implementing
+- When stuck, propose alternatives and ask human for guidance
 
 ## Success Metrics
 - Stories completed per session
@@ -146,49 +122,3 @@ Claude: "Great! Marking Story X.Y as completed. Moving to next story..."
 - Quality of human verification feedback
 - Documentation completeness
 - Knowledge capture effectiveness
-
-## Story Completion Documentation Workflow
-
-**This comprehensive checklist must be followed after every story completion:**
-
-### 1. Update Progress Tracking
-- [ ] Mark story as ✅ **Completed** in `docs/plan/phase-{N}.md`
-- [ ] Update progress counters in `docs/plan.md` 
-- [ ] Update next priority in `docs/plan.md`
-
-### 2. Update Current Architecture (if architecture changed)
-- [ ] Update technology stack in `docs/architecture.md`
-- [ ] Update component structure if changed
-- [ ] Update development phase progress  
-- [ ] Update technical implementation details if changed
-
-### 3. Document Technical Decisions (if significant decisions made)
-- [ ] Create or update relevant file in `docs/technicals/` directory
-- [ ] Follow `docs/technicals.md` index to determine which file needs updates
-- [ ] For major changes (migrations, new patterns), create dedicated document
-- [ ] Update `docs/technicals.md` index if new document created
-
-### 4. Update Development Workflow (if build/commands changed)
-- [ ] Update `CLAUDE.md` development commands if build process changed
-- [ ] Update `docs/technicals/development_workflow.md` if workflow changed  
-- [ ] Reference detailed technical docs instead of duplicating content
-
-### 5. Verify Documentation Consistency
-- [ ] **Check for content duplication** across all documentation files
-- [ ] **Ensure cross-references work** and point to correct locations
-- [ ] **Verify single source of truth** for complex topics (no duplicate explanations)
-- [ ] Update reading order in `CLAUDE.md` if document structure changed
-
-### 6. Quality Check Documentation Structure
-- [ ] Run comprehensive analysis of all docs/ files if major documentation changes made
-- [ ] Remove duplicate content and replace with proper references
-- [ ] Ensure each document has focused, distinct purpose
-
-**Example:** Story 1.3 (TypeScript Migration) required:
-- Progress tracking updates ✅
-- Architecture updates (technology stack, component structure) ✅  
-- New technical document (`frontend_migration.md`) ✅
-- Development workflow updates (npm commands) ✅
-- **Documentation deduplication analysis and cleanup** ✅
-
-**Critical:** Steps 5-6 are essential for maintaining clean, maintainable documentation as the project grows. Always verify no duplication exists after significant changes.

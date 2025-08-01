@@ -43,28 +43,10 @@
 - **Code Organization**: Logical file structure with clear separation of concerns
 - **No Framework Dependencies**: Maintains vanilla JS approach with TypeScript and Web Components only
 
-**Technical Implementation:**
-- **Package Manager**: Use npm or pnpm for dependency management and build scripts
-- **TypeScript Configuration**: Strict mode with proper DOM types and module resolution
-- **Component Architecture**:
-  - `<blog-header>` - Header with history toggle button
-  - `<post-viewer>` - Latest post rendering component
-  - `<diff-viewer>` - Two-pane diff visualization component (Prompts | Output)
-  - `<revision-scroller>` - Dot navigation component
-  - `<instructions-modal>` - Floating instructions overlay
-- **Service Layer**: Separate modules for API calls, diff processing, and URL state management
-- **Type Definitions**: Interfaces for revision data, file metadata, and component props
-- **Build Target**: Modern browsers (ES2020+) to keep bundle small and avoid transpilation overhead
-
-**Testing:**
-- **Functional Testing**: Verify all existing features work after migration using browser automation
-- **Cross-browser Testing**: Test in Chrome, Firefox, Safari to ensure Web Components compatibility
-- **Performance Testing**: Ensure bundle size and runtime performance remain comparable
-- **Build Testing**: Verify clean builds with no TypeScript errors or warnings
-- **Manual Testing**: Test all user interactions (history toggle, revision navigation, instructions modal, auto-scroll)
+**Implementation details in `docs/technicals/frontend_migration.md`**
 
 ### Story 1.4: CSS Architecture and Organization
-**Status:** ⏳ **Pending**
+**Status:** ✅ **Completed**
 
 **As a developer, I want organized, maintainable CSS that follows component architecture principles.**
 
@@ -77,31 +59,14 @@
 - **Clean HTML**: index.html uses single CSS import instead of large `<style>` block
 - **Build Integration**: CSS files properly included in build process
 
-**Technical Implementation:**
-- **File Structure**:
-  ```
-  assets/css/
-  ├── main.css                    # Entry point, imports all files
-  ├── base.css                    # Global styles (body, typography)
-  ├── layout.css                  # Overall layout and positioning
-  └── components/
-      ├── blog-header.css         # Header, title, history button
-      ├── post-viewer.css         # Post content styling
-      ├── diff-viewer.css         # Diff containers, headers, scrolling
-      ├── revision-scroller.css   # Dot navigation
-      ├── instructions-modal.css  # Modal overlay and content
-      └── navigation.css          # Prev/next buttons
-  ```
-- **CSS Import Strategy**: Use `@import` statements in `main.css` to load component files
-- **Build Process**: Update npm scripts to copy CSS files to dist/
-- **HTML Cleanup**: Replace `<style>` block with `<link rel="stylesheet" href="assets/css/main.css">`
+**Implementation details in `docs/technicals/ui_ux_patterns.md`**
 
-**Testing:**
-- **Visual Regression Testing**: Verify all components look and behave identically
-- **Cross-browser Testing**: Ensure CSS imports work correctly in all browsers
-- **Build Testing**: Verify CSS files are properly copied and accessible
-- **Component Testing**: Test each component's styling in isolation
-- **Integration Testing**: Verify no style conflicts or missing imports
+### BUG: Instructions Modal Line Numbers Overflow and Scrolling
+**Status:** ✅ **Completed**
+
+**Issue:** Line numbers overflowed container boundaries and remained statically positioned while diff content scrolled.
+
+**Solution details in `docs/technicals/bug_fixes.md`**
 
 ### Story 1.5: Multi-post navigation and architecture
 **Status:** ⏳ **Pending**

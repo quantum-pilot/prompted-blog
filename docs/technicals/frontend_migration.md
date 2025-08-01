@@ -15,9 +15,8 @@
 
 **Decision:** Acceptable compromise approach:
 - ✅ Use Web Components (native browser standard)
-- ✅ No framework dependencies 
+- ✅ No framework dependencies
 - ✅ Minimal build toolchain (TypeScript only)
-- ❓ Accept compilation step for type safety benefits
 
 **Rationale:** TypeScript provides significant maintainability benefits while Web Components align with PVW philosophy. Build step is minimal and outputs standard JavaScript.
 
@@ -26,7 +25,7 @@
 
 **Components Created:**
 - `<blog-header>` - Header with history toggle
-- `<post-viewer>` - Latest post rendering  
+- `<post-viewer>` - Latest post rendering
 - `<diff-viewer>` - Two-pane diff visualization
 - `<revision-scroller>` - Dot navigation
 - `<instructions-modal>` - Instructions overlay

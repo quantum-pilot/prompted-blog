@@ -1,0 +1,24 @@
+/* Overall layout and positioning */
+.header {
+  border-bottom: 1px solid #e1e4e8;
+  margin: 0 auto 2rem;
+  max-width: 800px;
+  padding: 0 1rem;
+  position: relative;
+}
+
+.description {
+  color: #586069;
+  font-size: 1.1rem;
+  margin: 0.5rem 0 1.5rem;
+}
+
+#diff-output {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 3rem;
+  width: 90vw;
+  margin-inline: auto;
+  box-sizing: border-box;
+}

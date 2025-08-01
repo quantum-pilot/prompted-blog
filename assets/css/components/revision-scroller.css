@@ -1,0 +1,29 @@
+/* Dot navigation */
+#revision-scroller {
+  position: fixed;
+  bottom: 5%;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.rev-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ccc;
+  cursor: pointer;
+}
+
+.rev-dot.active {
+  background: #333;
+}
+
+.rev-scroll-icon {
+  width: 24px;
+  height: 24px;
+  background: url('assets/scroll-icon.svg') center center no-repeat;
+  background-size: contain;
+}

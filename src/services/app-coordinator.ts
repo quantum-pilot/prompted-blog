@@ -83,6 +83,11 @@ export class AppCoordinator {
       await this.components.diffViewer.initialize(this.currentRevisions, this.basePath);
     }
     
+    // Initialize instructions modal with revision data
+    if (this.components.instructionsModal) {
+      await this.components.instructionsModal.initialize(this.currentRevisions);
+    }
+    
     // Get current revision from URL or default to latest
     const currentRev = this.urlService.getCurrentRevision() ?? (this.currentRevisions.length - 1);
     const clampedRev = Math.max(0, Math.min(currentRev, this.currentRevisions.length - 1));
@@ -140,7 +145,7 @@ export class AppCoordinator {
         }
       }
       
-      await this.components.instructionsModal.loadInstructions(instructionsRevIndex);
+      await this.components.instructionsModal.loadInstructions(revision, revisionIndex);
     }
   }
 
