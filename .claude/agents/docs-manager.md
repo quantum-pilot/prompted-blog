@@ -2,7 +2,7 @@
 name: docs-manager
 description: docs-manager is invoked any time afer story completion or for regular routine maintenance of documentation
 model: inherit
-color: blue
+color: green
 ---
 
 ## Purpose
