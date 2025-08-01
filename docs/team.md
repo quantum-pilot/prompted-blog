@@ -9,7 +9,7 @@ This workflow ensures we maintain quality, capture knowledge, and make steady pr
 
 ### 1. Story Selection & Planning
 **Claude's Actions:**
-- Identify the phase from `docs/plan.md` and pick up the next ⏳ **Pending** story from `docs/plan/{phase}.md`
+- Identify the phase from `docs/plan.md` and pick up the next ⏳ **Pending** story from `docs/plan/phase-{number}.md`
 - Review the story's acceptance criteria and testing requirements
 - If the story is ambiguous or needs input, prompt the human for clarification.
 - Create a brief implementation plan (2-3 bullet points)

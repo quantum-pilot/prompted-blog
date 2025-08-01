@@ -1,10 +1,14 @@
+import { UrlService } from '../services/url-service.js';
+
 export class BlogHeader extends HTMLElement {
   private historyButton!: HTMLButtonElement;
   private isHistoryActive: boolean = false;
+  private urlService: UrlService;
 
   constructor() {
     super();
-    this.isHistoryActive = new URL(window.location.href).searchParams.get('history_enabled') === 'true';
+    this.urlService = UrlService.getInstance();
+    this.isHistoryActive = this.urlService.isHistoryEnabled();
   }
 
   connectedCallback() {
@@ -33,18 +37,9 @@ export class BlogHeader extends HTMLElement {
   }
 
   private toggleHistory() {
-    const url = new URL(window.location.href);
     this.isHistoryActive = !this.isHistoryActive;
-    
     this.historyButton.classList.toggle('active', this.isHistoryActive);
-    
-    if (this.isHistoryActive) {
-      url.searchParams.set('history_enabled', 'true');
-    } else {
-      url.searchParams.delete('history_enabled');
-    }
-    
-    window.location.href = url.toString();
+    this.urlService.setHistoryEnabled(this.isHistoryActive);
   }
 }
 

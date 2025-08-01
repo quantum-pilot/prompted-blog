@@ -35,14 +35,6 @@
 
 **Overview:** Refactor the monolithic `main.js` into modular, type-safe TypeScript components following Plain Vanilla Web principles. This improves maintainability, debugging, and code reuse while preserving all existing functionality.
 
-**Acceptance Criteria:**
-- **Type Safety**: All data structures, API responses, and DOM interactions are properly typed
-- **Component Separation**: UI logic is separated into reusable Web Components with clear interfaces
-- **Preserved Functionality**: All existing features work identically (diff view, revision scroller, instructions modal, auto-scroll)
-- **Build Process**: Simple build setup (npm/pnpm) that compiles TypeScript and serves the application
-- **Code Organization**: Logical file structure with clear separation of concerns
-- **No Framework Dependencies**: Maintains vanilla JS approach with TypeScript and Web Components only
-
 **Implementation details in `docs/technicals/frontend_migration.md`**
 
 ### Story 1.4: CSS Architecture and Organization
@@ -51,13 +43,6 @@
 **As a developer, I want organized, maintainable CSS that follows component architecture principles.**
 
 **Overview:** Extract CSS from the monolithic `<style>` block in `index.html` into a well-organized file structure that mirrors the TypeScript component architecture. This improves maintainability, reduces index.html complexity, and makes styles easier to locate and modify.
-
-**Acceptance Criteria:**
-- **Organized File Structure**: CSS organized into logical files by component and functionality
-- **No Visual Regression**: All existing styling and functionality preserved identically
-- **Maintainable Architecture**: Easy to find and modify component-specific styles
-- **Clean HTML**: index.html uses single CSS import instead of large `<style>` block
-- **Build Integration**: CSS files properly included in build process
 
 **Implementation details in `docs/technicals/ui_ux_patterns.md`**
 
@@ -72,3 +57,30 @@
 **Status:** ⏳ **Pending**
 
 **As a reader, I want to navigate through multiple posts with URLs and not just the latest post**
+
+**Overview:** Implement hash-based routing for individual posts and improve navigation between posts. This enables direct linking to specific posts while maintaining the single-page application architecture.
+
+**Acceptance Criteria:**
+- **Hash-based Routing**: Posts accessible via `#/posts/YYYY-MM-DD/` URLs
+- **Homepage Behavior**: Root URL (`/` or `#/`) loads latest post and updates URL to its specific path
+- **Navigation Controls**: Previous/Next buttons moved to header, disabled when no more posts in that direction
+- **URL Persistence**: Browser back/forward buttons work correctly with post navigation
+- **Smooth Transitions**: Page updates in-place without full reload when navigating between posts
+- **Deep Linking**: Users can bookmark and share specific post URLs
+- **History Mode Support**: Hash URLs work correctly in both normal and history diff view modes
+
+**Technical Implementation:**
+- **UrlService Enhancement**: Add hash change listener and routing logic for `#/posts/YYYY-MM-DD/` pattern
+- **ApiService Update**: Add methods to fetch post list and navigate between posts
+- **Header Component**: Integrate prev/next navigation buttons with proper disabled states
+- **AppCoordinator**: Handle routing events and coordinate component updates
+- **Post Loading**: Update post viewer to load specific posts based on URL
+
+**Testing Requirements:**
+- Navigate to root URL and verify it loads latest post with correct URL
+- Click previous/next buttons and verify smooth navigation
+- Test disabled state at first/last post
+- Use browser back/forward buttons to verify history works
+- Direct link to specific post URL and verify it loads correctly
+- Switch between normal and history mode on different posts
+- Test with posts that don't exist (handle 404 gracefully)

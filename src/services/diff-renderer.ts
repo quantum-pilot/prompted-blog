@@ -118,4 +118,73 @@ export class DiffRenderer {
       });
     }
   }
+
+  // Expand diff with full file context (shared method)
+  static expandDiff(diffText: string, fullLines: string[], displayName: string): string {
+    if (!diffText) return '';
+
+    const src = diffText.split('\n');
+    const out = [];
+    let i = 0;
+
+    // Process headers
+    while (i < src.length && !src[i].startsWith('@@')) {
+      let line = src[i++];
+      // Replace full paths with display names
+      if (line.startsWith('--- a/') || line.startsWith('+++ b/')) {
+        const prefix = line.substring(0, 6);
+        line = prefix + displayName;
+      }
+      out.push(line);
+    }
+
+    // Check if diff starts at line 1
+    let startsAtLineOne = false;
+    if (i < src.length) {
+      const firstHunk = src[i];
+      const m = /@@ -(\d+)/.exec(firstHunk);
+      startsAtLineOne = m !== null && +m[1] === 1;
+    }
+
+    // Add dummy header if diff doesn't start at line 1
+    if (!startsAtLineOne) {
+      out.push(`@@ -0,0 +0,0 @@`);
+      out.push(` `); // dummy line
+    }
+
+    let prevNew = 1;
+    while (i < src.length) {
+      const head = src[i];
+      const m = /@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@/.exec(head);
+      if (!m) {
+        out.push(src[i++]);
+        continue;
+      }
+
+      const newStart = +m[1];
+      const newCount = +(m[2] || 1);
+
+      // Add context lines before the hunk
+      for (let ln = prevNew; ln < newStart; ln++) {
+        out.push(' ' + (fullLines[ln - 1] || ''));
+      }
+
+      out.push(head);
+      i++;
+
+      // Add hunk content
+      while (i < src.length && !src[i].startsWith('@@')) {
+        out.push(src[i++]);
+      }
+
+      prevNew = newStart + newCount;
+    }
+
+    // Add remaining context lines
+    for (let ln = prevNew; ln <= fullLines.length; ln++) {
+      out.push(' ' + (fullLines[ln - 1] || ''));
+    }
+
+    return out.join('\n');
+  }
 }

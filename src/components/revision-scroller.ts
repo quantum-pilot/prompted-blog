@@ -1,4 +1,5 @@
 import type { RevisionInfo } from '../types/index.js';
+import { UrlService } from '../services/url-service.js';
 
 export class RevisionScroller extends HTMLElement {
   private dots: HTMLElement[] = [];
@@ -6,9 +7,11 @@ export class RevisionScroller extends HTMLElement {
   private revisions: RevisionInfo[] = [];
   private currentRev: number = 0;
   private onRevisionChange?: (revisionIndex: number) => void;
+  private urlService: UrlService;
 
   constructor() {
     super();
+    this.urlService = UrlService.getInstance();
   }
 
   connectedCallback() {
@@ -26,10 +29,7 @@ export class RevisionScroller extends HTMLElement {
   }
 
   private checkHistoryMode() {
-    const url = new URL(window.location.href);
-    const isHistory = url.searchParams.get('history_enabled') === 'true';
-
-    this.setVisible(isHistory);
+    this.setVisible(this.urlService.isHistoryEnabled());
   }
 
   // Initialize with revision data
@@ -100,9 +100,7 @@ export class RevisionScroller extends HTMLElement {
   }
 
   private updateURL(revisionIndex: number) {
-    const url = new URL(window.location.href);
-    url.searchParams.set('rev', revisionIndex.toString());
-    history.replaceState(null, '', url.toString());
+    this.urlService.setRevision(revisionIndex);
   }
 
   setVisible(visible: boolean) {

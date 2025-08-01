@@ -1,10 +1,13 @@
 import type { PostData } from '../types/index.js';
+import { UrlService } from '../services/url-service.js';
 
 export class PostViewer extends HTMLElement {
+  private urlService: UrlService;
   private postContainer!: HTMLElement;
 
   constructor() {
     super();
+    this.urlService = UrlService.getInstance();
   }
 
   connectedCallback() {
@@ -14,10 +17,7 @@ export class PostViewer extends HTMLElement {
   }
 
   private checkHistoryMode() {
-    const url = new URL(window.location.href);
-    const isHistory = url.searchParams.get('history_enabled') === 'true';
-
-    if (isHistory) {
+    if (this.urlService.isHistoryEnabled()) {
       this.setVisible(false);
     }
   }
