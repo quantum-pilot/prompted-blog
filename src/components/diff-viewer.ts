@@ -33,7 +33,7 @@ export class DiffViewer extends BaseComponent {
   private tabContent!: HTMLElement;
   private currentRevisions: RevisionData[] = [];
   private basePath: string = '';
-  private activeTab: 'prompts' | 'output' | 'instructions' = 'prompts';
+  private activeTab: 'prompts' | 'output' | 'instructions' = 'output';
   private currentRevisionIndex: number = 0;
 
   constructor() {
@@ -60,7 +60,7 @@ export class DiffViewer extends BaseComponent {
       <div class="diff-viewer-container">
         <!-- Mobile Tab Navigation -->
         <div class="tab-navigation">
-          <button class="tab-button active" data-tab="prompts">
+          <button class="tab-button" data-tab="prompts">
             <span class="tab-title">
               <span class="tab-main">
                 <span class="tab-icon">📝</span>
@@ -68,7 +68,7 @@ export class DiffViewer extends BaseComponent {
               </span>
             </span>
           </button>
-          <button class="tab-button" data-tab="output">
+          <button class="tab-button active" data-tab="output">
             <span class="tab-title">
               <span class="tab-main">
                 <span class="tab-icon">📄</span>
@@ -85,19 +85,19 @@ export class DiffViewer extends BaseComponent {
             </span>
           </button>
         </div>
-        
+
         <!-- Tab Content -->
         <div class="tab-content">
-          <div class="tab-pane active" data-pane="prompts"></div>
-          <div class="tab-pane" data-pane="output"></div>
+          <div class="tab-pane" data-pane="prompts"></div>
+          <div class="tab-pane active" data-pane="output"></div>
           <div class="tab-pane" data-pane="instructions"></div>
         </div>
-        
+
         <!-- Desktop Side-by-Side Layout -->
         <div id="diff-output"></div>
       </div>
     `;
-    
+
     this.diffContainer = this.querySelector('#diff-output') as HTMLElement;
     this.tabContainer = this.querySelector('.tab-navigation') as HTMLElement;
     this.tabContent = this.querySelector('.tab-content') as HTMLElement;
@@ -123,7 +123,7 @@ export class DiffViewer extends BaseComponent {
           this.switchTab(tab);
         }
       };
-      
+
       this.addManagedEventListener(button, 'click', handler);
     });
   }
@@ -131,21 +131,21 @@ export class DiffViewer extends BaseComponent {
   private switchTab(tab: 'prompts' | 'output' | 'instructions') {
     // Update active tab
     this.activeTab = tab;
-    
+
     // Update tab button states
     const tabButtons = this.querySelectorAll('.tab-button');
     tabButtons.forEach(button => {
       const buttonTab = button.getAttribute('data-tab');
       button.classList.toggle('active', buttonTab === tab);
     });
-    
+
     // Update tab pane visibility
     const tabPanes = this.querySelectorAll('.tab-pane');
     tabPanes.forEach(pane => {
       const paneTab = pane.getAttribute('data-pane');
       pane.classList.toggle('active', paneTab === tab);
     });
-    
+
     // Re-render current revision content for the active tab
     if (this.currentRevisions.length > 0) {
       this.renderTabContent(this.currentRevisionIndex);
@@ -162,7 +162,7 @@ export class DiffViewer extends BaseComponent {
     // Render both desktop and mobile layouts
     await this.renderDesktopLayout(revisionIndex);
     await this.renderTabContent(revisionIndex);
-    
+
     // Update tab titles with change indicators
     this.updateTabTitles(revisionIndex);
   }
@@ -193,7 +193,7 @@ export class DiffViewer extends BaseComponent {
         flex-direction: column;
         overflow-y: auto;
       `;
-      
+
       containers.set(name, container);
       this.diffContainer.appendChild(container);
     }
@@ -215,7 +215,7 @@ export class DiffViewer extends BaseComponent {
 
   private async renderTabContent(revisionIndex: number) {
     const revision = this.currentRevisions[revisionIndex];
-    
+
     // Render content for active tab only (performance optimization)
     switch (this.activeTab) {
       case 'prompts':
@@ -261,24 +261,24 @@ export class DiffViewer extends BaseComponent {
 
   private updateTabTitles(revisionIndex: number) {
     const revision = this.currentRevisions[revisionIndex];
-    
+
     // Update tab titles with change indicators
     const promptsTab = this.querySelector('[data-tab="prompts"]') as HTMLElement;
     const outputTab = this.querySelector('[data-tab="output"]') as HTMLElement;
     const instructionsTab = this.querySelector('[data-tab="instructions"]') as HTMLElement;
-    
+
     if (promptsTab) {
       const hasChanges = revision.files.has('prompts.txt');
       promptsTab.innerHTML = this.createTabContent('📝', 'Prompts', hasChanges);
       promptsTab.classList.toggle('has-changes', hasChanges);
     }
-    
+
     if (outputTab) {
       const hasChanges = revision.files.has('output.md');
       outputTab.innerHTML = this.createTabContent('📄', 'Output', hasChanges);
       outputTab.classList.toggle('has-changes', hasChanges);
     }
-    
+
     if (instructionsTab) {
       const hasChanges = revision.files.has('instructions.txt');
       instructionsTab.innerHTML = this.createTabContent('📋', 'Instructions', hasChanges);
@@ -301,7 +301,7 @@ export class DiffViewer extends BaseComponent {
 
   private addInstructionsButton(container: HTMLElement, revision: RevisionData) {
     const instructionsHasChanges = revision.files.has('instructions.txt');
-    
+
     const button = document.createElement('button');
     button.className = `instructions-btn ${instructionsHasChanges ? 'has-changes' : ''}`;
     button.textContent = instructionsHasChanges ? 'Instructions (Updated)' : 'Instructions';
@@ -326,7 +326,7 @@ export class DiffViewer extends BaseComponent {
         modal.show();
       }
     };
-    
+
     this.addManagedEventListener(button, 'click', handler);
 
     const fileHeader = container.querySelector('.d2h-file-header');

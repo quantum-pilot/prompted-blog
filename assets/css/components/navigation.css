@@ -1,19 +1,74 @@
 /* Prev/next buttons */
 .nav-button {
-  position: fixed;
-  top: 50%;
-  transform: translateY(-50%);
   background: #f6f8fa;
   border: 1px solid #d1d5da;
-  padding: 0.3rem 0.6rem;
+  padding: 0.5rem 1rem;
   font-size: 0.9rem;
   cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  min-height: 44px;
+  min-width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #24292f;
+  text-decoration: none;
+  font-family: inherit;
 }
 
-.prev-post {
-  left: 0.5rem;
+.nav-button:hover:not(:disabled) {
+  background: #f3f4f6;
+  border-color: #afb2b5;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.next-post {
-  right: 0.5rem;
+.nav-button:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.nav-button:focus {
+  outline: 2px solid #0969da;
+  outline-offset: 2px;
+}
+
+.nav-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  color: #8b949e;
+  background: #f6f8fa;
+  border-color: #d1d5da;
+}
+
+/* Mobile-specific nav button styles */
+@media (max-width: 768px) {
+  .nav-button {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    min-width: 44px;
+    min-height: 44px;
+  }
+  
+  /* Show full text on mobile - there's plenty of space */
+  .nav-button .button-text {
+    display: inline;
+  }
+  
+  .nav-button .button-icon {
+    display: none;
+  }
+}
+
+/* Desktop styles */
+@media (min-width: 769px) {
+  .nav-button .button-text {
+    display: inline;
+  }
+  
+  .nav-button .button-icon {
+    display: none;
+  }
 }

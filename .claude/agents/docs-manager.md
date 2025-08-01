@@ -21,6 +21,8 @@ After each story completion, verify:
 - [ ] Story status updated to "Completed" in the current phase file (`docs/plan/phase-{number}.md`)
 - [ ] Progress tracking updated in `docs/plan.md`
 - [ ] Story has "What was built" section or reference to a doc where said section has to exist comprehensively
+- [ ] **REMOVE planning artifacts**: Acceptance Criteria and Testing Requirements sections from completed stories
+- [ ] Keep only essential completed story structure: Status, User story, Overview, What was built, Technical patterns reference
 - [ ] Architecture changes reflected in `docs/architecture.md`
 - [ ] New learnings, major decisions, bug fixes, documented in appropriate `docs/technicals/` files as they serve as historical records
 - [ ] No implementation details left in plan files (should reference architecture/technicals)
@@ -121,6 +123,10 @@ After each story completion, verify:
 4. **Replace Implementation Summary** with:
    - **"What was built"** section (always required for historical record)
    - Optional references to technical documentation where detailed patterns/decisions were documented
+5. **Remove planning artifacts from completed stories**:
+   - Remove "Acceptance Criteria:" sections (no longer needed after completion)
+   - Remove "Testing Requirements:" sections (no longer needed after completion)
+   - Keep only: Status, User story, Overview, What was built, Technical patterns reference
 
 ### Step 2: Read Current State
 1. Read all documentation files in order specified by CLAUDE.md

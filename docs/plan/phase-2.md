@@ -21,7 +21,7 @@ Enhance the Prompted Blog with modern, mobile-responsive UI/UX while preserving 
 
 **What was built:**
 - Mobile-responsive tabbed interface for diff viewer with three tabs: Prompts, Output, and Instructions
-- Responsive breakpoint system: mobile tabs (320px-768px), desktop side-by-side (769px+)
+- Responsive breakpoint system: mobile tabs (320px-768px), tablet/desktop side-by-side (≥769px)
 - Touch-friendly navigation with 44px touch targets and visual change indicators
 - Complete integration of instructions content into mobile tab system
 - Mobile-optimized header and revision scroller with overflow protection
@@ -49,69 +49,94 @@ Enhance the Prompted Blog with modern, mobile-responsive UI/UX while preserving 
 ---
 
 ### Story 2.2: Mobile-Responsive Header and Navigation
-**Status:** ⏳ **Pending**
+**Status:** ✅ **Completed**
 
 **As a mobile user, I want the header navigation to work properly without overlapping content and be easily accessible.**
 
 **Overview:** Current header layout breaks on mobile with navigation buttons overlapping content. Need responsive header design with proper button placement and mobile-friendly navigation patterns.
 
-**Acceptance Criteria:**
-- **Mobile Header (320px-768px):**
-  - Title remains centered and readable
-  - Compress navigation buttons into compact layout
-  - History toggle button moves to top-right corner
-  - Prev/Next buttons become icon-only with tooltips
-  - All buttons maintain 44px minimum touch target
-- **Navigation Button Behavior:**
-  - Prev/Next buttons stack vertically or use icon-only design on mobile
-  - Disabled state clearly visible with reduced opacity
-  - Active/hover states work properly on touch devices
-- **Header Positioning:**
-  - Fixed positioning works without content overlap
-  - Proper z-index stacking with other components
-  - Safe area padding for devices with notches
-- **Typography:**
-  - Title font size scales appropriately (2rem on mobile, 2.5rem on desktop)
-  - Description text remains readable at all breakpoints
 
-**Testing Requirements:**
-- Test header behavior during scroll on mobile devices
-- Verify navigation button functionality on touch devices
-- Test on devices with notches (iPhone X+ series)
-- Verify no content overlap in all viewport sizes
+**What was built:**
+- Mobile-responsive header and navigation system with clean separation of concerns
+- Dedicated navigation bar positioned below blog description to eliminate content overlap
+- Responsive navigation with full-text buttons on mobile maintaining 44px touch targets
+- History button positioned in top-right corner with responsive adjustments across screen sizes
+- Enhanced mobile tab system with Output tab as default and improved spacing
+- Component-based CSS architecture with comprehensive responsive breakpoints
+
+**Technical patterns documented in:** `docs/technicals/ui_ux_patterns.md` - Mobile-Responsive Header Architecture section
 
 ---
 
-### Story 2.3: Enhanced Touch-Friendly Revision Scroller
+### Story 2.3: Continuous Line Revision Navigation System
 **Status:** ⏳ **Pending**
 
-**As a mobile user, I want larger, more accessible revision dots that are easy to tap with my finger.**
+**As a user navigating through revisions, I want an intuitive continuous line navigation system that scales well with any number of revisions and provides excellent mobile touch interaction.**
 
-**Overview:** Current revision dots are 10px which is too small for comfortable touch interaction. Need to implement larger touch targets while maintaining visual elegance and mobile positioning.
+**Overview:** Replace the current dot-based revision system with a modern continuous progress line that includes draggable thumb navigation, click-to-jump functionality, and arrow button navigation. This design scales from 2 to 100+ revisions while providing superior mobile usability.
 
 **Acceptance Criteria:**
-- **Touch Target Improvements:**
-  - Increase dot size to 16px with 44px touch area (invisible padding)
-  - Add subtle hover/focus states for desktop users
-  - Active dot has stronger visual contrast
-- **Mobile Positioning:**
-  - Position scroller at bottom-left on mobile (easier thumb access)
-  - Center positioning on tablet and desktop
-  - Safe distance from screen edges (minimum 16px)
-- **Visual Enhancements:**
-  - Add subtle drop shadow for better visibility
-  - Smooth transitions between active states (200ms)
-  - Better color contrast ratios for accessibility
-- **Interaction Feedback:**
-  - Brief haptic-style animation on tap (CSS scale effect)
-  - Loading indicator during revision changes
-  - Smooth scrolling to changed content after revision switch
+- **Continuous Progress Line Interface:**
+  - Replace revision dots with a horizontal progress bar/line (minimum 200px width on mobile)
+  - Draggable circular thumb indicator showing current revision position
+  - Click anywhere on the line to jump to approximate revision location
+  - Previous/Next arrow buttons (fa-chevron-left, fa-chevron-right) for adjacent navigation
+  - Display current position as "Rev X / Total" text for context
+- **Equidistant Revision Positioning (CRITICAL):**
+  - Revisions positioned at mathematically equidistant points using formula: position = (index / (total-1)) * 100%
+  - 2 revisions: 0% and 100% (extremes only)
+  - 3 revisions: 0%, 50%, 100% (extremes + middle)
+  - 4 revisions: 0%, 33.33%, 66.66%, 100%
+  - 5 revisions: 0%, 25%, 50%, 75%, 100%
+  - Visual tick marks at each revision position for precision
+- **Mobile-First Touch Design:**
+  - Bottom-left positioning on mobile (320px-768px) for easier thumb access
+  - Bottom-center positioning on tablet/desktop (≥769px)
+  - 44px minimum touch targets for all interactive elements (thumb, arrows, line)
+  - Safe 16px minimum distance from screen edges
+  - Smooth drag interactions with momentum and snap-to-revision behavior
+- **Visual Design and Feedback:**
+  - Use Font Awesome icons: fa-chevron-left, fa-chevron-right for navigation arrows
+  - Circular thumb indicator with fa-circle icon or CSS circle
+  - Smooth CSS transitions (200ms) for all state changes
+  - Haptic-style tap feedback with brief scale animation (transform: scale(1.1))
+  - Subtle drop shadow and proper contrast ratios for accessibility
+  - Loading indicator during revision changes with smooth fade transitions
+- **Interaction Patterns:**
+  - Drag thumb along line with live preview of revision number
+  - Click/tap anywhere on line jumps to nearest revision
+  - Arrow buttons navigate to adjacent revisions with smooth animation
+  - Keyboard accessibility: left/right arrow keys for navigation
+  - Support for both touch and mouse interactions
+- **Scalability Features:**
+  - Works seamlessly with 2-100+ revisions
+  - Automatic spacing calculation maintains usability at any scale
+  - More space-efficient than dot grids (constant width regardless of revision count)
+  - Professional appearance that improves with more revisions
+- **Accessibility and State Management:**
+  - ARIA labels: "Revision navigation", "Previous revision", "Next revision"
+  - Screen reader announcements: "Revision X of Y selected"
+  - Focus indicators for keyboard navigation
+  - High contrast support and theme compatibility
+  - Proper tab order and keyboard shortcuts
+
+**Technical Implementation Details:**
+- Replace existing RevisionScroller dot-based system in `src/components/revision-scroller.ts`
+- Implement CSS Grid/Flexbox layout for responsive positioning
+- Use CSS custom properties for theme compatibility
+- Add drag event handlers with touch and mouse support
+- Calculate revision positions using mathematical formula for equidistant spacing
+- Integrate with existing URL and state management systems
+- Maintain all current callback and initialization patterns
 
 **Testing Requirements:**
-- Test tap accuracy on various mobile devices
-- Verify positioning doesn't interfere with other UI elements
-- Test with different numbers of revisions (3-20 dots)
-- Verify accessibility with VoiceOver/TalkBack
+- Test dragging accuracy and snap behavior on various mobile devices
+- Verify equidistant positioning with different revision counts (2, 3, 5, 10, 20+ revisions)
+- Test click-to-jump functionality across the entire line length
+- Verify positioning doesn't interfere with other UI elements at all breakpoints
+- Test keyboard navigation with screen readers (VoiceOver/TalkBack)
+- Validate smooth performance with large numbers of revisions (50+)
+- Cross-browser testing for drag and touch events
 
 ---
 

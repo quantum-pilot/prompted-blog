@@ -24,16 +24,24 @@ export class BlogHeader extends BaseComponent {
   private render() {
     this.innerHTML = `
       <header class="header">
-        <button class="nav-button prev-post" id="prev-button" disabled>← Prev</button>
         <div class="header-content">
           <h1>Prompted Blog</h1>
           <p class="description">Prompt-driven commit history as a blog. One prompt at a time.</p>
-          <button class="history-button ${this.isHistoryActive ? 'active' : ''}" id="history-trigger" title="Toggle Prompt History">
-            <i class="fas fa-history"></i>
-          </button>
         </div>
-        <button class="nav-button next-post" id="next-button" disabled>Next →</button>
+        <button class="history-button ${this.isHistoryActive ? 'active' : ''}" id="history-trigger" title="Toggle Prompt History">
+          <i class="fas fa-history"></i>
+        </button>
       </header>
+      <nav class="navigation-bar">
+        <button class="nav-button prev-post" id="prev-button" disabled title="Previous Post">
+          <span class="button-icon">←</span>
+          <span class="button-text">← Prev</span>
+        </button>
+        <button class="nav-button next-post" id="next-button" disabled title="Next Post">
+          <span class="button-icon">→</span>
+          <span class="button-text">Next →</span>
+        </button>
+      </nav>
     `;
     
     this.historyButton = this.querySelector('#history-trigger') as HTMLButtonElement;

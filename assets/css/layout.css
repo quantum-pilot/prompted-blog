@@ -1,11 +1,5 @@
 /* Overall layout and positioning */
-.header {
-  border-bottom: 1px solid #e1e4e8;
-  margin: 0 auto 2rem;
-  max-width: 800px;
-  padding: 0 1rem;
-  position: relative;
-}
+/* Header styles moved to components/blog-header.css */
 
 .description {
   color: #586069;

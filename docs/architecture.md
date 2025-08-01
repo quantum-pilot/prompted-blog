@@ -26,7 +26,7 @@ Prompted Blog is designed for anyone who feels an LLM with personality can write
 
 The application uses TypeScript Web Components with a service-oriented architecture. Five main components handle the user interface:
 
-- `<blog-header>` - Mobile-responsive header with navigation
+- `<blog-header>` - Mobile-responsive header with separated navigation bar architecture
 - `<post-viewer>` - Post content rendering
 - `<diff-viewer>` - Responsive diff visualization with mobile tabbed interface  
 - `<revision-scroller>` - Dot navigation for revision history

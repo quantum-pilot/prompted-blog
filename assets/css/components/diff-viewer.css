@@ -39,33 +39,35 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 4px; /* Increased from 2px */
 }
 
 .tab-button .tab-main {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px; /* Increased from 4px */
 }
 
 .tab-button .tab-icon {
   display: inline-block;
-  width: 12px;
+  width: 16px; /* Increased from 12px */
   height: 16px;
   opacity: 0.6;
+  font-size: 0.875rem;
 }
 
 .tab-button .change-badge {
   display: inline-block;
   background: #fb8500;
   color: white;
-  padding: 1px 4px;
-  border-radius: 2px;
-  font-size: 0.6rem;
+  padding: 2px 6px; /* Increased padding */
+  border-radius: 3px; /* Slightly more rounded */
+  font-size: 0.65rem; /* Slightly larger */
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.3px;
-  line-height: 1;
+  line-height: 1.2; /* Better line height */
+  margin-top: 2px; /* Add some top margin */
 }
 
 .tab-button.active {
