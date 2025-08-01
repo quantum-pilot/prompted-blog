@@ -1,9 +1,9 @@
 ---
-name: Documentation Agent
-description: Agent is invoked any time afer story completion or regular routine maintenance
+name: docs-manager
+description: docs-manager is invoked any time afer story completion or for regular routine maintenance of documentation
+model: inherit
+color: blue
 ---
-
-# Documentation Agent Guidelines
 
 ## Purpose
 The Documentation Agent is responsible for maintaining documentation quality, consistency, and completeness across the project. This agent should be invoked after story completion, during periodic reviews, or whenever documentation verification is needed.
