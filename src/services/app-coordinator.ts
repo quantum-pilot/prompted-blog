@@ -5,6 +5,7 @@ import type { PostViewer } from '../components/post-viewer.js';
 import type { RevisionScroller } from '../components/revision-scroller.js';
 import type { InstructionsModal } from '../components/instructions-modal.js';
 import type { DiffViewer } from '../components/diff-viewer.js';
+import type { RevisionData } from '../types/index.js';
 
 export class AppCoordinator {
   private static instance: AppCoordinator;
@@ -17,12 +18,38 @@ export class AppCoordinator {
     instructionsModal?: InstructionsModal;
     diffViewer?: DiffViewer;
   } = {};
-  private currentRevisions: { date: string; files: Map<string, any> }[] = [];
+  private currentRevisions: RevisionData[] = [];
   private basePath: string = '';
+  private popstateHandler: () => void;
+  private hashChangeHandler: (postPath: string | null) => Promise<void>;
 
   private constructor() {
     this.apiService = ApiService.getInstance();
     this.urlService = UrlService.getInstance();
+    
+    // Initialize handlers
+    this.popstateHandler = () => {
+      this.init(); // Re-initialize based on new URL state
+    };
+    
+    this.hashChangeHandler = async (postPath: string | null) => {
+      if (postPath && postPath !== this.basePath) {
+        // Navigate to the new post
+        this.basePath = postPath;
+        
+        // Update header with current post
+        if (this.components.header) {
+          await this.components.header.setCurrentPost(this.basePath);
+        }
+
+        // Re-initialize based on current state
+        if (this.urlService.isHistoryEnabled()) {
+          await this.initHistoryMode();
+        } else {
+          await this.initNormalMode();
+        }
+      }
+    };
   }
 
   static getInstance(): AppCoordinator {
@@ -175,6 +202,9 @@ export class AppCoordinator {
   }
 
   private setupEventListeners(): void {
+    // Clean up existing listeners first
+    this.cleanup();
+    
     // Listen for history mode toggles
     if (this.components.header) {
       // The header component already handles its own click events
@@ -182,29 +212,19 @@ export class AppCoordinator {
     }
 
     // Handle browser back/forward buttons
-    window.addEventListener('popstate', () => {
-      this.init(); // Re-initialize based on new URL state
-    });
+    window.addEventListener('popstate', this.popstateHandler);
 
     // Handle hash changes for post navigation
-    this.urlService.onHashChange(async (postPath) => {
-      if (postPath && postPath !== this.basePath) {
-        // Navigate to the new post
-        this.basePath = postPath;
-        
-        // Update header with current post
-        if (this.components.header) {
-          await this.components.header.setCurrentPost(this.basePath);
-        }
+    this.urlService.onHashChange(this.hashChangeHandler);
+  }
 
-        // Re-initialize based on current state
-        if (this.urlService.isHistoryEnabled()) {
-          await this.initHistoryMode();
-        } else {
-          await this.initNormalMode();
-        }
-      }
-    });
+  // Cleanup method for proper resource management
+  cleanup(): void {
+    // Remove window event listeners
+    window.removeEventListener('popstate', this.popstateHandler);
+    
+    // Remove hash change listener from UrlService
+    this.urlService.offHashChange(this.hashChangeHandler);
   }
 
   // Public methods for components to use
@@ -212,7 +232,7 @@ export class AppCoordinator {
     return this.basePath;
   }
 
-  getCurrentRevisions(): { date: string; files: Map<string, any> }[] {
+  getCurrentRevisions(): RevisionData[] {
     return this.currentRevisions;
   }
 

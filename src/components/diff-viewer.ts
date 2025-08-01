@@ -1,9 +1,31 @@
 import { ApiService } from '../services/api-service.js';
 import { DiffRenderer } from '../services/diff-renderer.js';
 import { UrlService } from '../services/url-service.js';
+import type { RevisionData } from '../types/index.js';
+
+interface Diff2HtmlConfig {
+  drawFileList?: boolean;
+  fileListToggle?: boolean;
+  fileListStartVisible?: boolean;
+  fileContentToggle?: boolean;
+  matching?: 'lines' | 'words' | 'none';
+  maxLineSizeInBlockForComparison?: number;
+  maxLineLengthHighlight?: number;
+  renderNothingWhenEmpty?: boolean;
+  matchingMaxComparisons?: number;
+  matchWordsThreshold?: number;
+  matchingWordsBoundaries?: string;
+  outputFormat?: 'line-by-line' | 'side-by-side';
+  synchronisedScroll?: boolean;
+  highlight?: boolean;
+  rawTemplates?: any;
+}
 
 declare global {
-  const Diff2Html: any;
+  const Diff2Html: {
+    html: (diffString: string, config?: Diff2HtmlConfig) => string;
+    parse: (diffString: string) => any[];
+  };
 }
 
 export class DiffViewer extends HTMLElement {
@@ -12,10 +34,12 @@ export class DiffViewer extends HTMLElement {
   private diffContainer!: HTMLElement;
   private tabContainer!: HTMLElement;
   private tabContent!: HTMLElement;
-  private currentRevisions: { date: string; files: Map<string, any> }[] = [];
+  private currentRevisions: RevisionData[] = [];
   private basePath: string = '';
   private activeTab: 'prompts' | 'output' | 'instructions' = 'prompts';
   private currentRevisionIndex: number = 0;
+  private tabListeners: Array<{ element: Element; handler: EventListener }> = [];
+  private instructionsButtonListener: { element: HTMLElement; handler: EventListener } | null = null;
 
   constructor() {
     super();
@@ -32,6 +56,24 @@ export class DiffViewer extends HTMLElement {
     }
     this.render();
     this.checkHistoryMode();
+  }
+
+  disconnectedCallback() {
+    this.cleanup();
+  }
+
+  private cleanup() {
+    // Remove tab event listeners
+    this.tabListeners.forEach(({ element, handler }) => {
+      element.removeEventListener('click', handler);
+    });
+    this.tabListeners = [];
+
+    // Remove instructions button listener
+    if (this.instructionsButtonListener) {
+      this.instructionsButtonListener.element.removeEventListener('click', this.instructionsButtonListener.handler);
+      this.instructionsButtonListener = null;
+    }
   }
 
   private render() {
@@ -92,22 +134,28 @@ export class DiffViewer extends HTMLElement {
   }
 
   // Initialize with revision data and base path
-  async initialize(revisions: { date: string; files: Map<string, any> }[], basePath: string) {
+  async initialize(revisions: RevisionData[], basePath: string) {
     this.currentRevisions = revisions;
     this.basePath = basePath;
   }
 
   private setupTabListeners() {
+    // Clear existing listeners before adding new ones
+    this.cleanup();
+    
     const tabButtons = this.querySelectorAll('.tab-button');
     tabButtons.forEach(button => {
-      button.addEventListener('click', (e) => {
+      const handler = (e: Event) => {
         // Get the button element even if a child was clicked
         const buttonElement = (e.currentTarget as HTMLElement);
         const tab = buttonElement.getAttribute('data-tab') as 'prompts' | 'output' | 'instructions';
         if (tab) {
           this.switchTab(tab);
         }
-      });
+      };
+      
+      button.addEventListener('click', handler);
+      this.tabListeners.push({ element: button, handler });
     });
   }
 
@@ -213,7 +261,7 @@ export class DiffViewer extends HTMLElement {
     }
   }
 
-  private async renderTabPane(tabName: string, fileName: string, dir: string, displayName: string, revision: any, revisionIndex: number) {
+  private async renderTabPane(tabName: string, fileName: string, dir: string, displayName: string, revision: RevisionData, revisionIndex: number) {
     const pane = this.querySelector(`[data-pane="${tabName}"]`) as HTMLElement;
     if (!pane) return;
 
@@ -221,7 +269,7 @@ export class DiffViewer extends HTMLElement {
     await this.renderFileContent(fileName, dir, displayName, pane, revision, revisionIndex);
   }
 
-  private async renderFileContent(fileName: string, dir: string, displayName: string, container: HTMLElement, revision: any, revisionIndex: number) {
+  private async renderFileContent(fileName: string, dir: string, displayName: string, container: HTMLElement, revision: RevisionData, revisionIndex: number) {
     const fileInRev = revision.files.get(fileName);
     
     if (fileInRev) {
@@ -251,9 +299,11 @@ export class DiffViewer extends HTMLElement {
       let mostRecentContent = '';
       for (let i = revisionIndex - 1; i >= 0; i--) {
         if (this.currentRevisions[i].files.has(fileName)) {
-          const prevRevIdx = this.currentRevisions[i].files.get(fileName).revIdx;
-          mostRecentContent = await this.apiService.getFileContent(fileName, dir, prevRevIdx);
-          break;
+          const fileInfo = this.currentRevisions[i].files.get(fileName);
+          if (fileInfo) {
+            mostRecentContent = await this.apiService.getFileContent(fileName, dir, fileInfo.revIdx);
+            break;
+          }
         }
       }
       
@@ -263,7 +313,7 @@ export class DiffViewer extends HTMLElement {
     }
   }
 
-  private async renderInstructionsTab(revision: any, revisionIndex: number) {
+  private async renderInstructionsTab(revision: RevisionData, revisionIndex: number) {
     const pane = this.querySelector('[data-pane="instructions"]') as HTMLElement;
     if (!pane) return;
 
@@ -311,7 +361,7 @@ export class DiffViewer extends HTMLElement {
   }
 
 
-  private addInstructionsButton(container: HTMLElement, revision: { date: string; files: Map<string, any> }) {
+  private addInstructionsButton(container: HTMLElement, revision: RevisionData) {
     const instructionsHasChanges = revision.files.has('instructions.txt');
     
     const button = document.createElement('button');
@@ -332,12 +382,15 @@ export class DiffViewer extends HTMLElement {
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
     `;
 
-    button.addEventListener('click', () => {
+    const handler = () => {
       const modal = document.querySelector('instructions-modal') as any;
       if (modal && modal.show) {
         modal.show();
       }
-    });
+    };
+    
+    button.addEventListener('click', handler);
+    this.instructionsButtonListener = { element: button, handler };
 
     const fileHeader = container.querySelector('.d2h-file-header');
     if (fileHeader) {

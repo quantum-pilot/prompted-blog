@@ -1,8 +1,13 @@
 export class UrlService {
   private static instance: UrlService;
   private hashChangeListeners: ((postPath: string | null) => void)[] = [];
+  private windowHashChangeHandler: () => void;
 
   private constructor() {
+    this.windowHashChangeHandler = () => {
+      const postPath = this.getPostPathFromHash();
+      this.hashChangeListeners.forEach(listener => listener(postPath));
+    };
     this.setupHashListener();
   }
 
@@ -14,10 +19,7 @@ export class UrlService {
   }
 
   private setupHashListener(): void {
-    window.addEventListener('hashchange', () => {
-      const postPath = this.getPostPathFromHash();
-      this.hashChangeListeners.forEach(listener => listener(postPath));
-    });
+    window.addEventListener('hashchange', this.windowHashChangeHandler);
   }
 
   // Get current URL object
@@ -132,5 +134,16 @@ export class UrlService {
     if (index !== -1) {
       this.hashChangeListeners.splice(index, 1);
     }
+  }
+
+  // Cleanup method for proper resource management
+  cleanup(): void {
+    window.removeEventListener('hashchange', this.windowHashChangeHandler);
+    this.hashChangeListeners = [];
+  }
+
+  // Clear all listeners (useful for testing or reset scenarios)
+  clearAllListeners(): void {
+    this.hashChangeListeners = [];
   }
 }

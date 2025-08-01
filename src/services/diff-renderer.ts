@@ -1,4 +1,7 @@
+import { ErrorHandler } from '../utils/error-handler.js';
+
 export class DiffRenderer {
+  private static errorHandler = ErrorHandler.getInstance();
   // Build diff for first revision (all additions)
   static buildFirstRevision(name: string, lines: string[]): string {
     if (lines.length === 0) lines = [''];
@@ -99,8 +102,12 @@ export class DiffRenderer {
         setTimeout(() => DiffRenderer.scrollToFirstChange(container), 100);
       }
     } catch (error) {
-      console.error('Failed to render diff:', error);
-      container.textContent = 'Failed to render diff content.';
+      const fallbackMessage = DiffRenderer.errorHandler.handleRenderError(
+        error as Error,
+        'DiffRenderer.renderDiffInContainer',
+        'Failed to render diff content.'
+      );
+      container.textContent = fallbackMessage;
     }
   }
 

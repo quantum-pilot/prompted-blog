@@ -8,6 +8,7 @@ export class RevisionScroller extends HTMLElement {
   private currentRev: number = 0;
   private onRevisionChange?: (revisionIndex: number) => void;
   private urlService: UrlService;
+  private dotListeners: Array<{ element: Element; handler: EventListener }> = [];
 
   constructor() {
     super();
@@ -17,6 +18,17 @@ export class RevisionScroller extends HTMLElement {
   connectedCallback() {
     this.render();
     this.checkHistoryMode();
+  }
+
+  disconnectedCallback() {
+    this.cleanup();
+  }
+
+  private cleanup() {
+    this.dotListeners.forEach(({ element, handler }) => {
+      element.removeEventListener('click', handler);
+    });
+    this.dotListeners = [];
   }
 
   private render() {
@@ -48,7 +60,8 @@ export class RevisionScroller extends HTMLElement {
   private buildScroller() {
     if (!this.scrollIconContainer) return;
 
-    // Clear existing dots
+    // Clear existing listeners and dots
+    this.cleanup();
     this.scrollIconContainer.innerHTML = '';
     this.dots = [];
 
@@ -64,13 +77,16 @@ export class RevisionScroller extends HTMLElement {
         cursor: pointer;
       `;
 
-      dot.addEventListener('click', () => {
+      const handler = () => {
         this.setActiveDot(i);
         this.updateURL(i);
         if (this.onRevisionChange) {
           this.onRevisionChange(i);
         }
-      });
+      };
+
+      dot.addEventListener('click', handler);
+      this.dotListeners.push({ element: dot, handler });
 
       this.dots.push(dot);
       this.scrollIconContainer.appendChild(dot);

@@ -1,10 +1,14 @@
-import type { RevisionInfo, FileRevisions } from '../types/index.js';
+import type { RevisionInfo, FileRevisions, RevisionData, AdjacentPosts } from '../types/index.js';
+import { ErrorHandler } from '../utils/error-handler.js';
 
 export class ApiService {
   private static instance: ApiService;
   private cache: Map<string, any> = new Map();
+  private errorHandler: ErrorHandler;
 
-  private constructor() {}
+  private constructor() {
+    this.errorHandler = ErrorHandler.getInstance();
+  }
 
   static getInstance(): ApiService {
     if (!ApiService.instance) {
@@ -20,15 +24,25 @@ export class ApiService {
       return this.cache.get(cacheKey);
     }
 
-    try {
-      const response = await fetch('latest.json');
-      const basePath: string = await response.json();
-      this.cache.set(cacheKey, basePath);
-      return basePath;
-    } catch (error) {
-      console.error('Failed to fetch latest post:', error);
-      throw error;
-    }
+    return this.errorHandler.wrap(
+      async () => {
+        const response = await fetch('latest.json');
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        const basePath: string = await response.json();
+        this.cache.set(cacheKey, basePath);
+        return basePath;
+      },
+      {
+        message: 'Failed to fetch latest post',
+        code: 'LATEST_POST_ERROR'
+      },
+      {
+        showUserMessage: true,
+        fallbackValue: 'posts/fallback'
+      }
+    );
   }
 
   // Fetch post HTML content
@@ -56,15 +70,26 @@ export class ApiService {
       return this.cache.get(cacheKey);
     }
 
-    try {
-      const response = await fetch(`${dir}/diff_cache/${fileName}/revisions.json`);
-      const revisions: RevisionInfo[] = await response.json();
-      this.cache.set(cacheKey, revisions);
-      return revisions;
-    } catch (error) {
-      console.error(`Failed to fetch revisions for ${fileName}:`, error);
-      return [];
-    }
+    return this.errorHandler.wrap(
+      async () => {
+        const response = await fetch(`${dir}/diff_cache/${fileName}/revisions.json`);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        const revisions: RevisionInfo[] = await response.json();
+        this.cache.set(cacheKey, revisions);
+        return revisions;
+      },
+      {
+        message: `Failed to fetch revisions for ${fileName}`,
+        code: 'REVISIONS_ERROR',
+        context: { fileName, dir }
+      },
+      {
+        showUserMessage: false,
+        fallbackValue: []
+      }
+    );
   }
 
   // Fetch all file revisions for a post
@@ -86,9 +111,9 @@ export class ApiService {
   }
 
   // Get merged and sorted revisions from all files
-  async getMergedRevisions(basePath: string): Promise<{ date: string; files: Map<string, any> }[]> {
+  async getMergedRevisions(basePath: string): Promise<RevisionData[]> {
     const files = await this.getAllFileRevisions(basePath);
-    const allRevisions = new Map<string, { date: string; files: Map<string, any> }>();
+    const allRevisions = new Map<string, RevisionData>();
 
     files.forEach(({ name, dir, list }) => {
       list.forEach((rev, idx) => {
@@ -174,7 +199,7 @@ export class ApiService {
   }
 
   // Get adjacent posts for navigation
-  async getAdjacentPosts(currentPath: string): Promise<{ prev: string | null; next: string | null }> {
+  async getAdjacentPosts(currentPath: string): Promise<AdjacentPosts> {
     const posts = await this.getPostList();
     const currentIndex = posts.indexOf(currentPath);
     

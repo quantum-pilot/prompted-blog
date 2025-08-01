@@ -36,6 +36,7 @@ Prompted Blog is designed for anyone who feels an LLM with personality can write
 - `UrlService` - Manages URL parameters, hash routing and navigation state  
 - `AppCoordinator` - Central coordinator connecting all components and handling routing
 - `DiffRenderer` - Shared service for rendering unified diff content across components
+- `ErrorHandler` - Centralized error handling with user feedback and fallback patterns
 
 ### Key Features Implemented
 

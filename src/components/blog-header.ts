@@ -1,5 +1,6 @@
 import { UrlService } from '../services/url-service.js';
 import { ApiService } from '../services/api-service.js';
+import { ErrorHandler } from '../utils/error-handler.js';
 
 export class BlogHeader extends HTMLElement {
   private historyButton!: HTMLButtonElement;
@@ -9,17 +10,31 @@ export class BlogHeader extends HTMLElement {
   private urlService: UrlService;
   private apiService: ApiService;
   private currentPostPath: string | null = null;
+  private eventListeners: Array<{ element: Element; event: string; handler: EventListener }> = [];
+  private errorHandler: ErrorHandler;
 
   constructor() {
     super();
     this.urlService = UrlService.getInstance();
     this.apiService = ApiService.getInstance();
+    this.errorHandler = ErrorHandler.getInstance();
     this.isHistoryActive = this.urlService.isHistoryEnabled();
   }
 
   connectedCallback() {
     this.render();
     this.attachEventListeners();
+  }
+
+  disconnectedCallback() {
+    this.cleanup();
+  }
+
+  private cleanup() {
+    this.eventListeners.forEach(({ element, event, handler }) => {
+      element.removeEventListener(event, handler);
+    });
+    this.eventListeners = [];
   }
 
   private render() {
@@ -43,17 +58,19 @@ export class BlogHeader extends HTMLElement {
   }
 
   private attachEventListeners() {
-    this.historyButton.addEventListener('click', () => {
-      this.toggleHistory();
-    });
+    const historyHandler = () => this.toggleHistory();
+    const prevHandler = async () => await this.navigateToPrev();
+    const nextHandler = async () => await this.navigateToNext();
 
-    this.prevButton.addEventListener('click', async () => {
-      await this.navigateToPrev();
-    });
+    this.historyButton.addEventListener('click', historyHandler);
+    this.prevButton.addEventListener('click', prevHandler);
+    this.nextButton.addEventListener('click', nextHandler);
 
-    this.nextButton.addEventListener('click', async () => {
-      await this.navigateToNext();
-    });
+    this.eventListeners.push(
+      { element: this.historyButton, event: 'click', handler: historyHandler },
+      { element: this.prevButton, event: 'click', handler: prevHandler },
+      { element: this.nextButton, event: 'click', handler: nextHandler }
+    );
   }
 
   private toggleHistory() {
@@ -65,18 +82,26 @@ export class BlogHeader extends HTMLElement {
   private async navigateToPrev() {
     if (!this.currentPostPath) return;
     
-    const adjacent = await this.apiService.getAdjacentPosts(this.currentPostPath);
-    if (adjacent.prev) {
-      this.urlService.navigateToPost(adjacent.prev);
+    try {
+      const adjacent = await this.apiService.getAdjacentPosts(this.currentPostPath);
+      if (adjacent.prev) {
+        this.urlService.navigateToPost(adjacent.prev);
+      }
+    } catch (error) {
+      this.errorHandler.handleNavigationError(error as Error, 'previous post');
     }
   }
 
   private async navigateToNext() {
     if (!this.currentPostPath) return;
     
-    const adjacent = await this.apiService.getAdjacentPosts(this.currentPostPath);
-    if (adjacent.next) {
-      this.urlService.navigateToPost(adjacent.next);
+    try {
+      const adjacent = await this.apiService.getAdjacentPosts(this.currentPostPath);
+      if (adjacent.next) {
+        this.urlService.navigateToPost(adjacent.next);
+      }
+    } catch (error) {
+      this.errorHandler.handleNavigationError(error as Error, 'next post');
     }
   }
 

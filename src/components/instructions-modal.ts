@@ -1,6 +1,7 @@
 import { DiffRenderer } from '../services/diff-renderer.js';
 import { ApiService } from '../services/api-service.js';
 import { UrlService } from '../services/url-service.js';
+import type { RevisionData } from '../types/index.js';
 
 export class InstructionsModal extends HTMLElement {
   private modalContainer!: HTMLElement;
@@ -8,7 +9,8 @@ export class InstructionsModal extends HTMLElement {
   private hasChanges: boolean = false;
   private apiService: ApiService;
   private urlService: UrlService;
-  private currentRevisions: { date: string; files: Map<string, any> }[] = [];
+  private currentRevisions: RevisionData[] = [];
+  private closeButtonListener: { element: Element; handler: EventListener } | null = null;
 
   constructor() {
     super();
@@ -19,6 +21,17 @@ export class InstructionsModal extends HTMLElement {
   connectedCallback() {
     this.render();
     this.checkHistoryMode();
+  }
+
+  disconnectedCallback() {
+    this.cleanup();
+  }
+
+  private cleanup() {
+    if (this.closeButtonListener) {
+      this.closeButtonListener.element.removeEventListener('click', this.closeButtonListener.handler);
+      this.closeButtonListener = null;
+    }
   }
 
   private render() {
@@ -35,7 +48,9 @@ export class InstructionsModal extends HTMLElement {
 
     // Attach close button event
     const closeBtn = this.querySelector('.close-btn') as HTMLButtonElement;
-    closeBtn.addEventListener('click', () => this.hide());
+    const handler = () => this.hide();
+    closeBtn.addEventListener('click', handler);
+    this.closeButtonListener = { element: closeBtn, handler };
   }
 
   private checkHistoryMode() {
@@ -48,7 +63,7 @@ export class InstructionsModal extends HTMLElement {
   }
 
   // Initialize with revision data (same as diff-viewer)
-  async initialize(revisions: { date: string; files: Map<string, any> }[]) {
+  async initialize(revisions: RevisionData[]) {
     this.currentRevisions = revisions;
   }
 
@@ -69,7 +84,7 @@ export class InstructionsModal extends HTMLElement {
   }
 
   // Load instructions content using the same revision logic as diff-viewer
-  async loadInstructions(revision: { date: string; files: Map<string, any> }, revisionIndex: number) {
+  async loadInstructions(revision: RevisionData, revisionIndex: number) {
     try {
       const contentContainer = this.querySelector('#instructions-content') as HTMLElement;
       if (!contentContainer) return;
@@ -110,9 +125,11 @@ export class InstructionsModal extends HTMLElement {
         let mostRecentContent = '';
         for (let i = revisionIndex - 1; i >= 0; i--) {
           if (this.currentRevisions[i].files.has(fileName)) {
-            const prevRevIdx = this.currentRevisions[i].files.get(fileName).revIdx;
-            mostRecentContent = await this.apiService.getFileContent(fileName, dir, prevRevIdx);
-            break;
+            const fileInfo = this.currentRevisions[i].files.get(fileName);
+            if (fileInfo) {
+              mostRecentContent = await this.apiService.getFileContent(fileName, dir, fileInfo.revIdx);
+              break;
+            }
           }
         }
 

@@ -31,3 +31,9 @@ Comprehensive documentation of migration from javascript to TypeScript and Web C
 - Critical decisions
 - Choice of components
 - Following ideas from https://plainvanillaweb.com
+
+### [Code Quality Patterns](./technicals/code_quality_patterns.md)
+Established patterns for memory management, error handling, and type safety including:
+- Component lifecycle and cleanup patterns
+- Centralized error handling system
+- TypeScript interface standards and development guidelines
