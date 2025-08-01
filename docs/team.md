@@ -117,6 +117,40 @@ Claude: "Story X.Y implementation complete! Changes: [summary]. Please verify: [
 ### After Human Confirmation
 Claude: "Great! Marking Story X.Y as completed. Moving to next story..."
 
+## One-Off Bug Fix Process
+
+When bugs are discovered outside of planned stories (e.g., mobile UI issues, responsiveness problems), follow this streamlined process:
+
+### 1. Bug Identification & Planning
+**Claude's Actions:**
+- Clearly identify the bug and its impact
+- Create a brief todo list for tracking the fix
+- Propose solution approach to human for approval
+
+### 2. Implementation & Testing
+**Claude's Actions:**
+- Implement the fix following project patterns
+- Test the fix using browser tools (puppeteer MCP)
+- Verify fix doesn't break existing functionality
+
+### 3. Documentation
+**Claude's Actions:**
+- **In phase document:** Add bug fix using the standard format:
+  ```
+  ### BUG: [Brief Title]
+  **Status:** ✅ **Completed**
+  **Issue:** [Concise problem description]
+  **What was built:**
+  - [Bulleted list of key fixes]
+  **Solution details in `docs/technicals/bug_fixes.md`**
+  ```
+- **In bug_fixes.md:** Add streamlined entry following the established format:
+  - Root cause identification
+  - Key insights for future reference  
+  - File locations affected
+  - Update quick reference section
+- Request human to run Documentation Agent for broader doc updates
+
 ## Emergency Procedures
 
 ### If Issues Arise

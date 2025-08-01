@@ -34,7 +34,8 @@ After each story completion, verify:
 - [ ] Story has "What was built" section or reference to a doc where said section has to exist comprehensively
 - [ ] Keep only essential completed story structure: Status, User story, Overview, What was built, Technical patterns reference
 - [ ] Architecture changes reflected in `docs/architecture.md`
-- [ ] New learnings, major decisions, bug fixes, documented in appropriate `docs/technicals/` files as they serve as historical records
+- [ ] New learnings, major decisions documented in appropriate `docs/technicals/` files as they serve as historical records
+- [ ] Bug fixes documented minimally - brief entries in bug_fixes.md with essential insights only
 - [ ] No implementation details left in plan files (should reference architecture/technicals)
 - [ ] Cross-references between documents are accurate
 
@@ -77,6 +78,9 @@ After each story completion, verify:
 - Step-by-step implementation details (obvious from code)
 - Verbose explanations of standard patterns
 - Duplicated information that exists elsewhere
+- **Extensive code blocks** - summarize solutions instead
+- **Redundant explanations** - multiple ways of saying the same thing
+- **Implementation minutiae** - focus on concepts, not details
 
 **FOCUS technical docs on:**
 - **Key decisions made** and their rationale
@@ -84,6 +88,14 @@ After each story completion, verify:
 - **Lessons learned** for future development
 - **Problem/solution pairs** explaining why decisions were made
 - **Core innovations** that others should understand
+- **Quick reference patterns** for common debugging scenarios
+
+**Bug Documentation Approach (MINIMAL ONLY):**
+- **Phase docs:** Use standard BUG format - Status, Issue, What was built, Reference to bug_fixes.md
+- **bug_fixes.md:** Brief entries with root cause, key insights, file locations only
+- **NO comprehensive bug documentation** - keep it minimal and reference-focused
+- **NO code snippets in bug fixes** - just essential knowledge for future debugging
+- Aim for maximum brevity while preserving essential debugging knowledge
 
 ### 4. Documentation Compaction
 
@@ -95,7 +107,7 @@ After each story completion, verify:
 #### What to Preserve:
 - Historical context in completed stories
 - Unique technical decisions and rationales
-- Bug fixes and their solutions
+- Bug fixes (minimal documentation only - brief insights for future reference)
 - Migration strategies and lessons learned
 
 ### 5. Clarity and Ambiguity Checks

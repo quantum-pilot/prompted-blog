@@ -227,7 +227,7 @@ diff-viewer td {
 @media (min-width: 769px) and (max-width: 1024px) {
   /* Tablet screens */
   .diff-container {
-    max-height: 68vh !important;
+    max-height: 54vh !important;
   }
 }
 
@@ -238,8 +238,8 @@ diff-viewer td {
   }
 }
 
-/* Mobile: 320px-768px - Show tabs, hide desktop layout */
-@media (max-width: 768px) {
+/* Mobile: 320px-768px OR Portrait orientation - Show tabs, hide desktop layout */
+@media (max-width: 768px), (orientation: portrait) {
   .tab-navigation {
     display: flex;
   }
@@ -306,8 +306,8 @@ diff-viewer td {
   }
 }
 
-/* Tablet: 769px-1024px - Side-by-side with 50/50 split */
-@media (min-width: 769px) and (max-width: 1024px) {
+/* Tablet: 769px-1024px in LANDSCAPE only - Side-by-side with 50/50 split */
+@media (min-width: 769px) and (max-width: 1024px) and (orientation: landscape) {
   .tab-navigation {
     display: none;
   }
@@ -327,8 +327,8 @@ diff-viewer td {
   }
 }
 
-/* Desktop: 1025px+ - Current side-by-side layout preserved */
-@media (min-width: 1025px) {
+/* Desktop: 1025px+ in LANDSCAPE - Side-by-side layout */
+@media (min-width: 1025px) and (orientation: landscape) {
   .tab-navigation {
     display: none;
   }

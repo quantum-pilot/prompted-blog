@@ -87,6 +87,19 @@ Enhance the Prompted Blog with modern, mobile-responsive UI/UX while preserving 
 
 **Technical patterns documented in:** `docs/technicals/ui_ux_patterns.md` - Continuous Line Navigation System section
 
+### BUG: Mobile Navigation Size and iPad Scrolling Issues
+**Status:** ✅ **Completed**
+
+**Issue:** Mobile navigation buttons were too large and iPad landscape had scrolling problems due to content exceeding viewport height.
+
+**What was built:**
+- Fixed mobile navigation sizing with appropriate touch targets (36px minimum)
+- Resolved iPad landscape scrolling by optimizing diff container heights (54vh for tablets)
+- Enhanced mobile diff viewing space utilization with increased heights
+- Implemented orientation-based layout system for better UX across all devices
+
+**Solution details in `docs/technicals/bug_fixes.md`**
+
 ---
 
 ### Story 2.4: Dark/Light Theme System Foundation

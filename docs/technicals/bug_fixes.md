@@ -1,56 +1,47 @@
-### diff2html Line Number Issues
-**Issue:** Line numbers misaligned when injecting full file content.
-**Solution:** Generate proper diff headers with correct line counts.
-```javascript
-// For unchanged files, create dummy diff header
-`@@ -1,${lines.length} +1,${lines.length} @@`
-```
+# Bug Fixes & Solutions
 
-### Instructions Button Positioning
-**Issue:** Button needs to be accessible but not cover content.
-**Solution:** Position within d2h-file-header using absolute positioning.
-```css
-.instructions-btn {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  z-index: 10;
-}
-```
+## Common Problem Patterns
 
-### Revision Fetching Logic
-**Issue:** Complex logic to find correct file version for each revision.
-**Solution:**
-1. Merge all file revisions by date
-2. For each revision, find most recent version of each file
-3. Fallback to previous revision if file not changed
+### diff2html Integration Issues
+**Problem:** Line number misalignment when displaying full file content
+**Root Cause:** Missing proper diff headers for unchanged files
+**Solution:** Generate dummy diff headers: `@@ -1,${lines.length} +1,${lines.length} @@`
 
-### CSS Display and Word Wrap Issues
-**Issue:** Instructions modal and diff viewers had CSS display problems:
-- Line numbers overflowed container boundaries
-- Word wrap was broken by `white-space: nowrap`
-- d2h-code-line elements had excessive padding
+### UI Element Positioning
+**Problem:** Buttons covering content or being inaccessible
+**Solution:** Use absolute positioning within existing containers (d2h-file-header)
 
-**Root Cause:** Previous CSS fixes used `white-space: nowrap` which prevented proper word wrapping and caused display issues.
+### File Revision Logic
+**Problem:** Complex logic to match file versions across revisions
+**Solution:** Merge all revisions by date, find most recent version per file, fallback to previous revision
 
-**Solution Applied:**
-```css
-.d2h-code-line {
-  padding: 0;
-}
+## CSS Display Issues
 
-diff-viewer td {
-  padding-left: 1%;
-}
+### Word Wrap Problems
+**Root Cause:** `white-space: nowrap` breaks natural text flow and causes overflow
+**Key Insight:** Use `white-space: initial` and `display: inline` to preserve natural wrapping
+**Files:** Components with diff viewers and modals
 
-.d2h-code-line, .d2h-code-line-ctn {
-  display: inline;
-  white-space: initial;
-}
-```
-
+### Mobile Responsiveness
+**Root Cause:** Desktop-sized elements don't work on mobile (44px+ buttons, tall containers)
 **Key Insights:**
-- `white-space: initial` preserves natural word wrapping instead of forcing `nowrap`
-- `display: inline` maintains proper inline flow without breaking layout
-- Minimal padding approach with targeted spacing via `padding-left: 1%`
-- Global approach avoids component-specific overrides that can conflict
+- Touch targets need 36-44px minimum size
+- Tablet landscape has viewport height constraints (768px)
+- Orientation-based layouts work better than width-only breakpoints
+**Files:** `navigation.css`, `diff-viewer.css`
+
+### Mobile Navigation and iPad Layout
+**Root Cause:** Desktop-sized navigation elements and viewport height constraints on tablets
+**Key Insights:**
+- Mobile touch targets should be 36px minimum (not 44px+ desktop sizes)
+- iPad landscape (1024x768) has strict viewport height limits requiring 54vh max for diff containers
+- Orientation-based layouts work better than width-only breakpoints for responsive design
+- Portrait mode should always use tab layout regardless of screen width
+**Files:** `navigation.css`, `diff-viewer.css`
+
+## Quick Reference
+- **diff2html issues:** Check diff header generation
+- **CSS overflow:** Look for `white-space: nowrap` 
+- **Mobile layout:** Test portrait orientation and viewport height limits
+- **Button positioning:** Use absolute positioning within existing containers
+- **iPad scrolling:** Check viewport height constraints and orientation-based layouts

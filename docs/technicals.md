@@ -24,9 +24,11 @@ Comprehensive guide to UI/UX patterns and component decisions. Covers:
 - Continuous line navigation system with mathematical positioning
 
 ### [Bug Fixes](./technicals/bug_fixes.md)
-Documentation of significant bugs and their fixes. Includes:
-- Bugs that took a long time to solve
-- Detailed root cause analysis and solution implementations
+Streamlined documentation of significant bugs and their solutions. Focuses on:
+- Common problem patterns and root causes
+- Key insights for future debugging
+- Quick reference for typical issues
+- Essential knowledge without verbose implementation details
 
 ### [Frontend Migration](./technicals/frontend_migration.md)
 Comprehensive documentation of migration from javascript to TypeScript and Web Components including:
