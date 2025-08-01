@@ -7,6 +7,7 @@ import './components/diff-viewer.js';
 
 // Import services
 import { AppCoordinator } from './services/app-coordinator.js';
+import { themeManager } from './utils/theme-manager.js';
 
 console.log('TypeScript components loaded!');
 

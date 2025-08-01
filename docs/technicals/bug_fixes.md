@@ -39,9 +39,18 @@
 - Portrait mode should always use tab layout regardless of screen width
 **Files:** `navigation.css`, `diff-viewer.css`
 
+### Dark Theme Diff Colors Too Bright
+**Root Cause:** Bright green (#97f295) and red (#ffb6ba) word-level highlights were harsh and didn't match GitHub's subtle styling
+**Key Insights:**
+- GitHub uses much darker, eye-friendly colors for diff highlights (#3a5a3d for additions, #5a3a3d for deletions)
+- Line numbers should match word-level highlights for cohesive appearance
+- Major CSS cleanup opportunity: ~200 lines of redundant CSS eliminated while maintaining functionality
+**Files:** `theme.css`, `diff2html-dark-overrides.css`
+
 ## Quick Reference
 - **diff2html issues:** Check diff header generation
 - **CSS overflow:** Look for `white-space: nowrap` 
 - **Mobile layout:** Test portrait orientation and viewport height limits
 - **Button positioning:** Use absolute positioning within existing containers
 - **iPad scrolling:** Check viewport height constraints and orientation-based layouts
+- **Dark theme colors:** Use GitHub's actual rgba values for professional diff styling

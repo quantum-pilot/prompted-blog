@@ -53,6 +53,12 @@ The service layer provides shared functionality across components including API 
    - Tablet: 769px-1024px with hybrid layout optimizations
    - Desktop: ≥1025px with full side-by-side experience
 
+4. **Theme System** - Comprehensive light/dark mode with CSS custom properties:
+   - Automatic system preference detection (prefers-color-scheme)
+   - localStorage persistence for user choice
+   - Semantic color variables for consistent theming
+   - GitHub-style diff colors for professional dark theme integration
+
 ## Development Status
 
 **Phase 1 (Core Blog Engine):** Complete - All core functionality implemented and verified

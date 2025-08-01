@@ -4,8 +4,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 1rem;
-  background: #ffffff;
-  border-bottom: 1px solid #d1d5da;
+  background: var(--header-bg);
+  border-bottom: 1px solid var(--header-border);
   position: sticky;
   top: 0;
   z-index: 50;
@@ -22,13 +22,13 @@
 .header h1 {
   font-size: 2.5rem;
   margin: 0;
-  color: #24292f;
+  color: var(--text-primary);
   font-weight: 700;
 }
 
 .header .description {
   font-size: 1.1rem;
-  color: #57606a;
+  color: var(--text-secondary);
   margin: 0.5rem 0 1rem;
   line-height: 1.4;
 }
@@ -41,7 +41,7 @@
   background: none;
   border: none;
   font-size: 1.4rem;
-  color: #57606a;
+  color: var(--text-secondary);
   cursor: pointer;
   min-width: 44px;
   min-height: 44px;
@@ -53,18 +53,18 @@
 }
 
 .history-button:hover {
-  color: #24292f;
-  background: #f6f8fa;
+  color: var(--text-primary);
+  background: var(--button-bg-hover);
 }
 
 .history-button:focus {
-  outline: 2px solid #0969da;
+  outline: 2px solid var(--focus-outline);
   outline-offset: 2px;
 }
 
 .history-button.active {
-  color: #0969da;
-  background: #dbeafe;
+  color: var(--accent-blue);
+  background: var(--button-bg);
 }
 
 /* Navigation bar for prev/next buttons */
@@ -73,8 +73,8 @@
   justify-content: center;
   gap: 1rem;
   padding: 1rem;
-  background: #ffffff;
-  border-bottom: 1px solid #d1d5da;
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--border-color);
 }
 
 

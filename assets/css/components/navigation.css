@@ -1,7 +1,7 @@
 /* Prev/next buttons */
 .nav-button {
-  background: #f6f8fa;
-  border: 1px solid #d1d5da;
+  background: var(--button-bg);
+  border: 1px solid var(--button-border);
   padding: 0.5rem 1rem;
   font-size: 0.9rem;
   cursor: pointer;
@@ -13,34 +13,34 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #24292f;
+  color: var(--text-primary);
   text-decoration: none;
   font-family: inherit;
 }
 
 .nav-button:hover:not(:disabled) {
-  background: #f3f4f6;
-  border-color: #afb2b5;
+  background: var(--button-bg-hover);
+  border-color: var(--border-color);
   transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px var(--shadow-small);
 }
 
 .nav-button:active:not(:disabled) {
   transform: translateY(0);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 2px var(--shadow-small);
 }
 
 .nav-button:focus {
-  outline: 2px solid #0969da;
+  outline: 2px solid var(--focus-outline);
   outline-offset: 2px;
 }
 
 .nav-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-  color: #8b949e;
-  background: #f6f8fa;
-  border-color: #d1d5da;
+  color: var(--text-tertiary);
+  background: var(--button-bg);
+  border-color: var(--border-color);
 }
 
 /* Mobile-specific nav button styles */

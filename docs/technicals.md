@@ -22,6 +22,7 @@ Comprehensive guide to UI/UX patterns and component decisions. Covers:
 - Responsive design patterns
 - Mobile-responsive header architecture
 - Continuous line navigation system with mathematical positioning
+- Theme system architecture with CSS custom properties
 
 ### [Bug Fixes](./technicals/bug_fixes.md)
 Streamlined documentation of significant bugs and their solutions. Focuses on:

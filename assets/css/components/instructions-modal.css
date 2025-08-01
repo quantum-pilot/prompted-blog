@@ -6,10 +6,10 @@
   transform: translate(-50%, -50%);
   width: 50vw;
   height: 50vh;
-  background: white;
-  border: 2px solid #d1d5da;
+  background: var(--modal-bg);
+  border: 2px solid var(--border-color);
   border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  box-shadow: 0 8px 24px var(--shadow-medium);
   z-index: 1000;
   flex: none !important;
   display: flex;
@@ -17,8 +17,8 @@
 }
 
 .instructions-container .diff-header {
-  background: #f6f8fa !important;
-  border-bottom: 1px solid #d1d5da !important;
+  background: var(--bg-secondary) !important;
+  border-bottom: 1px solid var(--border-color) !important;
   padding: 0.5rem 1rem !important;
   font-weight: 600 !important;
   display: flex !important;
@@ -28,24 +28,24 @@
 }
 
 .instructions-container .close-btn {
-  background: #f6f8fa !important;
-  border: 1px solid #d1d5da !important;
+  background: var(--button-bg) !important;
+  border: 1px solid var(--button-border) !important;
   border-radius: 4px !important;
   font-size: 1rem !important;
   cursor: pointer !important;
-  color: #24292f !important;
+  color: var(--text-primary) !important;
   padding: 0.25rem 0.5rem !important;
   width: 28px !important;
   height: 28px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06) !important;
+  box-shadow: 0 1px 3px var(--shadow-small), 0 1px 2px var(--shadow-small) !important;
 }
 
 .instructions-container .close-btn:hover {
-  background: #f3f4f6 !important;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06) !important;
+  background: var(--button-bg-hover) !important;
+  box-shadow: 0 4px 6px var(--shadow-medium), 0 2px 4px var(--shadow-small) !important;
 }
 
 #instructions-content {
@@ -57,7 +57,7 @@
   flex-direction: column;
   overflow-y: auto;
   padding: 0 !important;
-  background: #f6f8fa !important;
+  background: var(--bg-secondary) !important;
 }
 
 /* Fix line numbers to scroll with content in instructions modal */

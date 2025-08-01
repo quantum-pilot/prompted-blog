@@ -6,6 +6,8 @@ body {
   padding: 0;
   position: relative;
   overflow-x: hidden;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 h1 {

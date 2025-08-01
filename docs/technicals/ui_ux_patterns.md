@@ -73,6 +73,45 @@
 
 **Performance Principle:** Live preview during drag with snap-to-revision for precision.
 
+## Theme System Architecture (Story 2.4)
+
+### CSS Custom Properties Foundation
+**Core Decision:** CSS custom properties (variables) for comprehensive theming system.
+
+**Key Benefits:**
+- Maximum flexibility and performance
+- Real-time theme switching without page reload
+- Maintainable color palette management
+
+### Theme Detection Hierarchy
+**Implementation Strategy:** Three-tier preference system:
+1. localStorage (user explicit choice)
+2. System preference (prefers-color-scheme)
+3. Default light theme
+
+**Rationale:** Respects user agency while providing sensible defaults.
+
+### Theme State Management
+**Pattern:** Data attribute approach on document root (`data-theme="dark"`).
+
+**Technical Decision:** Avoids CSS media query conflicts and enables programmatic control.
+
+### Color Palette Strategy
+**Design Principle:** Semantic color variables that inherit from base theme variables.
+
+**Key Variables:**
+- `--bg-primary` / `--bg-secondary` for backgrounds
+- `--text-primary` / `--text-secondary` for content
+- `--border-color` for structural elements
+- `--accent-blue` for interactive elements
+
+### Diff Theme Integration
+**Challenge:** Override diff2html's default styling for dark theme compatibility.
+
+**Solution:** Separate override file (`diff2html-dark-overrides.css`) with GitHub's actual dark theme colors.
+
+**Key Insight:** Using actual GitHub rgba values creates professional, eye-friendly diff styling.
+
 ## Key Lessons Learned
 
 ### Responsive Design

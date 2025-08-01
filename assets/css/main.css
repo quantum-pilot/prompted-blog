@@ -1,4 +1,5 @@
 /* Entry point - imports all CSS files */
+@import url('./theme.css');
 @import url('./base.css');
 @import url('./layout.css');
 @import url('./components/blog-header.css');
@@ -7,3 +8,4 @@
 @import url('./components/revision-scroller.css');
 @import url('./components/instructions-modal.css');
 @import url('./components/navigation.css');
+@import url('./diff2html-dark-overrides.css');
