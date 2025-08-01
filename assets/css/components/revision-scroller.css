@@ -27,3 +27,21 @@
   background: url('assets/scroll-icon.svg') center center no-repeat;
   background-size: contain;
 }
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+  #revision-scroller {
+    bottom: 2%; /* Less space from bottom */
+    gap: 0.375rem; /* Smaller gap between dots */
+    max-width: 90vw; /* Prevent overflow */
+    overflow-x: auto; /* Allow scrolling if too many dots */
+    padding: 0.5rem;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .rev-dot {
+    width: 8px; /* Smaller dots on mobile */
+    height: 8px;
+    flex-shrink: 0; /* Prevent dots from shrinking */
+  }
+}

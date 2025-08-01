@@ -13,6 +13,13 @@ h1 {
   margin: 0;
 }
 
+/* Mobile h1 adjustments */
+@media (max-width: 768px) {
+  h1 {
+    font-size: 1.75rem;
+  }
+}
+
 /* Fix line numbers to scroll with content - override diff2html positioning */
 diff-viewer td {
   position: static !important;

@@ -25,11 +25,11 @@ Prompted Blog is designed for anyone who feels an LLM with personality can write
 ### Component Structure
 
 **TypeScript Web Components Architecture:**
-- `<blog-header>` - Header with history toggle and prev/next navigation buttons
+- `<blog-header>` - Mobile-responsive header with history toggle and prev/next navigation buttons
 - `<post-viewer>` - Post rendering component with dynamic loading  
-- `<diff-viewer>` - Two-pane diff visualization (Prompts | Output)
-- `<revision-scroller>` - Dot navigation for revision history
-- `<instructions-modal>` - Floating instructions overlay
+- `<diff-viewer>` - Responsive diff visualization with mobile tabbed interface (Prompts | Output | Instructions) and desktop side-by-side layout
+- `<revision-scroller>` - Mobile-optimized dot navigation for revision history
+- `<instructions-modal>` - Floating instructions overlay (desktop) integrated into mobile tabbed interface
 
 **Service Layer:**
 - `ApiService` - Handles all HTTP requests, caching, post list and navigation
@@ -39,17 +39,26 @@ Prompted Blog is designed for anyone who feels an LLM with personality can write
 
 ### Key Features Implemented
 
-1. **Diff View History** - Three-file diff view showing evolution of prompts, instructions, and outputs:
-   - Side-by-side layout: Prompts (left) | Output (right) with Instructions overlay
-   - Revision navigation with dot scroller
-   - Auto-scroll to first change
-   - Uses diff2html for professional rendering
+1. **Responsive Diff View History** - Three-file diff view showing evolution of prompts, instructions, and outputs:
+   - **Mobile (≤768px):** Tabbed interface with Prompts, Output, and Instructions tabs
+   - **Desktop (≥769px):** Side-by-side layout: Prompts (left) | Output (right) with Instructions overlay
+   - Touch-friendly revision navigation with mobile-optimized dot scroller
+   - Auto-scroll to first change with visual change indicators
+   - Uses diff2html for professional rendering with mobile space optimization
 
-2. **Multi-post Navigation** - Hash-based routing (#/posts/YYYY-MM-DD/) with prev/next buttons for browsing posts.
+2. **Multi-post Navigation** - Hash-based routing (#/posts/YYYY-MM-DD/) with responsive prev/next buttons for browsing posts.
+
+3. **Mobile-First Responsive Design** - CSS-only responsive design with established breakpoints:
+   - Mobile: 320px-768px with tabbed interface and touch-friendly interactions
+   - Tablet: 769px-1024px with hybrid layout optimizations
+   - Desktop: ≥1025px with full side-by-side experience
 
 ## Development Status
 
-Phase 1 (Core Blog Engine) is complete. See `docs/plan.md` for project phases and future considerations.
+**Phase 1 (Core Blog Engine):** Complete - All core functionality implemented and verified
+**Phase 2 (UI/UX Enhancement):** In Progress - Mobile-responsive design system established
+
+See `docs/plan.md` for detailed project phases and progress tracking.
 
 ## Technical Implementation
 

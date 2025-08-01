@@ -1,3 +1,123 @@
+/* Responsive Diff Viewer Container */
+.diff-viewer-container {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Mobile Tab Navigation (320px-768px) */
+.tab-navigation {
+  display: none; /* Hidden by default, shown on mobile */
+  background: #f6f8fa;
+  border-bottom: 1px solid #d1d5da;
+  padding: 0;
+  margin-bottom: 1rem;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.tab-button {
+  flex: 1;
+  background: transparent;
+  border: none;
+  padding: 12px 16px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #24292f;
+  border-bottom: 3px solid transparent;
+  min-height: 44px; /* Touch target */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+}
+
+.tab-button .tab-title {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.tab-button .tab-main {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tab-button .tab-icon {
+  display: inline-block;
+  width: 12px;
+  height: 16px;
+  opacity: 0.6;
+}
+
+.tab-button .change-badge {
+  display: inline-block;
+  background: #fb8500;
+  color: white;
+  padding: 1px 4px;
+  border-radius: 2px;
+  font-size: 0.6rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  line-height: 1;
+}
+
+.tab-button.active {
+  color: #0969da;
+  border-bottom-color: #0969da;
+  background: #f6f8fa;
+}
+
+.tab-button.has-changes .change-badge {
+  background: #fb8500;
+}
+
+.tab-button.active.has-changes {
+  color: #0969da;
+  border-bottom-color: #0969da;
+}
+
+.tab-button:hover {
+  background: #f6f8fa;
+}
+
+/* Tab Content */
+.tab-content {
+  display: none; /* Hidden by default, shown on mobile */
+}
+
+.tab-pane {
+  display: none;
+  width: 100%;
+  max-height: 70vh;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #d1d5da;
+  border-radius: 6px;
+}
+
+.tab-pane.active {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Desktop Side-by-Side Layout (Default) */
+#diff-output {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 3rem;
+  width: 90vw;
+  margin-inline: auto;
+  box-sizing: border-box;
+}
+
 /* Diff containers, headers, scrolling */
 .diff-container {
   flex: 1;
@@ -75,4 +195,112 @@ diff-viewer td {
 .d2h-code-line, .d2h-code-line-ctn {
   display: inline;
   white-space: initial;
+}
+
+/* ==================== RESPONSIVE BREAKPOINTS ==================== */
+
+/* Mobile: 320px-768px - Show tabs, hide desktop layout */
+@media (max-width: 768px) {
+  .tab-navigation {
+    display: flex;
+  }
+  
+  .tab-content {
+    display: block;
+  }
+  
+  #diff-output {
+    display: none;
+  }
+  
+  .tab-pane {
+    max-height: 60vh; /* More space on mobile */
+  }
+  
+  /* Adjust diff container styling for mobile tabs */
+  .tab-pane .diff-container {
+    max-height: none;
+    flex: 1;
+  }
+  
+  /* Remove margin on mobile layout */
+  .diff-viewer-container {
+    margin-top: 1rem;
+  }
+  
+  /* Hide file headers on mobile to save space */
+  .tab-pane .d2h-file-header {
+    display: none !important;
+  }
+  
+  /* Remove padding from file wrapper on mobile */
+  .tab-pane .d2h-file-wrapper {
+    margin: 0;
+  }
+  
+  /* Ensure diff content uses full width */
+  .tab-pane .d2h-file-diff {
+    margin: 0;
+    border: none;
+  }
+  
+  /* Fix tab button overflow on mobile */
+  .tab-button {
+    padding: 8px 4px;
+    font-size: 0.75rem;
+    min-height: 40px; /* Slightly smaller for mobile */
+  }
+  
+  .tab-button .tab-icon {
+    font-size: 0.875rem;
+  }
+  
+  .tab-button .change-badge {
+    font-size: 0.6rem;
+    padding: 1px 4px;
+  }
+  
+  /* Ensure tabs don't overflow */
+  .tab-navigation {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Tablet: 769px-1024px - Side-by-side with 50/50 split */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .tab-navigation {
+    display: none;
+  }
+  
+  .tab-content {
+    display: none;
+  }
+  
+  #diff-output {
+    display: flex;
+    width: 95vw;
+    gap: 0.75rem;
+  }
+  
+  .diff-container {
+    min-width: 300px; /* Minimum column width */
+  }
+}
+
+/* Desktop: 1025px+ - Current side-by-side layout preserved */
+@media (min-width: 1025px) {
+  .tab-navigation {
+    display: none;
+  }
+  
+  .tab-content {
+    display: none;
+  }
+  
+  #diff-output {
+    display: flex;
+    width: 90vw;
+    gap: 1rem;
+  }
 }

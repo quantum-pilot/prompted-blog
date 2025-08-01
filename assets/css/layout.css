@@ -13,12 +13,4 @@
   margin: 0.5rem 0 1.5rem;
 }
 
-#diff-output {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  margin-top: 3rem;
-  width: 90vw;
-  margin-inline: auto;
-  box-sizing: border-box;
-}
+/* Moved to diff-viewer.css for responsive control */
