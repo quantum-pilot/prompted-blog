@@ -1,23 +1,14 @@
-import { UrlService } from '../services/url-service.js';
-import { ApiService } from '../services/api-service.js';
-import { ErrorHandler } from '../utils/error-handler.js';
+import { BaseComponent } from '../utils/base-component.js';
 
-export class BlogHeader extends HTMLElement {
+export class BlogHeader extends BaseComponent {
   private historyButton!: HTMLButtonElement;
   private prevButton!: HTMLButtonElement;
   private nextButton!: HTMLButtonElement;
   private isHistoryActive: boolean = false;
-  private urlService: UrlService;
-  private apiService: ApiService;
   private currentPostPath: string | null = null;
-  private eventListeners: Array<{ element: Element; event: string; handler: EventListener }> = [];
-  private errorHandler: ErrorHandler;
 
   constructor() {
     super();
-    this.urlService = UrlService.getInstance();
-    this.apiService = ApiService.getInstance();
-    this.errorHandler = ErrorHandler.getInstance();
     this.isHistoryActive = this.urlService.isHistoryEnabled();
   }
 
@@ -26,15 +17,8 @@ export class BlogHeader extends HTMLElement {
     this.attachEventListeners();
   }
 
-  disconnectedCallback() {
-    this.cleanup();
-  }
-
-  private cleanup() {
-    this.eventListeners.forEach(({ element, event, handler }) => {
-      element.removeEventListener(event, handler);
-    });
-    this.eventListeners = [];
+  protected cleanup() {
+    // BaseComponent handles event cleanup automatically
   }
 
   private render() {
@@ -62,15 +46,9 @@ export class BlogHeader extends HTMLElement {
     const prevHandler = async () => await this.navigateToPrev();
     const nextHandler = async () => await this.navigateToNext();
 
-    this.historyButton.addEventListener('click', historyHandler);
-    this.prevButton.addEventListener('click', prevHandler);
-    this.nextButton.addEventListener('click', nextHandler);
-
-    this.eventListeners.push(
-      { element: this.historyButton, event: 'click', handler: historyHandler },
-      { element: this.prevButton, event: 'click', handler: prevHandler },
-      { element: this.nextButton, event: 'click', handler: nextHandler }
-    );
+    this.addManagedEventListener(this.historyButton, 'click', historyHandler);
+    this.addManagedEventListener(this.prevButton, 'click', prevHandler);
+    this.addManagedEventListener(this.nextButton, 'click', nextHandler);
   }
 
   private toggleHistory() {

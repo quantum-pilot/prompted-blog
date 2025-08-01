@@ -1,8 +1,8 @@
 import type { RevisionInfo, FileRevisions, RevisionData, AdjacentPosts } from '../types/index.js';
 import { ErrorHandler } from '../utils/error-handler.js';
+import { createSingleton } from '../utils/singleton.js';
 
 export class ApiService {
-  private static instance: ApiService;
   private cache: Map<string, any> = new Map();
   private errorHandler: ErrorHandler;
 
@@ -10,16 +10,15 @@ export class ApiService {
     this.errorHandler = ErrorHandler.getInstance();
   }
 
-  static getInstance(): ApiService {
-    if (!ApiService.instance) {
-      ApiService.instance = new ApiService();
-    }
-    return ApiService.instance;
+  static getInstance = createSingleton<ApiService>(ApiService);
+
+  private cacheKey(type: string, ...parts: (string | number)[]): string {
+    return [type, ...parts].join('-');
   }
 
   // Fetch latest post path
   async getLatestPost(): Promise<string> {
-    const cacheKey = 'latest';
+    const cacheKey = this.cacheKey('latest');
     if (this.cache.has(cacheKey)) {
       return this.cache.get(cacheKey);
     }
@@ -47,7 +46,7 @@ export class ApiService {
 
   // Fetch post HTML content
   async getPostContent(basePath: string): Promise<string> {
-    const cacheKey = `post-${basePath}`;
+    const cacheKey = this.cacheKey('post', basePath);
     if (this.cache.has(cacheKey)) {
       return this.cache.get(cacheKey);
     }
@@ -65,7 +64,7 @@ export class ApiService {
 
   // Fetch file revisions
   async getFileRevisions(fileName: string, dir: string = '.'): Promise<RevisionInfo[]> {
-    const cacheKey = `revisions-${dir}-${fileName}`;
+    const cacheKey = this.cacheKey('revisions', dir, fileName);
     if (this.cache.has(cacheKey)) {
       return this.cache.get(cacheKey);
     }
@@ -131,7 +130,7 @@ export class ApiService {
 
   // Fetch diff content for a file at specific revision
   async getDiff(fileName: string, dir: string, revisionIndex: number): Promise<string | null> {
-    const cacheKey = `diff-${dir}-${fileName}-${revisionIndex}`;
+    const cacheKey = this.cacheKey('diff', dir, fileName, revisionIndex);
     if (this.cache.has(cacheKey)) {
       return this.cache.get(cacheKey);
     }
@@ -151,7 +150,7 @@ export class ApiService {
 
   // Fetch full file content at specific revision
   async getFileContent(fileName: string, dir: string, revisionIndex: number): Promise<string> {
-    const cacheKey = `content-${dir}-${fileName}-${revisionIndex}`;
+    const cacheKey = this.cacheKey('content', dir, fileName, revisionIndex);
     if (this.cache.has(cacheKey)) {
       return this.cache.get(cacheKey);
     }
@@ -176,7 +175,7 @@ export class ApiService {
 
   // Fetch list of all posts
   async getPostList(): Promise<string[]> {
-    const cacheKey = 'post-list';
+    const cacheKey = this.cacheKey('post-list');
     if (this.cache.has(cacheKey)) {
       return this.cache.get(cacheKey);
     }

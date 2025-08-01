@@ -10,20 +10,15 @@ import { AppCoordinator } from './services/app-coordinator.js';
 
 console.log('TypeScript components loaded!');
 
-// Initialize app coordinator when DOM is ready
-document.addEventListener('DOMContentLoaded', async () => {
+// Initialize app coordinator
+async function initializeApp() {
   const coordinator = AppCoordinator.getInstance();
   await coordinator.init();
   console.log('App coordinator initialized!');
-});
+}
 
-// Also initialize if DOM is already loaded
 if (document.readyState === 'loading') {
-  // DOM hasn't finished loading yet
+  document.addEventListener('DOMContentLoaded', initializeApp);
 } else {
-  // DOM is already loaded
-  const coordinator = AppCoordinator.getInstance();
-  coordinator.init().then(() => {
-    console.log('App coordinator initialized!');
-  });
+  initializeApp();
 }

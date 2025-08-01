@@ -1,13 +1,11 @@
 import type { PostData } from '../types/index.js';
-import { UrlService } from '../services/url-service.js';
+import { BaseComponent } from '../utils/base-component.js';
 
-export class PostViewer extends HTMLElement {
-  private urlService: UrlService;
+export class PostViewer extends BaseComponent {
   private postContainer!: HTMLElement;
 
   constructor() {
     super();
-    this.urlService = UrlService.getInstance();
   }
 
   connectedCallback() {
@@ -16,10 +14,9 @@ export class PostViewer extends HTMLElement {
     this.loadLatestPost();
   }
 
-  private checkHistoryMode() {
-    if (this.urlService.isHistoryEnabled()) {
-      this.setVisible(false);
-    }
+  protected checkHistoryMode() {
+    // Show post viewer only when history mode is disabled
+    this.setVisible(!this.urlService.isHistoryEnabled());
   }
 
   private render() {
@@ -36,9 +33,12 @@ export class PostViewer extends HTMLElement {
       const basePath: string = await response.json();
       await this.loadPost(basePath);
     } catch (error) {
-      console.error('Failed to load latest post:', error);
+      const fallbackMessage = this.handleError(error as Error, 'loading latest post', {
+        showUser: true,
+        fallback: '<p>Failed to load latest post.</p>'
+      });
       if (this.postContainer) {
-        this.postContainer.innerHTML = '<p>Failed to load latest post.</p>';
+        this.postContainer.innerHTML = fallbackMessage;
       }
     }
   }
@@ -58,17 +58,17 @@ export class PostViewer extends HTMLElement {
         this.postContainer.appendChild(post);
       }
     } catch (error) {
-      console.error(`Failed to load post from ${basePath}:`, error);
+      const fallbackMessage = this.handleError(error as Error, `loading post from ${basePath}`, {
+        showUser: true,
+        fallback: '<p>Failed to load post.</p>'
+      });
       if (this.postContainer) {
-        this.postContainer.innerHTML = '<p>Failed to load post.</p>';
+        this.postContainer.innerHTML = fallbackMessage;
       }
     }
   }
 
-  // Method to hide/show post viewer based on history mode
-  setVisible(visible: boolean) {
-    this.style.display = visible ? 'block' : 'none';
-  }
+  // setVisible method now provided by BaseComponent
 }
 
 customElements.define('post-viewer', PostViewer);

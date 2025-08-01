@@ -1,5 +1,6 @@
+import { createSingleton } from '../utils/singleton.js';
+
 export class UrlService {
-  private static instance: UrlService;
   private hashChangeListeners: ((postPath: string | null) => void)[] = [];
   private windowHashChangeHandler: () => void;
 
@@ -11,12 +12,7 @@ export class UrlService {
     this.setupHashListener();
   }
 
-  static getInstance(): UrlService {
-    if (!UrlService.instance) {
-      UrlService.instance = new UrlService();
-    }
-    return UrlService.instance;
-  }
+  static getInstance = createSingleton<UrlService>(UrlService);
 
   private setupHashListener(): void {
     window.addEventListener('hashchange', this.windowHashChangeHandler);
@@ -57,33 +53,24 @@ export class UrlService {
     history.replaceState(null, '', url.toString());
   }
 
+  private updateUrlParams(url: URL, params: { [key: string]: string | null }): void {
+    Object.entries(params).forEach(([key, value]) => {
+      if (value === null) url.searchParams.delete(key);
+      else url.searchParams.set(key, value);
+    });
+  }
+
   // Update URL without navigation
   updateUrl(params: { [key: string]: string | null }): void {
     const url = this.getUrl();
-    
-    Object.entries(params).forEach(([key, value]) => {
-      if (value === null) {
-        url.searchParams.delete(key);
-      } else {
-        url.searchParams.set(key, value);
-      }
-    });
-
+    this.updateUrlParams(url, params);
     history.replaceState(null, '', url.toString());
   }
 
   // Navigate to URL
   navigateTo(params: { [key: string]: string | null }): void {
     const url = this.getUrl();
-    
-    Object.entries(params).forEach(([key, value]) => {
-      if (value === null) {
-        url.searchParams.delete(key);
-      } else {
-        url.searchParams.set(key, value);
-      }
-    });
-
+    this.updateUrlParams(url, params);
     window.location.href = url.toString();
   }
 

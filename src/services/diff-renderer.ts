@@ -1,4 +1,5 @@
 import { ErrorHandler } from '../utils/error-handler.js';
+import type { RevisionData } from '../types/index.js';
 
 export class DiffRenderer {
   private static errorHandler = ErrorHandler.getInstance();
@@ -123,6 +124,69 @@ export class DiffRenderer {
         top: container.scrollTop + offset - 100,
         behavior: 'smooth'
       });
+    }
+  }
+
+  // Render file revision content in container (unified method)
+  static async renderFileRevision(
+    fileName: string,
+    dir: string,
+    displayName: string,
+    container: HTMLElement,
+    revision: RevisionData,
+    revisionIndex: number,
+    revisions: RevisionData[],
+    apiService: any
+  ): Promise<void> {
+    try {
+      const fileInRev = revision.files.get(fileName);
+      
+      if (fileInRev) {
+        // File changed in this revision
+        if (fileInRev.revIdx === 0) {
+          // First revision - show as all additions
+          const content = await apiService.getFileContent(fileName, dir, fileInRev.revIdx);
+          const diffContent = DiffRenderer.buildFirstRevision(displayName, content.split('\n'));
+          DiffRenderer.renderDiffInContainer(container, diffContent, false, 'line-by-line');
+        } else {
+          // Regular revision - show diff with context
+          const [diff, content] = await Promise.all([
+            apiService.getDiff(fileName, dir, fileInRev.revIdx),
+            apiService.getFileContent(fileName, dir, fileInRev.revIdx)
+          ]);
+          
+          const full = content.split('\n');
+          const unchanged = !diff;
+          const diffContent = unchanged ? 
+            DiffRenderer.buildUnchanged(displayName, full) : 
+            DiffRenderer.expandDiff(diff!, full, displayName);
+          
+          DiffRenderer.renderDiffInContainer(container, diffContent, unchanged, 'line-by-line');
+        }
+      } else {
+        // Find most recent version of this file before current revision
+        let mostRecentContent = '';
+        for (let i = revisionIndex - 1; i >= 0; i--) {
+          if (revisions[i].files.has(fileName)) {
+            const fileInfo = revisions[i].files.get(fileName);
+            if (fileInfo) {
+              mostRecentContent = await apiService.getFileContent(fileName, dir, fileInfo.revIdx);
+              break;
+            }
+          }
+        }
+        
+        const lines = mostRecentContent ? mostRecentContent.split('\n') : [];
+        const diffContent = DiffRenderer.buildUnchanged(displayName, lines);
+        DiffRenderer.renderDiffInContainer(container, diffContent, true, 'line-by-line');
+      }
+    } catch (error) {
+      const fallbackMessage = DiffRenderer.errorHandler.handleRenderError(
+        error as Error,
+        'DiffRenderer.renderFileRevision',
+        'Failed to render file revision content.'
+      );
+      container.textContent = fallbackMessage;
     }
   }
 

@@ -1,21 +1,15 @@
 import { DiffRenderer } from '../services/diff-renderer.js';
-import { ApiService } from '../services/api-service.js';
-import { UrlService } from '../services/url-service.js';
+import { BaseComponent } from '../utils/base-component.js';
 import type { RevisionData } from '../types/index.js';
 
-export class InstructionsModal extends HTMLElement {
+export class InstructionsModal extends BaseComponent {
   private modalContainer!: HTMLElement;
   private isVisible: boolean = false;
   private hasChanges: boolean = false;
-  private apiService: ApiService;
-  private urlService: UrlService;
   private currentRevisions: RevisionData[] = [];
-  private closeButtonListener: { element: Element; handler: EventListener } | null = null;
 
   constructor() {
     super();
-    this.apiService = ApiService.getInstance();
-    this.urlService = UrlService.getInstance();
   }
 
   connectedCallback() {
@@ -23,15 +17,8 @@ export class InstructionsModal extends HTMLElement {
     this.checkHistoryMode();
   }
 
-  disconnectedCallback() {
-    this.cleanup();
-  }
-
-  private cleanup() {
-    if (this.closeButtonListener) {
-      this.closeButtonListener.element.removeEventListener('click', this.closeButtonListener.handler);
-      this.closeButtonListener = null;
-    }
+  protected cleanup() {
+    // BaseComponent handles event cleanup automatically
   }
 
   private render() {
@@ -49,18 +36,14 @@ export class InstructionsModal extends HTMLElement {
     // Attach close button event
     const closeBtn = this.querySelector('.close-btn') as HTMLButtonElement;
     const handler = () => this.hide();
-    closeBtn.addEventListener('click', handler);
-    this.closeButtonListener = { element: closeBtn, handler };
+    this.addManagedEventListener(closeBtn, 'click', handler);
   }
 
-  private checkHistoryMode() {
+  protected checkHistoryMode() {
     this.setVisible(this.urlService.isHistoryEnabled());
   }
 
-  // Show/hide based on history mode
-  setVisible(visible: boolean) {
-    this.style.display = visible ? 'block' : 'none';
-  }
+  // setVisible method now provided by BaseComponent
 
   // Initialize with revision data (same as diff-viewer)
   async initialize(revisions: RevisionData[]) {
@@ -83,67 +66,24 @@ export class InstructionsModal extends HTMLElement {
     }
   }
 
-  // Load instructions content using the same revision logic as diff-viewer
+  // Load instructions content using the centralized rendering method
   async loadInstructions(revision: RevisionData, revisionIndex: number) {
-    try {
-      const contentContainer = this.querySelector('#instructions-content') as HTMLElement;
-      if (!contentContainer) return;
+    const contentContainer = this.querySelector('#instructions-content') as HTMLElement;
+    if (!contentContainer) return;
 
-      // Clear existing content
-      contentContainer.innerHTML = '';
+    // Clear existing content
+    contentContainer.innerHTML = '';
 
-      const fileName = 'instructions.txt';
-      const dir = '.';
-      const displayName = 'Instructions';
-
-      const fileInRev = revision.files.get(fileName);
-
-      if (fileInRev) {
-        // File changed in this revision - follow exact same logic as diff-viewer
-        if (fileInRev.revIdx === 0) {
-          // First revision - show as all additions
-          const content = await this.apiService.getFileContent(fileName, dir, fileInRev.revIdx);
-          const diffContent = DiffRenderer.buildFirstRevision(displayName, content.split('\n'));
-          DiffRenderer.renderDiffInContainer(contentContainer, diffContent, false, 'line-by-line');
-        } else {
-          // Regular revision - show diff with context
-          const [diff, content] = await Promise.all([
-            this.apiService.getDiff(fileName, dir, fileInRev.revIdx),
-            this.apiService.getFileContent(fileName, dir, fileInRev.revIdx)
-          ]);
-
-          const full = content.split('\n');
-          const unchanged = !diff;
-          const diffContent = unchanged ?
-            DiffRenderer.buildUnchanged(displayName, full) :
-            DiffRenderer.expandDiff(diff!, full, displayName);
-
-          DiffRenderer.renderDiffInContainer(contentContainer, diffContent, unchanged, 'line-by-line');
-        }
-      } else {
-        // Find most recent version of this file before current revision (same logic as diff-viewer)
-        let mostRecentContent = '';
-        for (let i = revisionIndex - 1; i >= 0; i--) {
-          if (this.currentRevisions[i].files.has(fileName)) {
-            const fileInfo = this.currentRevisions[i].files.get(fileName);
-            if (fileInfo) {
-              mostRecentContent = await this.apiService.getFileContent(fileName, dir, fileInfo.revIdx);
-              break;
-            }
-          }
-        }
-
-        const lines = mostRecentContent ? mostRecentContent.split('\n') : [];
-        const diffContent = DiffRenderer.buildUnchanged(displayName, lines);
-        DiffRenderer.renderDiffInContainer(contentContainer, diffContent, true, 'line-by-line');
-      }
-    } catch (error) {
-      console.error('Failed to load instructions:', error);
-      const contentContainer = this.querySelector('#instructions-content') as HTMLElement;
-      if (contentContainer) {
-        contentContainer.textContent = 'Failed to load instructions.';
-      }
-    }
+    await DiffRenderer.renderFileRevision(
+      'instructions.txt',
+      '.',
+      'Instructions',
+      contentContainer,
+      revision,
+      revisionIndex,
+      this.currentRevisions,
+      this.apiService
+    );
   }
 
 

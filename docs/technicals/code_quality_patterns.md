@@ -117,4 +117,106 @@ All new code must meet these standards:
 - Error handling functionality verification
 - All existing functionality preserved during refactoring
 
+## Code Reusability Improvements (Extension of Story 2.1.1)
+
+### BaseComponent Architecture Pattern
+
+**Problem:** Significant duplication across all web components for service initialization, event management, and common functionality.
+
+**Solution:** Centralized BaseComponent class that provides common functionality and eliminates repetitive patterns:
+
+```typescript
+export abstract class BaseComponent extends HTMLElement {
+  // Provides all services pre-initialized
+  protected apiService: ApiService;
+  protected diffRenderer: DiffRenderer;
+  protected urlService: UrlService;
+  protected appCoordinator: AppCoordinator;
+  protected errorHandler: ErrorHandler;
+  protected eventManager: EventManager;
+
+  // Automatic event cleanup on component removal
+  disconnectedCallback(): void {
+    this.eventManager.cleanup();
+    this.cleanup();
+  }
+
+  // Common methods for all components
+  protected setVisible(visible: boolean): void;
+  protected checkHistoryMode(): void;
+  protected handleError(error, operation, config?): any;
+}
+```
+
+**Impact Eliminated:**
+- ~50 lines of duplicate service initialization across 5 components
+- ~40 lines of duplicate event listener management
+- ~20 lines of duplicate visibility/history mode methods
+- Inconsistent error handling patterns
+
+### EventManager Utility Pattern
+
+**Problem:** Components had custom event listener tracking that was error-prone and led to memory leaks.
+
+**Solution:** Centralized EventManager with automatic cleanup:
+
+```typescript
+export class EventManager {
+  addEventListener(element, event, handler, options?): void;
+  removeEventListener(element, event, handler, options?): void;
+  cleanup(): void; // Removes all tracked listeners
+}
+```
+
+**Benefits:**
+- Eliminates memory leaks from orphaned event listeners
+- Consistent event management across all components
+- Automatic cleanup on component disconnection
+
+### DiffRenderer.renderFileRevision Pattern
+
+**Problem:** Identical 80+ line file rendering logic duplicated in diff-viewer and instructions-modal components.
+
+**Solution:** Extracted centralized rendering method:
+
+```typescript
+static async renderFileRevision(
+  fileName: string,
+  dir: string,
+  displayName: string,
+  container: HTMLElement,
+  revision: RevisionData,
+  revisionIndex: number,
+  revisions: RevisionData[],
+  apiService: any
+): Promise<void>
+```
+
+**Benefits:**
+- Single source of truth for file revision rendering
+- Consistent error handling and fallback behavior
+- Easier maintenance and testing
+
+### Component Conversion Results
+
+All components now extend BaseComponent:
+- **blog-header**: Converted to use centralized services and event management
+- **diff-viewer**: Eliminated custom event tracking, uses renderFileRevision method
+- **instructions-modal**: Uses renderFileRevision method, centralized event management  
+- **revision-scroller**: Centralized event management
+- **post-viewer**: Fixed error handling consistency, centralized services
+
+### Updated Development Standards
+
+**Architecture Requirements:**
+1. **All new components must extend BaseComponent** - No manual service initialization
+2. **Use EventManager for all event listeners** - No custom event tracking arrays
+3. **Use centralized error handling** - No console.error, use this.handleError()
+4. **Leverage common utility methods** - setVisible(), checkHistoryMode() provided by base
+
+**Code Duplication Prevention:**
+- Before adding similar logic to multiple components, extract to BaseComponent or utility class
+- Use DiffRenderer.renderFileRevision for any file content rendering
+- Follow established patterns for consistency
+
 These patterns ensure long-term maintainability and provide a solid foundation for future development while maintaining the project's simplicity principles.

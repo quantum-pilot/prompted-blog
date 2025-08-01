@@ -1,18 +1,15 @@
 import type { RevisionInfo } from '../types/index.js';
-import { UrlService } from '../services/url-service.js';
+import { BaseComponent } from '../utils/base-component.js';
 
-export class RevisionScroller extends HTMLElement {
+export class RevisionScroller extends BaseComponent {
   private dots: HTMLElement[] = [];
   private scrollIconContainer!: HTMLElement;
   private revisions: RevisionInfo[] = [];
   private currentRev: number = 0;
   private onRevisionChange?: (revisionIndex: number) => void;
-  private urlService: UrlService;
-  private dotListeners: Array<{ element: Element; handler: EventListener }> = [];
 
   constructor() {
     super();
-    this.urlService = UrlService.getInstance();
   }
 
   connectedCallback() {
@@ -20,15 +17,8 @@ export class RevisionScroller extends HTMLElement {
     this.checkHistoryMode();
   }
 
-  disconnectedCallback() {
-    this.cleanup();
-  }
-
-  private cleanup() {
-    this.dotListeners.forEach(({ element, handler }) => {
-      element.removeEventListener('click', handler);
-    });
-    this.dotListeners = [];
+  protected cleanup() {
+    // BaseComponent handles event cleanup automatically
   }
 
   private render() {
@@ -40,7 +30,7 @@ export class RevisionScroller extends HTMLElement {
     this.scrollIconContainer = this.querySelector('#revision-scroller') as HTMLElement;
   }
 
-  private checkHistoryMode() {
+  protected checkHistoryMode() {
     this.setVisible(this.urlService.isHistoryEnabled());
   }
 
@@ -60,8 +50,7 @@ export class RevisionScroller extends HTMLElement {
   private buildScroller() {
     if (!this.scrollIconContainer) return;
 
-    // Clear existing listeners and dots
-    this.cleanup();
+    // Clear existing content and dots
     this.scrollIconContainer.innerHTML = '';
     this.dots = [];
 
@@ -85,9 +74,8 @@ export class RevisionScroller extends HTMLElement {
         }
       };
 
-      dot.addEventListener('click', handler);
-      this.dotListeners.push({ element: dot, handler });
-
+      this.addManagedEventListener(dot, 'click', handler);
+      
       this.dots.push(dot);
       this.scrollIconContainer.appendChild(dot);
     }
@@ -119,9 +107,7 @@ export class RevisionScroller extends HTMLElement {
     this.urlService.setRevision(revisionIndex);
   }
 
-  setVisible(visible: boolean) {
-    this.style.display = visible ? 'block' : 'none';
-  }
+  // setVisible method now provided by BaseComponent
 
   // Get current revision index
   getCurrentRevision(): number {

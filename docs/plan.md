@@ -12,9 +12,9 @@
 
 **Phase 1 (Core Engine):** 5/5 stories completed ✅
 
-**Phase 2 (UI/UX Enhancement):** 2/10 stories completed 🔄
+**Phase 2 (UI/UX Enhancement):** 2/11 stories completed 🔄
 
-**Overall Progress:** 7/15 stories completed
+**Overall Progress:** 7/16 stories completed
 
 **Current Status:** Phase 2 in progress. Next priority: Story 2.2 (Mobile-Responsive Header and Navigation)
 
@@ -30,12 +30,7 @@ Project success will be measured by:
 
 ## Future Considerations
 
-### Potential Phase 2: UI/UX improvements
-- Responsive design
-- Mobile performance
-- Markdown themes
-
-### Potential Phase 3: Publisher-friendly business model
+### Phase 3: Publisher-friendly business model
 - Markdown editor
 - Draft status for posts (can still prompt and modify chats, but won't be committed)
 - Support for private revision history (disable public access if needed)

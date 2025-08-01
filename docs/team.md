@@ -85,7 +85,7 @@ This workflow ensures we maintain quality, capture knowledge, and make steady pr
 
 ## Documentation Updates
 
-The Documentation Agent (`docs/agents/docs.md`) handles all documentation maintenance tasks including updates, deduplication, and consistency checks. Request human to run this agent after story completion.
+The Documentation Agent handles all documentation maintenance tasks including updates, deduplication, and consistency checks. Request human to run this agent after story completion.
 
 ## Quality Checks
 

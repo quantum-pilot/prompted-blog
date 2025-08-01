@@ -1,6 +1,5 @@
-import { ApiService } from '../services/api-service.js';
 import { DiffRenderer } from '../services/diff-renderer.js';
-import { UrlService } from '../services/url-service.js';
+import { BaseComponent } from '../utils/base-component.js';
 import type { RevisionData } from '../types/index.js';
 
 interface Diff2HtmlConfig {
@@ -28,9 +27,7 @@ declare global {
   };
 }
 
-export class DiffViewer extends HTMLElement {
-  private apiService: ApiService;
-  private urlService: UrlService;
+export class DiffViewer extends BaseComponent {
   private diffContainer!: HTMLElement;
   private tabContainer!: HTMLElement;
   private tabContent!: HTMLElement;
@@ -38,13 +35,9 @@ export class DiffViewer extends HTMLElement {
   private basePath: string = '';
   private activeTab: 'prompts' | 'output' | 'instructions' = 'prompts';
   private currentRevisionIndex: number = 0;
-  private tabListeners: Array<{ element: Element; handler: EventListener }> = [];
-  private instructionsButtonListener: { element: HTMLElement; handler: EventListener } | null = null;
 
   constructor() {
     super();
-    this.apiService = ApiService.getInstance();
-    this.urlService = UrlService.getInstance();
   }
 
   connectedCallback() {
@@ -58,22 +51,8 @@ export class DiffViewer extends HTMLElement {
     this.checkHistoryMode();
   }
 
-  disconnectedCallback() {
-    this.cleanup();
-  }
-
-  private cleanup() {
-    // Remove tab event listeners
-    this.tabListeners.forEach(({ element, handler }) => {
-      element.removeEventListener('click', handler);
-    });
-    this.tabListeners = [];
-
-    // Remove instructions button listener
-    if (this.instructionsButtonListener) {
-      this.instructionsButtonListener.element.removeEventListener('click', this.instructionsButtonListener.handler);
-      this.instructionsButtonListener = null;
-    }
+  protected cleanup() {
+    // BaseComponent handles event cleanup automatically
   }
 
   private render() {
@@ -125,13 +104,7 @@ export class DiffViewer extends HTMLElement {
     this.setupTabListeners();
   }
 
-  private checkHistoryMode() {
-    this.setVisible(this.urlService.isHistoryEnabled());
-  }
-
-  setVisible(visible: boolean) {
-    this.style.display = visible ? 'block' : 'none';
-  }
+  // checkHistoryMode and setVisible now provided by BaseComponent
 
   // Initialize with revision data and base path
   async initialize(revisions: RevisionData[], basePath: string) {
@@ -140,9 +113,6 @@ export class DiffViewer extends HTMLElement {
   }
 
   private setupTabListeners() {
-    // Clear existing listeners before adding new ones
-    this.cleanup();
-    
     const tabButtons = this.querySelectorAll('.tab-button');
     tabButtons.forEach(button => {
       const handler = (e: Event) => {
@@ -154,8 +124,7 @@ export class DiffViewer extends HTMLElement {
         }
       };
       
-      button.addEventListener('click', handler);
-      this.tabListeners.push({ element: button, handler });
+      this.addManagedEventListener(button, 'click', handler);
     });
   }
 
@@ -270,47 +239,16 @@ export class DiffViewer extends HTMLElement {
   }
 
   private async renderFileContent(fileName: string, dir: string, displayName: string, container: HTMLElement, revision: RevisionData, revisionIndex: number) {
-    const fileInRev = revision.files.get(fileName);
-    
-    if (fileInRev) {
-      // File changed in this revision
-      if (fileInRev.revIdx === 0) {
-        // First revision - show as all additions
-        const content = await this.apiService.getFileContent(fileName, dir, fileInRev.revIdx);
-        const diffContent = DiffRenderer.buildFirstRevision(displayName, content.split('\n'));
-        DiffRenderer.renderDiffInContainer(container, diffContent, false, 'line-by-line');
-      } else {
-        // Regular revision - show diff with context
-        const [diff, content] = await Promise.all([
-          this.apiService.getDiff(fileName, dir, fileInRev.revIdx),
-          this.apiService.getFileContent(fileName, dir, fileInRev.revIdx)
-        ]);
-        
-        const full = content.split('\n');
-        const unchanged = !diff;
-        const diffContent = unchanged ? 
-          DiffRenderer.buildUnchanged(displayName, full) : 
-          DiffRenderer.expandDiff(diff!, full, displayName);
-        
-        DiffRenderer.renderDiffInContainer(container, diffContent, unchanged, 'line-by-line');
-      }
-    } else {
-      // Find most recent version of this file before current revision
-      let mostRecentContent = '';
-      for (let i = revisionIndex - 1; i >= 0; i--) {
-        if (this.currentRevisions[i].files.has(fileName)) {
-          const fileInfo = this.currentRevisions[i].files.get(fileName);
-          if (fileInfo) {
-            mostRecentContent = await this.apiService.getFileContent(fileName, dir, fileInfo.revIdx);
-            break;
-          }
-        }
-      }
-      
-      const lines = mostRecentContent ? mostRecentContent.split('\n') : [];
-      const diffContent = DiffRenderer.buildUnchanged(displayName, lines);
-      DiffRenderer.renderDiffInContainer(container, diffContent, true, 'line-by-line');
-    }
+    await DiffRenderer.renderFileRevision(
+      fileName,
+      dir,
+      displayName,
+      container,
+      revision,
+      revisionIndex,
+      this.currentRevisions,
+      this.apiService
+    );
   }
 
   private async renderInstructionsTab(revision: RevisionData, revisionIndex: number) {
@@ -389,8 +327,7 @@ export class DiffViewer extends HTMLElement {
       }
     };
     
-    button.addEventListener('click', handler);
-    this.instructionsButtonListener = { element: button, handler };
+    this.addManagedEventListener(button, 'click', handler);
 
     const fileHeader = container.querySelector('.d2h-file-header');
     if (fileHeader) {

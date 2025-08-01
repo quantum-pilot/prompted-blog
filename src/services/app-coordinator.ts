@@ -1,5 +1,6 @@
 import { ApiService } from './api-service.js';
 import { UrlService } from './url-service.js';
+import { createSingleton } from '../utils/singleton.js';
 import type { BlogHeader } from '../components/blog-header.js';
 import type { PostViewer } from '../components/post-viewer.js';
 import type { RevisionScroller } from '../components/revision-scroller.js';
@@ -8,7 +9,6 @@ import type { DiffViewer } from '../components/diff-viewer.js';
 import type { RevisionData } from '../types/index.js';
 
 export class AppCoordinator {
-  private static instance: AppCoordinator;
   private apiService: ApiService;
   private urlService: UrlService;
   private components: {
@@ -52,12 +52,7 @@ export class AppCoordinator {
     };
   }
 
-  static getInstance(): AppCoordinator {
-    if (!AppCoordinator.instance) {
-      AppCoordinator.instance = new AppCoordinator();
-    }
-    return AppCoordinator.instance;
-  }
+  static getInstance = createSingleton<AppCoordinator>(AppCoordinator);
 
   // Initialize the application
   async init(): Promise<void> {

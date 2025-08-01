@@ -24,19 +24,17 @@ Prompted Blog is designed for anyone who feels an LLM with personality can write
 
 ### Component Structure
 
-**TypeScript Web Components Architecture:**
-- `<blog-header>` - Mobile-responsive header with history toggle and prev/next navigation buttons
-- `<post-viewer>` - Post rendering component with dynamic loading  
-- `<diff-viewer>` - Responsive diff visualization with mobile tabbed interface (Prompts | Output | Instructions) and desktop side-by-side layout
-- `<revision-scroller>` - Mobile-optimized dot navigation for revision history
-- `<instructions-modal>` - Floating instructions overlay (desktop) integrated into mobile tabbed interface
+The application uses TypeScript Web Components with a service-oriented architecture. Five main components handle the user interface:
 
-**Service Layer:**
-- `ApiService` - Handles all HTTP requests, caching, post list and navigation
-- `UrlService` - Manages URL parameters, hash routing and navigation state  
-- `AppCoordinator` - Central coordinator connecting all components and handling routing
-- `DiffRenderer` - Shared service for rendering unified diff content across components
-- `ErrorHandler` - Centralized error handling with user feedback and fallback patterns
+- `<blog-header>` - Mobile-responsive header with navigation
+- `<post-viewer>` - Post content rendering
+- `<diff-viewer>` - Responsive diff visualization with mobile tabbed interface  
+- `<revision-scroller>` - Dot navigation for revision history
+- `<instructions-modal>` - Floating instructions overlay
+
+The service layer provides shared functionality across components including API handling, URL management, component coordination, diff rendering, and error handling.
+
+**For detailed component architecture and migration decisions, see:** `docs/technicals/frontend_migration.md`
 
 ### Key Features Implemented
 

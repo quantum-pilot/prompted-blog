@@ -18,7 +18,7 @@ See [frontend_migration.md](./frontend_migration.md) for TypeScript migration de
 Manual testing across browsers and mobile devices, focusing on diff2html integration and git history edge cases.
 
 ### Documentation Maintenance
-Documentation maintenance is handled by the Documentation Agent (`docs/agents/docs.md`). This agent should be run:
+Documentation maintenance is handled by the Documentation Agent. This agent should be run:
 - After each story completion
 - During periodic documentation reviews
 - When inconsistencies are suspected

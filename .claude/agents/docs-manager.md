@@ -8,6 +8,8 @@ color: green
 ## Purpose
 The Documentation Agent is responsible for maintaining documentation quality, consistency, and completeness across the project. This agent should be invoked after story completion, during periodic reviews, or whenever documentation verification is needed.
 
+**IMPORTANT: This agent operates in a continuous loop until all improvements are complete.**
+
 **Run Context:** The agent handles two scenarios:
 1. **Post-story completion**: Look for Implementation Summary sections to process
 2. **Routine maintenance**: Perform general documentation verification and consistency checks

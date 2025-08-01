@@ -1,3 +1,5 @@
+import { createSingleton } from './singleton.js';
+
 export interface ErrorDetails {
   message: string;
   code?: string;
@@ -12,19 +14,13 @@ export interface ErrorHandlerConfig {
 }
 
 export class ErrorHandler {
-  private static instance: ErrorHandler;
   private errorContainer: HTMLElement | null = null;
 
   private constructor() {
     this.initErrorUI();
   }
 
-  static getInstance(): ErrorHandler {
-    if (!ErrorHandler.instance) {
-      ErrorHandler.instance = new ErrorHandler();
-    }
-    return ErrorHandler.instance;
-  }
+  static getInstance = createSingleton<ErrorHandler>(ErrorHandler);
 
   private initErrorUI(): void {
     // Create a hidden error container for user feedback
@@ -79,47 +75,33 @@ export class ErrorHandler {
     return fallbackValue;
   }
 
-  /**
-   * Handle API errors specifically
-   */
-  handleApiError(error: Error | string, operation: string, context?: Record<string, any>): any {
+  private handleSpecific(
+    error: Error | string, 
+    type: 'API' | 'RENDER' | 'NAVIGATION',
+    operation: string,
+    config: Partial<ErrorHandlerConfig & { context?: Record<string, any> }> = {}
+  ): any {
+    const typeConfig = {
+      API: { showUserMessage: true, fallbackValue: null },
+      RENDER: { showUserMessage: false, fallbackValue: 'Failed to render content.' },
+      NAVIGATION: { showUserMessage: true, fallbackValue: undefined }
+    };
+    
     return this.handle(error, {
-      message: `API operation failed: ${operation}`,
-      code: 'API_ERROR',
-      context
-    }, {
-      showUserMessage: true,
-      logToConsole: true,
-      fallbackValue: null
-    });
+      message: `${type === 'API' ? 'API operation' : type.charAt(0) + type.slice(1).toLowerCase()} failed${type === 'RENDER' ? ' in' : ':'} ${operation}`,
+      code: `${type}_ERROR`,
+      context: config.context
+    }, { logToConsole: true, ...typeConfig[type], ...config });
   }
 
-  /**
-   * Handle rendering errors
-   */
-  handleRenderError(error: Error | string, component: string, fallback: string = 'Failed to render content.'): string {
-    return this.handle(error, {
-      message: `Rendering failed in ${component}`,
-      code: 'RENDER_ERROR'
-    }, {
-      showUserMessage: false,
-      logToConsole: true,
-      fallbackValue: fallback
-    });
-  }
-
-  /**
-   * Handle navigation errors
-   */
-  handleNavigationError(error: Error | string, operation: string): void {
-    this.handle(error, {
-      message: `Navigation failed: ${operation}`,
-      code: 'NAVIGATION_ERROR'
-    }, {
-      showUserMessage: true,
-      logToConsole: true
-    });
-  }
+  handleApiError = (error: Error | string, operation: string, context?: Record<string, any>) => 
+    this.handleSpecific(error, 'API', operation, { context });
+  
+  handleRenderError = (error: Error | string, component: string, fallback: string = 'Failed to render content.') => 
+    this.handleSpecific(error, 'RENDER', component, { fallbackValue: fallback });
+  
+  handleNavigationError = (error: Error | string, operation: string) => 
+    this.handleSpecific(error, 'NAVIGATION', operation);
 
   /**
    * Show error message to user
