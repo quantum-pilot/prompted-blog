@@ -73,15 +73,19 @@ This workflow ensures we maintain quality, capture knowledge, and make steady pr
 ### 7. Story Completion
 **Claude's Actions (after human confirms success):**
 - Update todo list to completed
-- Update story status to ✅ in phase file
-- Update progress tracking in docs/plan.md
-- Update docs/architecture.md if architecture changed
-- Update or create technical docs if new patterns established
-- Verify no content duplication across documentation
+- Add a comprehensive **Implementation Summary** section to the completed story in the phase document with:
+  - What was implemented
+  - Technical decisions made
+  - Patterns established or followed
+  - Bugs encountered and solutions
+  - Lessons learned
+  - Files created/modified
+  - Any architectural changes
+- **Prompt human to run Documentation Agent**: "Story X.Y is complete. I've added a detailed Implementation Summary to the story in the phase document. Please run the Documentation Agent to extract this information and update the permanent documentation."
 
 ## Documentation Updates
 
-Update `CLAUDE.md`, `docs/architecture.md`, and relevant `docs/technicals/` files after each story as needed.
+The Documentation Agent (`docs/agents/docs.md`) handles all documentation maintenance tasks including updates, deduplication, and consistency checks. Request human to run this agent after story completion.
 
 ## Quality Checks
 

@@ -18,9 +18,9 @@ See [frontend_migration.md](./frontend_migration.md) for TypeScript migration de
 Manual testing across browsers and mobile devices, focusing on diff2html integration and git history edge cases.
 
 ### Documentation Maintenance
-**Regular Deduplication**: Documentation tends to accumulate redundancy over time as implementation details get duplicated across plan, architecture, and technical docs. Periodic compaction maintains focus:
-- Plans should contain acceptance criteria, not implementation details
-- Architecture docs should reference technicals/ for detailed patterns
-- Each document should serve a distinct purpose and audience
+Documentation maintenance is handled by the Documentation Agent (`docs/agents/docs.md`). This agent should be run:
+- After each story completion
+- During periodic documentation reviews
+- When inconsistencies are suspected
 
-**Completed Stories**: Keep concise "What was built" sections in completed stories as historical record, even when removing detailed implementation notes. This preserves context of what was delivered even as architecture evolves.
+The agent handles deduplication, consistency checks, and maintains documentation quality across the project.

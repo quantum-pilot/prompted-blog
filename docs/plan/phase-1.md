@@ -33,6 +33,12 @@
 
 **Overview:** Refactor the monolithic `main.js` into modular, type-safe TypeScript components following Plain Vanilla Web principles. This improves maintainability, debugging, and code reuse while preserving all existing functionality.
 
+**What was built:**
+- 5 TypeScript Web Components: blog-header, post-viewer, diff-viewer, revision-scroller, instructions-modal
+- Service layer: ApiService, UrlService, AppCoordinator, DiffRenderer
+- TypeScript build process with minimal toolchain
+- Preserved 100% functional compatibility with zero functionality loss
+
 **Implementation details in `docs/technicals/frontend_migration.md`**
 
 ### Story 1.4: CSS Architecture and Organization
@@ -42,12 +48,24 @@
 
 **Overview:** Extract CSS from the monolithic `<style>` block in `index.html` into a well-organized file structure that mirrors the TypeScript component architecture. This improves maintainability, reduces index.html complexity, and makes styles easier to locate and modify.
 
+**What was built:**
+- Organized CSS file structure: main.css, base.css, layout.css, and components/ directory
+- Component-specific CSS files matching TypeScript architecture
+- Unified diff rendering format for consistent mobile experience
+- Build process automatically includes all CSS files
+
 **Implementation details in `docs/technicals/ui_ux_patterns.md`**
 
 ### BUG: Instructions Modal Line Numbers Overflow and Scrolling
 **Status:** ✅ **Completed**
 
 **Issue:** Line numbers overflowed container boundaries and remained statically positioned while diff content scrolled.
+
+**What was built:**
+- Fixed CSS display issues with line numbers and word wrapping
+- Applied `white-space: initial` and `display: inline` to diff elements
+- Removed excessive padding from d2h-code-line elements
+- Ensured proper scrolling behavior in instructions modal
 
 **Solution details in `docs/technicals/bug_fixes.md`**
 

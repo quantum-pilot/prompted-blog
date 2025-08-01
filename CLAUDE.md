@@ -12,15 +12,12 @@ This file provides guidance to Claude Code when working with code in this reposi
 4. **`docs/architecture.md`** - Up-to-date architecture and design of current implementation
 5. **`docs/technicals/`** - Historical record of architectural decisions, solutions to major bugs, development workflow, migration, UI/UX patterns, etc.
 
-Once all docs are read, check for `docs/verified.json`. If it's not today's date, verify consistency in docs, prompt human for ambiguity and put today's date into `docs/verified.json` file.
-
 **Key workflow reminders:**
 - Follow `docs/plan.md` to identify current phase, go to `docs/plan/phase-{number}.md` (e.g., phase-1.md) to pick a story
 - Always use the TodoWrite tool to track story progress
 - Follow the exact human verification format from `docs/team.md`
-- Update `docs/architecture.md` on changes to current architecture after each story
-- Follow `docs/technicals.md` to see how individual documents need to be updated inside `docs/technicals/` directory
-- When creating new technical docs, ensure they don't duplicate existing content
+- After story completion, run documentation Agent
+- Documentation Agent handles all documentation updates, deduplication, and consistency checks
 
 ## Overview
 
