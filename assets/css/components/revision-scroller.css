@@ -1,47 +1,302 @@
-/* Dot navigation */
-#revision-scroller {
+/* Continuous Line Revision Navigation System */
+.revision-navigation {
   position: fixed;
-  bottom: 5%;
-  left: 50%;
-  transform: translateX(-50%);
+  bottom: 16px;
+  left: 16px;
   display: flex;
-  gap: 0.5rem;
   align-items: center;
+  gap: 12px;
+  z-index: 1000;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(8px);
+  max-width: calc(100vw - 32px);
 }
 
-.rev-dot {
-  width: 10px;
-  height: 10px;
+/* Navigation Arrow Buttons */
+.nav-arrow {
+  width: 44px;
+  height: 44px;
+  border: none;
   border-radius: 50%;
-  background: #ccc;
+  background: #f6f8fa;
+  color: #57606a;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: all 200ms ease;
+  flex-shrink: 0;
 }
 
-.rev-dot.active {
-  background: #333;
+.nav-arrow:hover:not(:disabled) {
+  background: #e1e4e8;
+  color: #24292f;
+  transform: scale(1.05);
 }
 
-.rev-scroll-icon {
-  width: 24px;
-  height: 24px;
-  background: url('assets/scroll-icon.svg') center center no-repeat;
-  background-size: contain;
+.nav-arrow:active:not(:disabled) {
+  transform: scale(0.95);
 }
 
-/* Mobile responsive adjustments */
-@media (max-width: 768px) {
-  #revision-scroller {
-    bottom: 2%; /* Less space from bottom */
-    gap: 0.375rem; /* Smaller gap between dots */
-    max-width: 90vw; /* Prevent overflow */
-    overflow-x: auto; /* Allow scrolling if too many dots */
-    padding: 0.5rem;
-    -webkit-overflow-scrolling: touch;
+.nav-arrow:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.nav-arrow:focus {
+  outline: 2px solid #0969da;
+  outline-offset: 2px;
+}
+
+/* Progress Container */
+.progress-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 200px;
+  flex: 1;
+  max-width: 300px;
+}
+
+/* Progress Line */
+.progress-line {
+  position: relative;
+  width: 100%;
+  height: 6px;
+  background: #e1e4e8;
+  border-radius: 3px;
+  cursor: pointer;
+  touch-action: none;
+}
+
+/* Tick Marks */
+.tick-mark {
+  position: absolute;
+  top: -2px;
+  width: 2px;
+  height: 10px;
+  background: #57606a;
+  border-radius: 1px;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+/* Progress Thumb */
+.progress-thumb {
+  position: absolute;
+  top: 50%;
+  width: 20px;
+  height: 20px;
+  background: #0969da;
+  border: 3px solid #ffffff;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  cursor: grab;
+  transition: all 200ms ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  z-index: 1;
+}
+
+.progress-thumb:hover {
+  transform: translate(-50%, -50%) scale(1.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.progress-thumb:active,
+.progress-thumb.dragging {
+  cursor: grabbing;
+  transform: translate(-50%, -50%) scale(1.2);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+}
+
+.progress-thumb:focus {
+  outline: 2px solid #0969da;
+  outline-offset: 4px;
+}
+
+/* Revision Text */
+.revision-text {
+  font-size: 12px;
+  color: #57606a;
+  font-weight: 500;
+  text-align: center;
+  white-space: nowrap;
+  user-select: none;
+}
+
+/* Tablet and Desktop Positioning */
+@media (min-width: 769px) {
+  .revision-navigation {
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: 400px;
+    position: fixed;
+    z-index: 1001;
   }
   
-  .rev-dot {
-    width: 8px; /* Smaller dots on mobile */
+  .progress-container {
+    min-width: 250px;
+    max-width: 350px;
+  }
+  
+  .nav-arrow {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .revision-text {
+    font-size: 13px;
+  }
+  
+  /* Add bottom padding only to scrollable diff content areas to prevent overlap */
+  .diff-container,
+  .diff-full,
+  .tab-pane {
+    padding-bottom: 100px !important;
+  }
+}
+
+/* Large Desktop Optimization */
+@media (min-width: 1200px) {
+  .revision-navigation {
+    bottom: 32px;
+    max-width: 450px;
+  }
+  
+  .progress-container {
+    min-width: 300px;
+    max-width: 400px;
+  }
+}
+
+/* High DPI Displays */
+@media (min-resolution: 2dppx) {
+  .progress-thumb {
+    border-width: 2px;
+  }
+  
+  .tick-mark {
+    width: 1.5px;
+  }
+}
+
+/* Accessibility and Focus States */
+@media (prefers-reduced-motion: reduce) {
+  .nav-arrow,
+  .progress-thumb,
+  .revision-navigation {
+    transition: none;
+  }
+}
+
+/* Dark Theme Support (placeholder for future implementation) */
+@media (prefers-color-scheme: dark) {
+  .revision-navigation {
+    background: rgba(45, 45, 45, 0.95);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+  
+  .nav-arrow {
+    background: #2d2d2d;
+    color: #a8a8a8;
+  }
+  
+  .nav-arrow:hover:not(:disabled) {
+    background: #404040;
+    color: #e6e6e6;
+  }
+  
+  .progress-line {
+    background: #404040;
+  }
+  
+  .tick-mark {
+    background: #a8a8a8;
+  }
+  
+  .progress-thumb {
+    background: #4dabf7;
+    border-color: #2d2d2d;
+  }
+  
+  .revision-text {
+    color: #a8a8a8;
+  }
+}
+
+/* Touch-friendly adjustments for mobile */
+@media (max-width: 768px) {
+  .progress-thumb {
+    width: 24px;
+    height: 24px;
+    border-width: 4px;
+  }
+  
+  .progress-line {
     height: 8px;
-    flex-shrink: 0; /* Prevent dots from shrinking */
+    border-radius: 4px;
+  }
+  
+  .tick-mark {
+    top: -3px;
+    height: 14px;
+    width: 3px;
+  }
+  
+  .nav-arrow {
+    width: 48px;
+    height: 48px;
+    font-size: 16px;
+  }
+}
+
+/* Very small screens */
+@media (max-width: 480px) {
+  .revision-navigation {
+    bottom: 12px;
+    left: 12px;
+    right: 12px;
+    max-width: none;
+    gap: 8px;
+    padding: 6px 10px;
+  }
+  
+  .progress-container {
+    min-width: 150px;
+  }
+  
+  .nav-arrow {
+    width: 44px;
+    height: 44px;
+    font-size: 14px;
+  }
+  
+  .revision-text {
+    font-size: 11px;
+  }
+}
+
+/* Loading state */
+.revision-navigation.loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.revision-navigation.loading .progress-thumb {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
   }
 }

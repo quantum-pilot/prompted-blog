@@ -46,10 +46,10 @@
 /* Mobile-specific nav button styles */
 @media (max-width: 768px) {
   .nav-button {
-    padding: 0.5rem 1rem;
-    font-size: 0.875rem;
-    min-width: 44px;
-    min-height: 44px;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    min-width: 36px;
+    min-height: 36px;
   }
   
   /* Show full text on mobile - there's plenty of space */

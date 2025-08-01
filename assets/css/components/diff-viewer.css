@@ -97,7 +97,7 @@
 .tab-pane {
   display: none;
   width: 100%;
-  max-height: 70vh;
+  max-height: 65vh; /* Increased from 60vh due to compact navigation */
   overflow-y: auto;
   background: white;
   border: 1px solid #d1d5da;
@@ -123,7 +123,7 @@
 /* Diff containers, headers, scrolling */
 .diff-container {
   flex: 1;
-  max-height: 75vh;
+  max-height: 65vh; /* Reduced from 75vh to account for revision navigation */
   min-width: 0;
   display: flex;
   flex-direction: column;
@@ -201,6 +201,43 @@ diff-viewer td {
 
 /* ==================== RESPONSIVE BREAKPOINTS ==================== */
 
+/* Responsive height adjustments for revision navigation */
+@media (max-width: 480px) {
+  /* Very small screens - more conservative height */
+  .diff-container {
+    max-height: 62vh !important;
+  }
+  
+  .tab-pane {
+    max-height: 62vh !important;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  /* Medium mobile screens */
+  .diff-container {
+    max-height: 67vh !important;
+  }
+  
+  .tab-pane {
+    max-height: 67vh !important;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  /* Tablet screens */
+  .diff-container {
+    max-height: 68vh !important;
+  }
+}
+
+@media (min-width: 1025px) {
+  /* Desktop screens - more space available */
+  .diff-container {
+    max-height: 70vh !important;
+  }
+}
+
 /* Mobile: 320px-768px - Show tabs, hide desktop layout */
 @media (max-width: 768px) {
   .tab-navigation {
@@ -216,7 +253,7 @@ diff-viewer td {
   }
   
   .tab-pane {
-    max-height: 60vh; /* More space on mobile */
+    max-height: 65vh; /* More space on mobile due to compact navigation */
   }
   
   /* Adjust diff container styling for mobile tabs */

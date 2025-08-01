@@ -10,18 +10,28 @@ The Documentation Agent is responsible for maintaining documentation quality, co
 
 **IMPORTANT: This agent operates in a continuous loop until all improvements are complete.**
 
+**🚨 COMMON MISTAKE TO AVOID:** The #1 most frequent error is forgetting to remove planning artifacts (Acceptance Criteria, Testing Requirements) from completed stories. This MUST be done every time.
+
 **Run Context:** The agent handles two scenarios:
-1. **Post-story completion**: Look for Implementation Summary sections to process
+1. **Post-story completion**: Look for Implementation Summary sections to process AND clean up planning artifacts
 2. **Routine maintenance**: Perform general documentation verification and consistency checks
 
 ## Core Responsibilities
 
 ### 1. Post-Story Documentation Verification
 After each story completion, verify:
+
+**🔥 CRITICAL FIRST STEP - CLEAN UP COMPLETED STORIES:**
+- [ ] **IMMEDIATELY REMOVE all planning artifacts from completed stories**:
+  - [ ] Remove entire "Acceptance Criteria:" sections (no longer needed after completion)
+  - [ ] Remove entire "Testing Requirements:" sections (no longer needed after completion) 
+  - [ ] Remove entire "Technical Implementation Details:" sections (move to technical docs)
+  - [ ] Keep ONLY: Status, User story, Overview, What was built, Technical patterns reference
+
+**Then proceed with other verification tasks:**
 - [ ] Story status updated to "Completed" in the current phase file (`docs/plan/phase-{number}.md`)
 - [ ] Progress tracking updated in `docs/plan.md`
 - [ ] Story has "What was built" section or reference to a doc where said section has to exist comprehensively
-- [ ] **REMOVE planning artifacts**: Acceptance Criteria and Testing Requirements sections from completed stories
 - [ ] Keep only essential completed story structure: Status, User story, Overview, What was built, Technical patterns reference
 - [ ] Architecture changes reflected in `docs/architecture.md`
 - [ ] New learnings, major decisions, bug fixes, documented in appropriate `docs/technicals/` files as they serve as historical records
@@ -60,6 +70,20 @@ After each story completion, verify:
 - Historical records can exist in docs/technicals/ with new documents mentioned in docs/technicals.md index. See existing docs there for inspiration.
 - If it's a change in current architecture, then make sure it's reflected in docs/architecture.md and decision recorded in `technicals/architecture_decisions.md` if relevant.
 - If no new documents are needed for the story, preserve "What was built" for historical record-keeping
+
+#### ⚠️ Technical Documentation Guidelines:
+**AVOID including in technical docs:**
+- HTML/CSS/TypeScript code snippets (they exist in the actual codebase)
+- Step-by-step implementation details (obvious from code)
+- Verbose explanations of standard patterns
+- Duplicated information that exists elsewhere
+
+**FOCUS technical docs on:**
+- **Key decisions made** and their rationale
+- **Design principles** and architectural patterns  
+- **Lessons learned** for future development
+- **Problem/solution pairs** explaining why decisions were made
+- **Core innovations** that others should understand
 
 ### 4. Documentation Compaction
 
@@ -120,13 +144,13 @@ After each story completion, verify:
 1. Check recently completed stories in phase documents for **Implementation Summary** sections
 2. Extract implementation details, decisions, and learnings from these sections
 3. Use this context to guide documentation updates
-4. **Replace Implementation Summary** with:
-   - **"What was built"** section (always required for historical record)
-   - Optional references to technical documentation where detailed patterns/decisions were documented
-5. **Remove planning artifacts from completed stories**:
-   - Remove "Acceptance Criteria:" sections (no longer needed after completion)
-   - Remove "Testing Requirements:" sections (no longer needed after completion)
-   - Keep only: Status, User story, Overview, What was built, Technical patterns reference
+4. **🔥 MANDATORY: Clean up completed stories FIRST - This is the most common mistake:**
+   - **ALWAYS REMOVE entire "Acceptance Criteria:" sections** (no longer needed after completion)
+   - **ALWAYS REMOVE entire "Testing Requirements:" sections** (no longer needed after completion)
+   - **ALWAYS REMOVE entire "Technical Implementation Details:" sections** (move to technical docs)
+   - **ALWAYS REPLACE verbose "Implementation Summary"** with concise "What was built" section
+   - **Keep ONLY**: Status, User story, Overview, What was built, Technical patterns reference
+5. **Then document extracted information** in appropriate technical documentation files
 
 ### Step 2: Read Current State
 1. Read all documentation files in order specified by CLAUDE.md

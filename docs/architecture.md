@@ -29,7 +29,7 @@ The application uses TypeScript Web Components with a service-oriented architect
 - `<blog-header>` - Mobile-responsive header with separated navigation bar architecture
 - `<post-viewer>` - Post content rendering
 - `<diff-viewer>` - Responsive diff visualization with mobile tabbed interface  
-- `<revision-scroller>` - Dot navigation for revision history
+- `<revision-scroller>` - Continuous line navigation with draggable thumb for revision history
 - `<instructions-modal>` - Floating instructions overlay
 
 The service layer provides shared functionality across components including API handling, URL management, component coordination, diff rendering, and error handling.
@@ -41,7 +41,8 @@ The service layer provides shared functionality across components including API 
 1. **Responsive Diff View History** - Three-file diff view showing evolution of prompts, instructions, and outputs:
    - **Mobile (≤768px):** Tabbed interface with Prompts, Output, and Instructions tabs
    - **Desktop (≥769px):** Side-by-side layout: Prompts (left) | Output (right) with Instructions overlay
-   - Touch-friendly revision navigation with mobile-optimized dot scroller
+   - **Continuous Line Navigation:** Draggable progress line with mathematical positioning, scaling from 2-100+ revisions
+   - **Touch-Optimized:** Bottom-left mobile positioning for thumb access, click-to-jump, and comprehensive keyboard support
    - Auto-scroll to first change with visual change indicators
    - Uses diff2html for professional rendering with mobile space optimization
 

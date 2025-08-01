@@ -2,184 +2,93 @@
 
 *Note: TypeScript Component UX patterns are documented in [Frontend Migration](./frontend_migration.md)*
 
-## CSS Architecture and Organization (Story 1.4)
+## CSS Architecture Principles (Story 1.4)
 
-### Architecture Decision: Component-Based CSS Structure
+### Component-Based CSS Structure
+**Decision:** Extracted monolithic CSS into organized file structure mirroring TypeScript components.
 
-**Problem:** Monolithic `<style>` block in `index.html` made CSS difficult to maintain and locate component-specific styles.
-
-**Solution:** Extracted CSS into organized file structure mirroring TypeScript component architecture:
-
-```
-assets/css/
-├── main.css                    # Entry point with @import statements
-├── base.css                    # Global styles (body, typography, diff2html overrides)
-├── layout.css                  # Overall layout and positioning
-└── components/
-    ├── blog-header.css         # Header, title, history button
-    ├── post-viewer.css         # Post content styling
-    ├── diff-viewer.css         # Diff containers, headers, scrolling
-    ├── revision-scroller.css   # Dot navigation
-    ├── instructions-modal.css  # Modal overlay and content
-    └── navigation.css          # Prev/next buttons
-```
+**Key Principle:** Each component gets its own CSS file for maintainable architecture that scales.
 
 **Benefits:**
 - Easy to locate component-specific styles
-- Maintainable architecture that scales with component growth
 - Clean separation of concerns
-- Build process automatically includes all CSS files
+- Scales with component growth
 
-### Diff Rendering: Unified Format
+### Diff Rendering Format
+**Decision:** Use unified (line-by-line) diff format for better mobile experience and consistent display.
 
-**Decision:** Use unified (line-by-line) diff format for better mobile experience and consistent display across all components.
+**Lesson Learned:** Consistency across components is more valuable than format variety.
 
-**Implementation:** Shared `DiffRenderer` service with `outputFormat: 'line-by-line'`.
+## Mobile-First Design Principles (Story 2.1)
 
-### Instructions Modal Architecture
-
-Modal reuses shared `DiffRenderer` service and `.diff-container` behavior for consistency with main panels.
-
-Key pattern: `#instructions-content` uses flex layout with `overflow-y: auto` for proper scrolling.
-
-## Mobile-Responsive Design Patterns (Story 2.1)
-
-### Responsive Breakpoint System
-
+### Responsive Breakpoint Strategy
 **Standard Breakpoints:**
-- **Mobile:** ≤768px (320px-768px)
+- **Mobile:** ≤768px 
 - **Tablet:** 769px-1024px
 - **Desktop:** ≥1025px
 
-**Implementation Pattern:** CSS-only responsive design with media queries for better performance over JavaScript viewport detection.
+**Key Decision:** CSS-only responsive design over JavaScript viewport detection for better performance.
 
-### Mobile-First Progressive Enhancement
-
-**Design Philosophy:** Desktop-first functionality with mobile-specific optimizations that progressively enhance the experience on larger screens.
+### Progressive Enhancement Philosophy
+**Principle:** Desktop-first functionality with mobile-specific optimizations.
 
 **Pattern:** Dual rendering paths within components:
-- Mobile: Tabbed interface for space-constrained viewing
+- Mobile: Tabbed interface for space constraints
 - Desktop: Side-by-side layout for comprehensive comparison
 
-### Touch-Friendly Interaction Design
+### Touch-Friendly Standards
+**Rule:** Minimum 44px touch targets for all interactive elements.
 
-**Touch Target Standards:**
-- Minimum 44px touch targets for all interactive elements
-- Visual feedback with 300ms smooth transitions
-- Event delegation using `e.currentTarget` for reliable click handling on nested elements
+**Design Principle:** Every UI element evaluated for necessity on small screens - hide non-essential elements to maximize content space.
 
-**Example Implementation:**
-```css
-.tab-button {
-  min-height: 44px;
-  min-width: 44px;
-  transition: all 300ms ease;
-}
-```
+## Header Architecture Patterns (Story 2.2)
 
-### Mobile Tabbed Interface Pattern
+### Separation of Concerns
+**Key Decision:** Architectural separation of header and navigation into distinct areas.
 
-**HTML Structure:**
-```html
-.tab-title > .tab-main > .tab-icon
-```
+**Problem Solved:** Single-component headers cause content overlap on small screens.
 
-**Key Features:**
-- Flexbox column layout to prevent horizontal overflow
-- Change indicator badges positioned below tab titles
-- Content switching with smooth transitions
-- Full-width content utilization on mobile
+**Solution Pattern:** Header for branding/controls, separate navigation bar for actions.
 
-### Mobile Space Optimization
+### Mobile Navigation Strategy
+**Decision:** Full-text buttons over icons on mobile.
 
-**Principles:**
-- Every UI element evaluated for necessity on small screens
-- Hide non-essential elements (e.g., d2h-file-headers) on mobile
-- Overflow protection across all components
-- Viewport meta tag critical for proper responsive behavior
+**Rationale:** Mobile users benefit from clear action labels despite limited space.
 
-**Essential Viewport Configuration:**
-```html
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-```
+## Continuous Line Navigation (Story 2.3)
 
-### Component Architecture Extensions (Story 2.1)
+### Mathematical Positioning Algorithm
+**Core Innovation:** `position = (index / (total-1)) * 100%` for equidistant spacing.
 
-**Dual Rendering Paths:** Extended diff-viewer component with conditional rendering for mobile and desktop experiences, maintaining single component architecture while providing optimized UX for each viewport.
+**Key Benefit:** Scales from 2 to 100+ revisions without interface degradation.
 
-**Responsive Design System:** Established comprehensive responsive design system with consistent breakpoints across all components, ensuring unified behavior and maintainable CSS architecture.
+### Responsive Positioning Strategy
+**Mobile Pattern:** Bottom-left positioning for thumb accessibility.
+**Desktop Pattern:** Bottom-center positioning for balanced layout.
 
-**Modal Integration:** Integrated instructions-modal functionality directly into mobile tab system while preserving desktop modal behavior, demonstrating pattern for progressive enhancement of complex UI components.
+**Design Principle:** Each screen size gets positioning optimized for primary interaction method (thumb vs mouse).
 
-## Mobile-Responsive Header Architecture (Story 2.2)
+### Drag Interaction Design
+**Key Decision:** Support both touch and mouse with unified event handling.
 
-### Header and Navigation Separation Pattern
+**Performance Principle:** Live preview during drag with snap-to-revision for precision.
 
-**Problem:** Traditional single-component header with inline navigation causes content overlap and visual clutter on small screens.
+## Key Lessons Learned
 
-**Solution:** Architectural separation of header and navigation into distinct visual and functional areas:
+### Responsive Design
+1. **Mobile-first CSS** is more maintainable than desktop-first
+2. **44px touch targets** are non-negotiable for usability
+3. **Progressive enhancement** maintains functionality across devices
+4. **Component separation** prevents mobile layout conflicts
 
-**HTML Structure:**
-```html
-<blog-header>
-  <!-- Header Section -->
-  <header class="blog-header">
-    <h1>Blog Title</h1>
-    <p class="description">Blog Description</p>
-    <button class="history-button">Show History</button>
-  </header>
-  
-  <!-- Separated Navigation Bar -->
-  <nav class="navigation-bar">
-    <button class="nav-button prev">← Prev</button>
-    <button class="nav-button next">Next →</button>
-  </nav>
-</blog-header>
-```
+### Interaction Design
+1. **Mathematical algorithms** enable scalable UI patterns
+2. **Visual feedback** (transitions, hover states) improves perceived performance
+3. **Unified event handling** reduces code complexity and bugs
+4. **Clear action labels** beat cryptic icons on mobile
 
-**CSS Architecture Pattern:**
-```css
-/* Header: Relative positioning for internal elements */
-.blog-header {
-  position: relative;
-  text-align: center;
-}
-
-/* History button: Absolute positioning within header */
-.history-button {
-  position: absolute;
-  top: 0;
-  right: 0;
-}
-
-/* Navigation: Centered layout below header */
-.navigation-bar {
-  display: flex;
-  justify-content: center;
-  gap: 16px;
-  margin-top: 16px;
-}
-```
-
-### Responsive Navigation Button Strategy
-
-**Mobile Approach:** Full-text buttons ("← Prev", "Next →") utilizing available horizontal space effectively while maintaining accessibility standards.
-
-**Design Rationale:**
-- Mobile screens have limited horizontal space but sufficient width for descriptive text
-- Users benefit from clear action labels over cryptic icons
-- 44px minimum touch targets maintained across all breakpoints
-- Consistent spacing and visual hierarchy preserved
-
-### Progressive Enhancement Pattern
-
-**Mobile-First Implementation:**
-1. Base layout optimized for mobile viewport
-2. Navigation positioned for thumb accessibility
-3. Touch targets meet WCAG guidelines
-4. Responsive scaling for larger screens
-
-**Desktop Enhancements:**
-- Maintains mobile patterns for consistency
-- Utilizes additional space for improved spacing
-- Preserves all mobile functionality
+### Architecture Principles
+1. **Single source of truth** for each UI pattern
+2. **Component-based CSS** mirrors TypeScript architecture
+3. **Separation of concerns** prevents feature conflicts
+4. **Performance over convenience** in responsive design choices

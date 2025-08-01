@@ -20,6 +20,8 @@ Comprehensive guide to UI/UX patterns and component decisions. Covers:
 - CSS architecture and organization strategies
 - Component-based styling approaches
 - Responsive design patterns
+- Mobile-responsive header architecture
+- Continuous line navigation system with mathematical positioning
 
 ### [Bug Fixes](./technicals/bug_fixes.md)
 Documentation of significant bugs and their fixes. Includes:

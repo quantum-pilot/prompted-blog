@@ -27,7 +27,7 @@
 - `<blog-header>` - Header with history toggle
 - `<post-viewer>` - Latest post rendering
 - `<diff-viewer>` - Two-pane diff visualization
-- `<revision-scroller>` - Dot navigation
+- `<revision-scroller>` - Continuous line navigation
 - `<instructions-modal>` - Instructions overlay
 
 **Service Layer:**
@@ -163,7 +163,7 @@ declare global {
 ### Functionality Preservation
 **Verified Working:**
 - ✅ History mode toggle
-- ✅ Revision navigation with dots
+- ✅ Revision navigation with continuous line
 - ✅ Diff rendering with auto-scroll
 - ✅ Instructions modal with change detection
 - ✅ Sticky headers and scrolling behavior
