@@ -10,7 +10,7 @@ This file provides guidance to Claude Code when working with code in this reposi
 2. **`docs/plan.md`** - Current progress and next story to work on
 3. **`docs/technicals.md`** - Index and overview of what the individual documents in `docs/technicals` directory address.
 4. **`docs/architecture.md`** - Up-to-date architecture and design of current implementation
-5. **`docs/technicals/`** - Historical record of architectural decisions, solutions to major bugs, development workflow, migration, UI/UX patterns, etc.
+5. **`docs/technicals/`** - Historical record of architectural decisions, solutions to major bugs, development workflow, migration, code quality and UI/UX patterns, etc.
 
 **Key workflow reminders:**
 - Follow `docs/plan.md` to identify current phase, go to `docs/plan/phase-{number}.md` (e.g., phase-1.md) to pick a story

@@ -27,7 +27,7 @@ Enhance the Prompted Blog with modern, mobile-responsive UI/UX while preserving 
 - Mobile-optimized header and revision scroller with overflow protection
 - Viewport meta tag and CSS-only responsive design implementation
 
-**Technical patterns documented in:** `docs/technicals/ui_ux_patterns.md` - Component Architecture Extensions section
+**Technical patterns documented in:** `docs/technicals/ui_ux_patterns.md` - Mobile-First Design Principles section
 
 ---
 
@@ -64,7 +64,7 @@ Enhance the Prompted Blog with modern, mobile-responsive UI/UX while preserving 
 - Enhanced mobile tab system with Output tab as default and improved spacing
 - Component-based CSS architecture with comprehensive responsive breakpoints
 
-**Technical patterns documented in:** `docs/technicals/ui_ux_patterns.md` - Mobile-Responsive Header Architecture section
+**Technical patterns documented in:** `docs/technicals/ui_ux_patterns.md` - Header Architecture Patterns section
 
 ---
 
@@ -85,7 +85,7 @@ Enhance the Prompted Blog with modern, mobile-responsive UI/UX while preserving 
 - Visual design with tick marks, smooth transitions, and haptic-style feedback animations
 - Responsive viewport height optimization preventing content overlap across all screen sizes
 
-**Technical patterns documented in:** `docs/technicals/ui_ux_patterns.md` - Continuous Line Navigation System section
+**Technical patterns documented in:** `docs/technicals/ui_ux_patterns.md` - Continuous Line Navigation section
 
 ### BUG: Mobile Navigation Size and iPad Scrolling Issues
 **Status:** ✅ **Completed**
@@ -110,11 +110,12 @@ Enhance the Prompted Blog with modern, mobile-responsive UI/UX while preserving 
 **Overview:** Implement a comprehensive theme system with CSS custom properties and local storage persistence. Establish the foundation for theme switching across all components.
 
 **What was built:**
-- Comprehensive CSS custom properties system for theming with light and dark color palettes
-- Theme manager utility with localStorage persistence and system preference detection
-- Updated all existing CSS components to use custom properties instead of hardcoded colors
-- GitHub-style diff colors for dark theme with proper contrast and readability
-- Smooth theme transitions (300ms) without flash of unstyled content
+- Comprehensive CSS custom properties system with light/dark color palettes and localStorage persistence
+- Theme manager utility with system preference detection and smooth 300ms transitions
+- Complete diff2html dark theme integration with GitHub-style colors and proper contrast ratios
+- All components updated to use CSS variables instead of hardcoded colors
+- Professional dark mode styling for diffs including line numbers, additions/deletions, and word-level changes
+- Seamless theme switching without layout shifts or visual flashing
 
 **Technical patterns documented in:** `docs/technicals/ui_ux_patterns.md` - Theme System Architecture section
 
@@ -152,80 +153,35 @@ Enhance the Prompted Blog with modern, mobile-responsive UI/UX while preserving 
 
 ---
 
-### Story 2.6: Dark Theme Diff2html Integration
-**Status:** ⏳ **Pending**
-
-**As a user viewing diffs in dark mode, I want the diff visualization to have appropriate dark styling that matches the overall theme.**
-
-**Overview:** Override diff2html's default light theme styles to create a cohesive dark theme experience in the diff viewer while maintaining readability of additions, deletions, and unchanged content.
-
-**Acceptance Criteria:**
-- **Dark Theme Diff Styling:**
-  - Dark background for diff containers (#2d2d2d)
-  - Light text for code content (#e6e6e6)
-  - Appropriate colors for additions (green), deletions (red), and context
-  - Line number styling matches dark theme
-- **Diff2html Style Overrides:**
-  - Override `.d2h-*` classes for dark theme compatibility
-  - Maintain syntax highlighting readability in dark mode
-  - Preserve diff2html's semantic structure
-  - File header styling matches dark theme
-- **Content Readability:**
-  - Proper contrast ratios for all diff states (WCAG AA)
-  - Addition highlights: dark green background with light green text
-  - Deletion highlights: dark red background with light red text
-  - Context lines: standard dark theme text colors
-- **Integration:**
-  - Seamless switching between light/dark diff styles
-  - No flashing or layout shifts during theme changes
-  - Works with all existing diff functionality
-
-**Testing Requirements:**
-- Test diff readability in both themes with various file types
-- Verify color contrast ratios meet accessibility standards
-- Test with large diffs to ensure performance
-- Test theme switching while viewing diffs
-
----
-
-### Story 2.7: Enhanced Button Styling and Focus States
-**Status:** ⏳ **Pending**
+### Story 2.6: Enhanced Button Styling and Focus States
+**Status:** ✅ **Completed**
 
 **As a keyboard and screen reader user, I want clear focus indicators and consistent button styling throughout the application.**
 
 **Overview:** Standardize button styling across all components and implement proper focus states for accessibility compliance. Ensure all interactive elements are keyboard accessible with clear visual feedback.
 
-**Acceptance Criteria:**
-- **Consistent Button Design System:**
-  - Primary buttons: distinct styling for main actions
-  - Secondary buttons: subtle styling for supporting actions
-  - Icon buttons: consistent sizing and spacing
-  - Disabled states: clear visual indication with proper opacity
-- **Focus State Implementation:**
-  - Visible focus outline for all interactive elements
-  - Focus outline color contrasts with both light and dark themes
-  - Focus indicators work with keyboard navigation (Tab, Enter, Space)
-  - Focus trap implementation for modal dialogs
-- **Button Types Standardized:**
-  - Navigation buttons (prev/next) with consistent styling
-  - History toggle button with clear active/inactive states
-  - Theme toggle button with proper visual feedback
-  - Instructions button with accessibility improvements
-- **Accessibility Enhancements:**
-  - ARIA labels for icon-only buttons
-  - Proper button roles and states
-  - Screen reader announcements for state changes
-  - Keyboard shortcuts documented and functional
+**What was built:**
+- Comprehensive button design system with primary, secondary, ghost, and icon-only variants
+- Enhanced focus indicators using `:focus-visible` for keyboard navigation accessibility
+- ARIA labels, roles, and accessibility attributes for all interactive buttons
+- Consistent button styling across blog header, navigation, diff viewer tabs, revision scroller, and instructions modal
+- Proper disabled states, loading states, and button group patterns
+- Theme-aware styling that maintains accessibility in both light and dark modes
+- Eliminated all button movement on hover for stable, professional UX
+- Fixed CSS specificity issues preventing proper active state colors
 
-**Testing Requirements:**
-- Test keyboard navigation through all interactive elements
-- Verify focus indicators are visible in both themes
-- Test with screen readers (VoiceOver/NVDA)
-- Verify button functionality with keyboard activation
+**Additional improvements completed during implementation:**
+- Fixed Instructions button overflow issue - repositioned and resized to fit within file header bounds
+- Added consistent 1% left and right padding to Instructions modal content to match main diff viewer
+- Relocated theme toggle and history button from header to navigation bar for better UX grouping
+- Removed all button transform animations that caused accessibility issues and unprofessional movement
+- Enhanced navigation bar layout with proper flexbox organization of all controls
+
+**Technical patterns documented in:** `docs/technicals/ui_ux_patterns.md` - Button Design System section
 
 ---
 
-### Story 2.8: Loading States and Smooth Transitions
+### Story 2.7: Loading States and Smooth Transitions
 **Status:** ⏳ **Pending**
 
 **As a user, I want visual feedback during content loading and smooth transitions between different states.**
@@ -262,7 +218,7 @@ Enhance the Prompted Blog with modern, mobile-responsive UI/UX while preserving 
 
 ---
 
-### Story 2.9: Mobile Performance Optimization
+### Story 2.8: Mobile Performance Optimization
 **Status:** ⏳ **Pending**
 
 **As a mobile user, I want fast, responsive interactions with minimal battery drain and smooth scrolling.**
@@ -299,7 +255,7 @@ Enhance the Prompted Blog with modern, mobile-responsive UI/UX while preserving 
 
 ---
 
-### Story 2.10: Cross-Browser Compatibility and Polish
+### Story 2.9: Cross-Browser Compatibility and Polish
 **Status:** ⏳ **Pending**
 
 **As a user on any modern browser, I want the Prompted Blog to work consistently with all features functioning properly.**

@@ -29,33 +29,40 @@ export class BlogHeader extends BaseComponent {
     
     this.innerHTML = `
       <header class="header">
-        <div class="theme-toggle" id="theme-toggle" title="${themeTitle}">
-          <div class="theme-toggle-track">
-            <div class="theme-toggle-slider ${currentTheme}"></div>
-            <div class="theme-icon dark-icon">
-              <i class="fas fa-moon"></i>
-            </div>
-            <div class="theme-icon light-icon">
-              <i class="fas fa-sun"></i>
-            </div>
-          </div>
-        </div>
         <div class="header-content">
           <h1>Prompted Blog</h1>
           <p class="description">Prompt-driven commit history as a blog. One prompt at a time.</p>
         </div>
-        <button class="history-button ${this.isHistoryActive ? 'active' : ''}" id="history-trigger" title="Toggle Prompt History">
-          <i class="fas fa-history"></i>
-        </button>
       </header>
       <nav class="navigation-bar">
-        <button class="nav-button prev-post" id="prev-button" disabled title="Previous Post">
-          <span class="button-icon">←</span>
-          <span class="button-text">← Prev</span>
+        <button class="theme-toggle icon-only" id="theme-toggle" title="${themeTitle}" 
+                aria-label="${themeTitle}" role="switch" aria-checked="${currentTheme === 'dark'}">
+          <div class="theme-toggle-track">
+            <div class="theme-toggle-slider ${currentTheme}"></div>
+            <div class="theme-icon dark-icon">
+              <i class="fas fa-moon" aria-hidden="true"></i>
+            </div>
+            <div class="theme-icon light-icon">
+              <i class="fas fa-sun" aria-hidden="true"></i>
+            </div>
+          </div>
         </button>
-        <button class="nav-button next-post" id="next-button" disabled title="Next Post">
-          <span class="button-icon">→</span>
-          <span class="button-text">Next →</span>
+        <div class="nav-controls">
+          <button class="nav-button prev-post secondary" id="prev-button" disabled 
+                  title="Previous Post" aria-label="Navigate to previous blog post">
+            <span class="button-icon" aria-hidden="true">←</span>
+            <span class="button-text">← Prev</span>
+          </button>
+          <button class="nav-button next-post secondary" id="next-button" disabled 
+                  title="Next Post" aria-label="Navigate to next blog post">
+            <span class="button-icon" aria-hidden="true">→</span>
+            <span class="button-text">Next →</span>
+          </button>
+        </div>
+        <button class="history-button icon-only ${this.isHistoryActive ? 'active' : ''}" id="history-trigger" 
+                title="Toggle Prompt History" aria-label="Toggle revision history view" 
+                aria-pressed="${this.isHistoryActive}">
+          <i class="fas fa-history" aria-hidden="true"></i>
         </button>
       </nav>
     `;
@@ -81,6 +88,7 @@ export class BlogHeader extends BaseComponent {
   private toggleHistory() {
     this.isHistoryActive = !this.isHistoryActive;
     this.historyButton.classList.toggle('active', this.isHistoryActive);
+    this.historyButton.setAttribute('aria-pressed', this.isHistoryActive.toString());
     this.urlService.setHistoryEnabled(this.isHistoryActive);
   }
 
@@ -97,8 +105,10 @@ export class BlogHeader extends BaseComponent {
     // Update slider position
     slider.className = `theme-toggle-slider ${currentTheme}`;
     
-    // Update tooltip
+    // Update tooltip and accessibility attributes
     this.themeToggle.title = themeTitle;
+    this.themeToggle.setAttribute('aria-label', themeTitle);
+    this.themeToggle.setAttribute('aria-checked', (currentTheme === 'dark').toString());
   }
 
   private async navigateToPrev() {

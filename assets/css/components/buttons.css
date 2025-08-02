@@ -1,0 +1,261 @@
+/* Button Design System */
+
+/* Base Button Styles */
+.btn,
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.5;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  white-space: nowrap;
+  position: relative;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Ensure minimum touch target size */
+button {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Primary Button Style */
+.btn-primary,
+button.primary {
+  background: var(--accent-blue);
+  color: white;
+  border-color: var(--accent-blue);
+}
+
+.btn-primary:hover:not(:disabled),
+button.primary:hover:not(:disabled) {
+  background: var(--accent-blue-hover);
+  border-color: var(--accent-blue-hover);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn-primary:active:not(:disabled),
+button.primary:active:not(:disabled) {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Secondary Button Style */
+.btn-secondary,
+button:not(.primary):not(.ghost):not(.icon-only) {
+  background: var(--button-bg);
+  color: var(--text-primary);
+  border-color: var(--button-border);
+}
+
+.btn-secondary:hover:not(:disabled),
+button.secondary:hover:not(:disabled),
+.nav-button:hover:not(:disabled) {
+  background: var(--button-bg-hover);
+  border-color: var(--border-color);
+  box-shadow: 0 2px 4px var(--shadow-small);
+}
+
+.btn-secondary:active:not(:disabled),
+button.secondary:active:not(:disabled),
+.nav-button:active:not(:disabled) {
+  box-shadow: 0 1px 2px var(--shadow-small);
+}
+
+/* Ghost Button Style */
+.btn-ghost,
+button.ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border-color: transparent;
+}
+
+.btn-ghost:hover:not(:disabled),
+button.ghost:hover:not(:disabled) {
+  background: var(--button-bg);
+  color: var(--text-primary);
+  border-color: var(--button-border);
+}
+
+/* Icon-only Button Style */
+.btn-icon,
+button.icon-only {
+  padding: 0.5rem;
+  min-width: 44px;
+  min-height: 44px;
+  width: 44px;
+  height: 44px;
+}
+
+/* Small Button Variant */
+.btn-sm,
+button.small {
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  min-height: 36px;
+  border-radius: 4px;
+}
+
+.btn-sm.btn-icon,
+button.small.icon-only {
+  padding: 0.25rem;
+  min-width: 36px;
+  min-height: 36px;
+  width: 36px;
+  height: 36px;
+}
+
+/* Focus States - Enhanced for Accessibility */
+button:focus-visible,
+.btn:focus-visible {
+  outline: 2px solid var(--focus-outline);
+  outline-offset: 2px;
+  z-index: 1;
+}
+
+/* Remove default focus for mouse users */
+button:focus:not(:focus-visible),
+.btn:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Disabled State */
+button:disabled,
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none !important;
+}
+
+/* Active/Selected State */
+button.active,
+.btn.active {
+  background: var(--button-bg);
+  color: var(--accent-blue);
+  border-color: var(--accent-blue);
+}
+
+button.active:hover:not(:disabled),
+.btn.active:hover:not(:disabled) {
+  background: var(--button-bg-hover);
+  color: var(--accent-blue);
+  border-color: var(--accent-blue);
+}
+
+/* Loading State */
+button.loading,
+.btn.loading {
+  color: transparent;
+  pointer-events: none;
+}
+
+button.loading::after,
+.btn.loading::after {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  top: 50%;
+  left: 50%;
+  margin-left: -8px;
+  margin-top: -8px;
+  border: 2px solid var(--text-tertiary);
+  border-radius: 50%;
+  border-top-color: var(--accent-blue);
+  animation: button-spin 0.6s linear infinite;
+}
+
+@keyframes button-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Button Group */
+.btn-group {
+  display: inline-flex;
+  gap: 0.5rem;
+}
+
+.btn-group.connected {
+  gap: 0;
+}
+
+.btn-group.connected button:not(:first-child) {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  margin-left: -1px;
+}
+
+.btn-group.connected button:not(:last-child) {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.btn-group.connected button:hover {
+  z-index: 1;
+}
+
+/* Touch Feedback - subtle and stable */
+@media (hover: none) {
+  button:active:not(:disabled),
+  .btn:active:not(:disabled) {
+    opacity: 0.8;
+  }
+}
+
+/* Accessibility: High Contrast Mode Support */
+@media (prefers-contrast: high) {
+  button:focus-visible,
+  .btn:focus-visible {
+    outline-width: 3px;
+  }
+  
+  button:not(:disabled),
+  .btn:not(:disabled) {
+    border-width: 2px;
+  }
+}
+
+/* Accessibility: Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  button,
+  .btn {
+    transition: none;
+  }
+  
+  button.loading::after,
+  .btn.loading::after {
+    animation: none;
+    opacity: 0.8;
+  }
+}
+
+/* Dark Theme Adjustments */
+[data-theme="dark"] {
+  .btn-primary,
+  button.primary {
+    background: var(--accent-blue);
+    border-color: var(--accent-blue);
+  }
+  
+  .btn-primary:hover:not(:disabled),
+  button.primary:hover:not(:disabled) {
+    background: var(--accent-blue-hover);
+    border-color: var(--accent-blue-hover);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+  
+  button:focus-visible,
+  .btn:focus-visible {
+    outline-color: var(--focus-outline);
+  }
+}

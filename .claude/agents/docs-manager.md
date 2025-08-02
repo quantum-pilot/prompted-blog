@@ -81,6 +81,8 @@ After each story completion, verify:
 - **Extensive code blocks** - summarize solutions instead
 - **Redundant explanations** - multiple ways of saying the same thing
 - **Implementation minutiae** - focus on concepts, not details
+- **Exhaustive lists** of CSS variables, button variants, or implementation specifics
+- **Comprehensive solution details** that may not be reusable in future
 
 **FOCUS technical docs on:**
 - **Key decisions made** and their rationale
@@ -89,6 +91,12 @@ After each story completion, verify:
 - **Problem/solution pairs** explaining why decisions were made
 - **Core innovations** that others should understand
 - **Quick reference patterns** for common debugging scenarios
+
+**📏 UI/UX Patterns Length Guidelines:**
+- **Match the style of Stories 1.4, 2.1-2.3** (concise decision-focused entries)
+- **Maximum 3-4 subsections per story** with brief explanations
+- **Focus on reusable principles** rather than specific implementation details
+- **Avoid comprehensive technical patterns** that duplicate what's in the codebase
 
 **Bug Documentation Approach (MINIMAL ONLY):**
 - **Phase docs:** Use standard BUG format - Status, Issue, What was built, Reference to bug_fixes.md
@@ -162,6 +170,7 @@ After each story completion, verify:
    - **ALWAYS REMOVE entire "Technical Implementation Details:" sections** (move to technical docs)
    - **ALWAYS REPLACE verbose "Implementation Summary"** with concise "What was built" section
    - **Keep ONLY**: Status, User story, Overview, What was built, Technical patterns reference
+   - **"What was built" guidelines**: Keep to 5-7 bullet points maximum, focusing on key deliverables without redundancy
 5. **Then document extracted information** in appropriate technical documentation files
 
 ### Step 2: Read Current State

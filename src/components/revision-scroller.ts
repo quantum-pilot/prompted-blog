@@ -30,7 +30,8 @@ export class RevisionScroller extends BaseComponent {
   private render() {
     this.innerHTML = `
       <div id="revision-scroller" class="revision-navigation">
-        <button class="nav-arrow prev-arrow" aria-label="Previous revision">
+        <button class="nav-arrow prev-arrow icon-only secondary" 
+                aria-label="Go to previous revision" title="Previous revision">
           <i class="fa fa-chevron-left" aria-hidden="true"></i>
         </button>
         <div class="progress-container">
@@ -39,7 +40,8 @@ export class RevisionScroller extends BaseComponent {
           </div>
           <div class="revision-text" aria-live="polite">Rev 1 / 1</div>
         </div>
-        <button class="nav-arrow next-arrow" aria-label="Next revision">
+        <button class="nav-arrow next-arrow icon-only secondary" 
+                aria-label="Go to next revision" title="Next revision">
           <i class="fa fa-chevron-right" aria-hidden="true"></i>
         </button>
       </div>

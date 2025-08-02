@@ -1,47 +1,11 @@
-/* Prev/next buttons */
+/* Prev/next buttons - extends base button styles */
 .nav-button {
-  background: var(--button-bg);
-  border: 1px solid var(--button-border);
-  padding: 0.5rem 1rem;
+  /* Base button styles are inherited from buttons.css */
   font-size: 0.9rem;
-  cursor: pointer;
-  border-radius: 6px;
-  transition: all 0.2s ease;
   white-space: nowrap;
-  min-height: 44px;
-  min-width: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-primary);
-  text-decoration: none;
-  font-family: inherit;
 }
 
-.nav-button:hover:not(:disabled) {
-  background: var(--button-bg-hover);
-  border-color: var(--border-color);
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px var(--shadow-small);
-}
-
-.nav-button:active:not(:disabled) {
-  transform: translateY(0);
-  box-shadow: 0 1px 2px var(--shadow-small);
-}
-
-.nav-button:focus {
-  outline: 2px solid var(--focus-outline);
-  outline-offset: 2px;
-}
-
-.nav-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  color: var(--text-tertiary);
-  background: var(--button-bg);
-  border-color: var(--border-color);
-}
+/* Hover, active, focus, and disabled states are handled by buttons.css */
 
 /* Mobile-specific nav button styles */
 @media (max-width: 768px) {

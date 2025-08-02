@@ -93,3 +93,9 @@
   width: 100% !important;
   table-layout: auto !important;
 }
+
+/* Apply the same 1% padding as main diff viewer */
+.instructions-container td {
+  padding-left: 1% !important;
+  padding-right: 1% !important;
+}

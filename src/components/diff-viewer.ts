@@ -58,26 +58,32 @@ export class DiffViewer extends BaseComponent {
       <div class="diff-viewer-container">
         <!-- Mobile Tab Navigation -->
         <div class="tab-navigation">
-          <button class="tab-button" data-tab="prompts">
+          <button class="tab-button ghost" data-tab="prompts" role="tab" 
+                  aria-selected="false" aria-controls="prompts-panel" 
+                  aria-label="View prompts history">
             <span class="tab-title">
               <span class="tab-main">
-                <span class="tab-icon"><i class="fas fa-edit"></i></span>
+                <span class="tab-icon"><i class="fas fa-edit" aria-hidden="true"></i></span>
                 Prompts
               </span>
             </span>
           </button>
-          <button class="tab-button active" data-tab="output">
+          <button class="tab-button ghost active" data-tab="output" role="tab" 
+                  aria-selected="true" aria-controls="output-panel" 
+                  aria-label="View output history">
             <span class="tab-title">
               <span class="tab-main">
-                <span class="tab-icon"><i class="fas fa-file-alt"></i></span>
+                <span class="tab-icon"><i class="fas fa-file-alt" aria-hidden="true"></i></span>
                 Output
               </span>
             </span>
           </button>
-          <button class="tab-button" data-tab="instructions">
+          <button class="tab-button ghost" data-tab="instructions" role="tab" 
+                  aria-selected="false" aria-controls="instructions-panel" 
+                  aria-label="View instructions history">
             <span class="tab-title">
               <span class="tab-main">
-                <span class="tab-icon"><i class="fas fa-list-alt"></i></span>
+                <span class="tab-icon"><i class="fas fa-list-alt" aria-hidden="true"></i></span>
                 Instructions
               </span>
             </span>
@@ -85,10 +91,13 @@ export class DiffViewer extends BaseComponent {
         </div>
 
         <!-- Tab Content -->
-        <div class="tab-content">
-          <div class="tab-pane" data-pane="prompts"></div>
-          <div class="tab-pane active" data-pane="output"></div>
-          <div class="tab-pane" data-pane="instructions"></div>
+        <div class="tab-content" role="tabpanel">
+          <div class="tab-pane" data-pane="prompts" id="prompts-panel" 
+               role="tabpanel" aria-labelledby="prompts-tab" aria-hidden="true"></div>
+          <div class="tab-pane active" data-pane="output" id="output-panel" 
+               role="tabpanel" aria-labelledby="output-tab" aria-hidden="false"></div>
+          <div class="tab-pane" data-pane="instructions" id="instructions-panel" 
+               role="tabpanel" aria-labelledby="instructions-tab" aria-hidden="true"></div>
         </div>
 
         <!-- Desktop Side-by-Side Layout -->
@@ -130,18 +139,22 @@ export class DiffViewer extends BaseComponent {
     // Update active tab
     this.activeTab = tab;
 
-    // Update tab button states
+    // Update tab button states and accessibility
     const tabButtons = this.querySelectorAll('.tab-button');
     tabButtons.forEach(button => {
       const buttonTab = button.getAttribute('data-tab');
-      button.classList.toggle('active', buttonTab === tab);
+      const isActive = buttonTab === tab;
+      button.classList.toggle('active', isActive);
+      button.setAttribute('aria-selected', isActive.toString());
     });
 
-    // Update tab pane visibility
+    // Update tab pane visibility and accessibility
     const tabPanes = this.querySelectorAll('.tab-pane');
     tabPanes.forEach(pane => {
       const paneTab = pane.getAttribute('data-pane');
-      pane.classList.toggle('active', paneTab === tab);
+      const isActive = paneTab === tab;
+      pane.classList.toggle('active', isActive);
+      pane.setAttribute('aria-hidden', (!isActive).toString());
     });
 
     // Re-render current revision content for the active tab

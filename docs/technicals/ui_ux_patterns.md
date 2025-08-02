@@ -122,6 +122,23 @@
 
 **Technical Integration:** Direct integration with existing theme manager, maintaining localStorage persistence and instant theme switching.
 
+## Button Design System (Story 2.6)
+
+### Component-Based Button Architecture
+**Decision:** Unified button design system with four distinct variants (primary, secondary, ghost, icon-only).
+
+**Key Principle:** Component consistency over visual variety - each button type serves a specific user interaction pattern.
+
+### Focus State Implementation
+**Decision:** `:focus-visible` for keyboard navigation accessibility.
+
+**Rationale:** Focus indicators only during keyboard navigation, not mouse clicks, for better user experience.
+
+### Professional UX Standards
+**Key Decision:** Eliminate button movement animations for professional stability.
+
+**Lesson Learned:** Transform animations create accessibility issues - use only color/opacity changes for hover states.
+
 ## Key Lessons Learned
 
 ### Responsive Design
