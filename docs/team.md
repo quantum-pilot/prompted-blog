@@ -32,7 +32,7 @@ This workflow ensures we maintain quality, capture knowledge, and make steady pr
 
 ### 4. Testing & Verification
 **Claude's Actions:**
-- Use puppeteer MCP server for running browser - navigate to localhost:8000 for verifying the implementation
+- Use playwright MCP server for running browser - navigate to localhost:8000 for verifying the implementation
 - Never run static server - human manages the python server
 
 ### 5. Human Verification Request
@@ -130,7 +130,7 @@ When bugs are discovered outside of planned stories (e.g., mobile UI issues, res
 ### 2. Implementation & Testing
 **Claude's Actions:**
 - Implement the fix following project patterns
-- Test the fix using browser tools (puppeteer MCP)
+- Test the fix using browser tools (playwright MCP)
 - Verify fix doesn't break existing functionality
 
 ### 3. Documentation

@@ -1,7 +1,7 @@
 ---
 name: docs-manager
 description: docs-manager is invoked any time afer story completion or for regular routine maintenance of documentation
-model: inherit
+model: opus
 color: green
 ---
 

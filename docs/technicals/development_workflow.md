@@ -5,12 +5,10 @@
 1. Make content changes and commit to git
 2. Run `python engine/generate.py` and `./engine/render.sh` (generates posts.json automatically)
 3. Build TypeScript: `npm run build`
-4. Serve with `npm run serve`
+4. Assume that user will always run the development server 
 
 ### TypeScript Development
-- Dev mode: `npm run dev`
 - Build: `npm run build` 
-- Serve: `npm run serve`
 
 See [frontend_migration.md](./frontend_migration.md) for TypeScript migration details.
 

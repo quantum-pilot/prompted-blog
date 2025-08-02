@@ -119,8 +119,6 @@ customElements.define('blog-header', BlogHeader);
 ### Build Process Simplicity
 **Commands Added:**
 - `npm run build` - Compile TypeScript + copy assets
-- `npm run dev` - Watch mode for development
-- `npm run serve` - Start development server
 
 **Rationale:** Simple, focused build process without unnecessary complexity.
 

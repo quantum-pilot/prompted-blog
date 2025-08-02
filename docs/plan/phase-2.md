@@ -179,116 +179,97 @@ Enhance the Prompted Blog with modern, mobile-responsive UI/UX while preserving 
 
 **Technical patterns documented in:** `docs/technicals/ui_ux_patterns.md` - Button Design System section
 
----
-
-### Story 2.7: Loading States and Smooth Transitions
+### BUG: Single Line Numbers for Non-Diff Content Display
 **Status:** ⏳ **Pending**
 
-**As a user, I want visual feedback during content loading and smooth transitions between different states.**
-
-**Overview:** Implement loading indicators and smooth transitions throughout the application to provide better user feedback and create a more polished experience, especially important for slower network connections.
+**Issue:** When viewing the latest revision (no diff), prompts, outputs, and instructions show dual line numbers even though there's only one version being displayed. This creates confusing UX since users see dual numbering without an actual comparison.
 
 **Acceptance Criteria:**
-- **Loading Indicators:**
-  - Skeleton loading for post content while fetching
-  - Spinner indicator during diff generation
-  - Progress indicator for revision switching
-  - Loading state for navigation between posts
-- **Smooth Transitions:**
-  - Fade-in animation for loaded content (300ms)
-  - Smooth transitions between revisions (200ms)
-  - Theme switching transitions (300ms)
-  - Mobile layout transitions during screen rotation
-- **Performance Optimizations:**
-  - Preload adjacent posts for faster navigation
-  - Cache rendered diffs to avoid re-rendering
-  - Debounce rapid theme/revision changes
-  - Lazy load non-critical content
-- **Error States:**
-  - Graceful error handling with user-friendly messages
-  - Retry functionality for failed requests
-  - Offline state detection and messaging
-  - Fallback content when diffs fail to load
+- **Single Line Number Display:**
+  - When viewing latest revision content (prompts, outputs, instructions), show only one line number column with the latest line numbers for that snapshot
+  - Maintain dual line numbers only when displaying actual diffs between revisions
+  - Preserve existing diff functionality for non-latest revisions
+- **Mobile Line Number Optimization:**
+  - Reduce line number column width on mobile to give more space proportionately to content
+  - Optimize line number styling and spacing for mobile viewing
+  - Maintain readability while maximizing content area
+- **Visual Consistency:**
+  - Content layout adapts properly to single vs dual line number display across all content types
+  - No layout shifts or spacing issues when switching between modes
+  - Consistent styling with existing diff viewer patterns
+- **UX Improvements:**
+  - Clear visual indication that this is the "current" version (not a comparison)
+  - Proper content alignment with single line number column
+  - Maintain responsive design across all breakpoints
 
 **Testing Requirements:**
-- Test loading states on slow network connections (3G simulation)
-- Verify smooth transitions across all breakpoints
-- Test error scenarios (network failures, invalid URLs)
-- Verify performance improvements with browser dev tools
+- Test latest revision prompts, outputs, and instructions display shows single line numbers
+- Test non-latest revision content still shows dual line numbers for diffs
+- Verify responsive behavior across mobile, tablet, and desktop
+- Confirm no console errors or layout issues
 
----
-
-### Story 2.8: Mobile Performance Optimization
+### BUG: Mobile Navigation Visual Indicator Missing
 **Status:** ⏳ **Pending**
 
-**As a mobile user, I want fast, responsive interactions with minimal battery drain and smooth scrolling.**
-
-**Overview:** Optimize the application for mobile performance focusing on rendering efficiency, touch responsiveness, and reduced resource consumption while maintaining full functionality.
+**Issue:** In mobile view, when navigating to prompts, outputs, or instructions tabs, there is no visual indicator showing which content type is currently selected/displayed. Users can navigate to the content but cannot tell what they're viewing, creating confusion about the current tab state.
 
 **Acceptance Criteria:**
-- **Rendering Performance:**
-  - First Contentful Paint under 1.5s on mobile devices
-  - Diff rendering completes within 500ms
-  - Smooth 60fps scrolling throughout the application
-  - No janky animations or layout thrashing
-- **Touch Responsiveness:**
-  - Touch interactions respond within 100ms
-  - No accidental touches due to small touch targets
-  - Smooth momentum scrolling in diff containers
-  - Proper touch feedback for all interactive elements
-- **Resource Optimization:**
-  - Minimize JavaScript bundle size for mobile delivery
-  - Optimize CSS delivery with critical path optimization
-  - Implement service worker for offline functionality
-  - Compress and optimize all static assets
-- **Battery Efficiency:**
-  - Reduce unnecessary DOM queries and updates
-  - Optimize event listeners and cleanup
-  - Use CSS transforms for animations (GPU acceleration)
-  - Minimize background processing
+- **Visual Active State for Mobile Tabs:**
+  - Add clear visual indicator (highlighting, background color, or border) to show which tab (Prompts/Output/Instructions) is currently active in mobile view
+  - Active tab should be visually distinct from inactive tabs using theme-aware colors
+  - Visual indicator should be immediately recognizable and consistent with existing design patterns
+- **Mobile-Specific Implementation:**
+  - Focus on mobile breakpoint (≤768px) where tabbed interface is used
+  - Ensure visual indicator works properly with existing touch interactions
+  - Maintain proper contrast ratios for accessibility in both light and dark themes
+- **UX Consistency:**
+  - Visual indicator should align with existing button styling patterns from Story 2.6
+  - No layout shifts or spacing changes when switching between tabs
+  - Smooth transitions between active states (consistent with existing 300ms theme transitions)
+- **Cross-Browser Compatibility:**
+  - Visual indicator works consistently across mobile browsers (Safari, Chrome, Firefox)
+  - Touch interactions remain responsive and visually clear
+  - Proper rendering on various mobile screen sizes (320px-768px)
 
 **Testing Requirements:**
-- Performance testing on real mobile devices (not just emulation)
-- Battery usage testing during extended sessions
-- Network performance testing on cellular connections
-- Memory usage profiling to prevent leaks
+- Test tab switching on mobile devices shows clear active state
+- Verify visual indicator works in both light and dark themes
+- Confirm no layout issues or visual glitches during tab transitions
+- Test across multiple mobile browsers and screen sizes
 
----
-
-### Story 2.9: Cross-Browser Compatibility and Polish
+### BUG: Revision Scroller Drag Visual Displacement
 **Status:** ⏳ **Pending**
 
-**As a user on any modern browser, I want the Prompted Blog to work consistently with all features functioning properly.**
-
-**Overview:** Ensure cross-browser compatibility across all major browsers and add final polish touches to create a professional, cohesive user experience.
+**Issue:** When dragging the revision scroller, it visually translates a few pixels towards the bottom right and then snaps back to the correct position. This jittery behavior does not occur when clicking on revisions, only during drag interactions.
 
 **Acceptance Criteria:**
-- **Browser Compatibility:**
-  - Chrome/Edge (Chromium): Full feature support
-  - Firefox: Complete functionality including CSS custom properties
-  - Safari: Proper theme detection and CSS support
-  - Mobile browsers: iOS Safari, Chrome Mobile, Samsung Internet
-- **Feature Consistency:**
-  - Theme switching works identically across browsers
-  - CSS Grid and Flexbox layouts render consistently
-  - Touch interactions behave uniformly
-  - Font rendering appears consistent
-- **Polish Touches:**
-  - Subtle micro-interactions and hover effects
-  - Consistent spacing and typography throughout
-  - Professional color palette and visual hierarchy
-  - Smooth, purposeful animations
-- **Quality Assurance:**
-  - No console errors or warnings in any browser
-  - Proper fallbacks for unsupported features
-  - Graceful degradation on older browsers
-  - Comprehensive accessibility compliance
+- **Smooth Drag Behavior:**
+  - Revision scroller thumb remains in correct position throughout drag interaction
+  - No visual displacement or jittery movement during drag operations
+  - Scroller maintains proper visual alignment with the continuous line navigation system
+- **Consistent Interaction:**
+  - Drag behavior matches the smooth experience of click-to-jump functionality
+  - No difference in visual behavior between drag and click interactions
+  - Maintain existing drag preview and snap-to-revision functionality
+- **Cross-Platform Compatibility:**
+  - Fix applies to both mouse drag (desktop) and touch drag (mobile) interactions
+  - Consistent behavior across different browsers and devices
+  - No regression in existing touch/mouse event handling
+- **Visual Integrity:**
+  - No layout shifts or positioning artifacts during or after drag operations
+  - Scroller thumb returns to mathematically correct position without visual snapping
+  - Existing smooth transitions and animations remain intact
+
+**Expected Solution:**
+- Likely CSS transform or positioning issue in drag event handlers
+- May involve adjusting mouse/touch offset calculations or CSS positioning logic
+- Should be a quick fix targeting the visual displacement without affecting drag functionality
 
 **Testing Requirements:**
-- Manual testing across all target browsers and versions
-- Cross-device testing (iOS, Android, Windows, macOS)
-- Accessibility testing with multiple screen readers
-- Performance validation across different devices and network conditions
+- Test drag functionality on desktop with mouse interactions
+- Verify touch drag behavior on mobile devices
+- Confirm click-to-jump functionality remains unaffected
+- Test across different screen sizes and orientations
 
 ---
 
@@ -299,8 +280,5 @@ Upon completion of Phase 2, the Prompted Blog should achieve:
 - **Mobile Experience**: Fully responsive design working flawlessly on devices from 320px to 1920px+
 - **Theme Support**: Complete light/dark mode implementation with user preference persistence
 - **Accessibility**: WCAG AA compliance with proper focus management and screen reader support
-- **Performance**: Mobile-optimized performance with <1.5s load times and smooth 60fps interactions
-- **Cross-Browser**: Consistent functionality across all major modern browsers
-- **User Experience**: Professional, polished interface with smooth transitions and loading states
 
-The result will be a modern, accessible, and performant blog that maintains all existing functionality while providing an exceptional user experience across all devices and browsers.
+The result will be a modern, accessible, and responsive blog that maintains all existing functionality while providing an excellent user experience across all devices.
