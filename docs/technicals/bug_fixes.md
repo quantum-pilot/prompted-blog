@@ -56,6 +56,15 @@
 - The `data-theme` attribute is critical for diff2html dark theme overrides to work properly
 **Files:** `main.ts`, `theme-manager.ts`
 
+### Theme Toggle Button Multiple Issues
+**Root Cause:** Multiple styling conflicts between button system and theme toggle requirements - button system's `.icon-only` class enforced 44px width but theme toggle needed space for two icons, plus base button styles applied unwanted background/border styling
+**Key Insights:**
+- Theme toggle requires different styling approach than standard buttons due to custom track design
+- CSS specificity must be increased with `.theme-toggle.icon-only` selector and `!important` declarations
+- Icon positioning requires mathematical precision across responsive breakpoints to prevent overflow
+- Desktop optimal spacing: 4px gap between icons, mobile requires 8px spacing in smaller tracks
+**Files:** `blog-header.css`
+
 ## Quick Reference
 - **diff2html issues:** Check diff header generation
 - **CSS overflow:** Look for `white-space: nowrap` 
@@ -64,3 +73,4 @@
 - **iPad scrolling:** Check viewport height constraints and orientation-based layouts
 - **Dark theme colors:** Use GitHub's actual rgba values for professional diff styling
 - **Theme initialization:** Ensure theme manager singleton is accessed during module import
+- **CSS specificity:** Increase selector specificity to override system constraints when needed

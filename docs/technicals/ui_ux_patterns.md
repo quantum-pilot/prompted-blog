@@ -158,3 +158,10 @@
 2. **Component-based CSS** mirrors TypeScript architecture
 3. **Separation of concerns** prevents feature conflicts
 4. **Performance over convenience** in responsive design choices
+
+### CSS Debugging and System Overrides
+1. **Visual verification first** - Always take screenshots, don't rely on measurements alone
+2. **Browser dev tools** are more reliable than CSS value assumptions
+3. **Test all responsive breakpoints** when making component sizing changes
+4. **CSS specificity** - Increase selector specificity when system styles need overriding
+5. **Component-system conflicts** - Test mathematical measurements against actual rendered appearance

@@ -15,10 +15,19 @@ Prompted Blog is designed for anyone who feels an LLM with personality can write
 - **Frontend**: TypeScript with Web Components
 - **Backend**: Any static server
 
+### Architecture Principles
+
+1. **Keep it simple and stupid** - No complex frameworks other than TypeScript and Web Components
+2. **Plain Vanilla Web Compliance** - Following [Plain Vanilla Web](https://plainvanillaweb.com) principles for maintainability
+3. **Git-driven content generation** - Leverage git history for diff visualization
+4. **Static file serving for performance** - Fast loading and simple deployment
+5. **Mobile-first responsive design** - Optimal experience across all device sizes
+6. **Accessibility from the start** - Usable by readers with different abilities
+
 ### Architecture Decision Rationale
 
 1. **Target Audience Alignment**: AI users already copy-paste from AI chats. This provides an interface for tracking their power user capabilities of enabling their writing.
-2. **Simplified Architecture**: Following [Plain Vanilla Web](https://plainvanillaweb.com) principles to keep things simple and stupid
+2. **Simplified Architecture**: These principles ensure maintainable, performant code that aligns with the project's goals
 
 ## Frontend Design
 

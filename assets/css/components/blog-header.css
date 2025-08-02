@@ -33,13 +33,25 @@
   line-height: 1.4;
 }
 
-.theme-toggle {
+.theme-toggle.icon-only {
   cursor: pointer;
-  min-width: 44px;
+  min-width: 76px !important; /* Override icon-only button width to accommodate track */
+  width: 76px !important; /* Ensure consistent width */
   min-height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
+  /* Remove button styling - theme toggle should only show track */
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+}
+
+.theme-toggle:hover {
+  /* Override base button hover styles - theme toggle should not have hover background */
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
 .theme-toggle:focus {
@@ -49,7 +61,7 @@
 
 .theme-toggle-track {
   position: relative;
-  width: 60px;
+  width: 68px;
   height: 30px;
   background: var(--button-bg);
   border: 1px solid var(--border-color);
@@ -199,13 +211,14 @@
     margin: 0.25rem 0 0.75rem;
   }
 
-  .theme-toggle {
-    min-width: 44px;
+  .theme-toggle.icon-only {
+    min-width: 66px !important; /* Override for mobile track width */
+    width: 66px !important;
     min-height: 44px;
   }
 
   .theme-toggle-track {
-    width: 50px;
+    width: 60px;
     height: 26px;
   }
 
@@ -215,7 +228,7 @@
   }
 
   .theme-toggle-slider.light {
-    left: 26px;
+    left: 32px;
   }
 
   .theme-icon {
@@ -229,7 +242,7 @@
   }
 
   .light-icon {
-    left: 26px; /* Matches mobile slider position */
+    left: 32px; /* Matches mobile slider position */
   }
 
   /* Active state for mobile */
@@ -277,10 +290,14 @@
     margin: 0.25rem 0 0.5rem;
   }
 
-  /* Theme toggle sizing already handled above */
+  .theme-toggle.icon-only {
+    min-width: 60px !important; /* Override for small mobile track width */
+    width: 60px !important;
+    min-height: 44px;
+  }
 
   .theme-toggle-track {
-    width: 45px;
+    width: 54px;
     height: 24px;
   }
 
@@ -290,7 +307,7 @@
   }
 
   .theme-toggle-slider.light {
-    left: 23px;
+    left: 26px;
   }
 
   .theme-icon {
@@ -304,7 +321,7 @@
   }
 
   .light-icon {
-    left: 23px; /* Matches small mobile slider position */
+    left: 26px; /* Matches small mobile slider position */
   }
 
   /* Active state for small mobile */

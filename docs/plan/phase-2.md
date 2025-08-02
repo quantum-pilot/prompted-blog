@@ -1,4 +1,4 @@
-## Phase 2: UI/UX Enhancement ⏳ Pending
+## Phase 2: UI/UX Enhancement 🔄 In Progress
 
 ### Phase Overview
 Enhance the Prompted Blog with modern, mobile-responsive UI/UX while preserving all existing functionality. Focus on mobile-first responsive design, dark/light theme support, improved accessibility, and polished user interactions.
@@ -179,106 +179,32 @@ Enhance the Prompted Blog with modern, mobile-responsive UI/UX while preserving 
 
 **Technical patterns documented in:** `docs/technicals/ui_ux_patterns.md` - Button Design System section
 
+### BUG: Theme Toggle Button Multiple Issues
+**Status:** ✅ **Completed**
+
+**Issue:** Theme toggle had persistent rounded background, icon overflow beyond button boundaries, and improper spacing between moon/sun icons across responsive breakpoints.
+
+**What was built:**
+- Removed persistent button background styling while preserving history button hover functionality
+- Fixed icon overflow by expanding button width constraints (76px desktop, 66px mobile, 60px small mobile)
+- Corrected icon positioning calculations for proper spacing across all breakpoints
+- Maintained theme toggle functionality and smooth transitions
+
+**Solution details in `docs/technicals/bug_fixes.md`**
+
+---
+
 ### BUG: Single Line Numbers for Non-Diff Content Display
 **Status:** ⏳ **Pending**
 
 **Issue:** When viewing the latest revision (no diff), prompts, outputs, and instructions show dual line numbers even though there's only one version being displayed. This creates confusing UX since users see dual numbering without an actual comparison.
-
-**Acceptance Criteria:**
-- **Single Line Number Display:**
-  - When viewing latest revision content (prompts, outputs, instructions), show only one line number column with the latest line numbers for that snapshot
-  - Maintain dual line numbers only when displaying actual diffs between revisions
-  - Preserve existing diff functionality for non-latest revisions
-- **Mobile Line Number Optimization:**
-  - Reduce line number column width on mobile to give more space proportionately to content
-  - Optimize line number styling and spacing for mobile viewing
-  - Maintain readability while maximizing content area
-- **Visual Consistency:**
-  - Content layout adapts properly to single vs dual line number display across all content types
-  - No layout shifts or spacing issues when switching between modes
-  - Consistent styling with existing diff viewer patterns
-- **UX Improvements:**
-  - Clear visual indication that this is the "current" version (not a comparison)
-  - Proper content alignment with single line number column
-  - Maintain responsive design across all breakpoints
-
-**Testing Requirements:**
-- Test latest revision prompts, outputs, and instructions display shows single line numbers
-- Test non-latest revision content still shows dual line numbers for diffs
-- Verify responsive behavior across mobile, tablet, and desktop
-- Confirm no console errors or layout issues
 
 ### BUG: Mobile Navigation Visual Indicator Missing
 **Status:** ⏳ **Pending**
 
 **Issue:** In mobile view, when navigating to prompts, outputs, or instructions tabs, there is no visual indicator showing which content type is currently selected/displayed. Users can navigate to the content but cannot tell what they're viewing, creating confusion about the current tab state.
 
-**Acceptance Criteria:**
-- **Visual Active State for Mobile Tabs:**
-  - Add clear visual indicator (highlighting, background color, or border) to show which tab (Prompts/Output/Instructions) is currently active in mobile view
-  - Active tab should be visually distinct from inactive tabs using theme-aware colors
-  - Visual indicator should be immediately recognizable and consistent with existing design patterns
-- **Mobile-Specific Implementation:**
-  - Focus on mobile breakpoint (≤768px) where tabbed interface is used
-  - Ensure visual indicator works properly with existing touch interactions
-  - Maintain proper contrast ratios for accessibility in both light and dark themes
-- **UX Consistency:**
-  - Visual indicator should align with existing button styling patterns from Story 2.6
-  - No layout shifts or spacing changes when switching between tabs
-  - Smooth transitions between active states (consistent with existing 300ms theme transitions)
-- **Cross-Browser Compatibility:**
-  - Visual indicator works consistently across mobile browsers (Safari, Chrome, Firefox)
-  - Touch interactions remain responsive and visually clear
-  - Proper rendering on various mobile screen sizes (320px-768px)
-
-**Testing Requirements:**
-- Test tab switching on mobile devices shows clear active state
-- Verify visual indicator works in both light and dark themes
-- Confirm no layout issues or visual glitches during tab transitions
-- Test across multiple mobile browsers and screen sizes
-
 ### BUG: Revision Scroller Drag Visual Displacement
 **Status:** ⏳ **Pending**
 
 **Issue:** When dragging the revision scroller, it visually translates a few pixels towards the bottom right and then snaps back to the correct position. This jittery behavior does not occur when clicking on revisions, only during drag interactions.
-
-**Acceptance Criteria:**
-- **Smooth Drag Behavior:**
-  - Revision scroller thumb remains in correct position throughout drag interaction
-  - No visual displacement or jittery movement during drag operations
-  - Scroller maintains proper visual alignment with the continuous line navigation system
-- **Consistent Interaction:**
-  - Drag behavior matches the smooth experience of click-to-jump functionality
-  - No difference in visual behavior between drag and click interactions
-  - Maintain existing drag preview and snap-to-revision functionality
-- **Cross-Platform Compatibility:**
-  - Fix applies to both mouse drag (desktop) and touch drag (mobile) interactions
-  - Consistent behavior across different browsers and devices
-  - No regression in existing touch/mouse event handling
-- **Visual Integrity:**
-  - No layout shifts or positioning artifacts during or after drag operations
-  - Scroller thumb returns to mathematically correct position without visual snapping
-  - Existing smooth transitions and animations remain intact
-
-**Expected Solution:**
-- Likely CSS transform or positioning issue in drag event handlers
-- May involve adjusting mouse/touch offset calculations or CSS positioning logic
-- Should be a quick fix targeting the visual displacement without affecting drag functionality
-
-**Testing Requirements:**
-- Test drag functionality on desktop with mouse interactions
-- Verify touch drag behavior on mobile devices
-- Confirm click-to-jump functionality remains unaffected
-- Test across different screen sizes and orientations
-
----
-
-## Phase 2 Success Metrics
-
-Upon completion of Phase 2, the Prompted Blog should achieve:
-
-- **Mobile Experience**: Fully responsive design working flawlessly on devices from 320px to 1920px+
-- **Theme Support**: Complete light/dark mode implementation with user preference persistence
-- **Accessibility**: WCAG AA compliance with proper focus management and screen reader support
-
-The result will be a modern, accessible, and responsive blog that maintains all existing functionality while providing an excellent user experience across all devices.

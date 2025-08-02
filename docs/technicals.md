@@ -44,3 +44,10 @@ Established patterns for memory management, error handling, and type safety incl
 - CSS architecture and code cleanliness standards
 - TypeScript interface standards and development guidelines
 - Debug statement cleanup and production code standards
+
+### [Testing Strategy](./technicals/testing_strategy.md)
+Comprehensive testing approach with minimal overhead including:
+- Two-layer testing strategy (unit tests for logic, visual tests for styling)
+- Component refactoring guidelines for better testability
+- TDD workflow integration and development practices
+- CSS modules and co-located component architecture recommendations
