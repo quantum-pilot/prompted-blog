@@ -197,12 +197,14 @@ Enhance the Prompted Blog with modern, mobile-responsive UI/UX while preserving 
 ### BUG: Single Line Numbers for Non-Diff Content Display
 **Status:** ⏳ **Pending**
 
-**Issue:** When viewing the latest revision (no diff), prompts, outputs, and instructions show dual line numbers even though there's only one version being displayed. This creates confusing UX since users see dual numbering without an actual comparison.
+**Issue:** When viewing a revision with no diff, prompts, outputs, and instructions show dual line numbers even though there's only one version being displayed. This creates confusing UX since users see dual numbering without an actual comparison. We can disable the first line numbers and show only the numbers for the latest snapshot as it does not make sense when there is no diff.
 
-### BUG: Mobile Navigation Visual Indicator Missing
+**Solution details in `docs/technicals/bug_fixes.md`**
+
+### BUG: Instructions button and modal styling
 **Status:** ⏳ **Pending**
 
-**Issue:** In mobile view, when navigating to prompts, outputs, or instructions tabs, there is no visual indicator showing which content type is currently selected/displayed. Users can navigate to the content but cannot tell what they're viewing, creating confusion about the current tab state.
+**Issue:** When a revision exists, the instruction button should be colored - this is already covered by .instructions-btn.has-changes, but now with button work, .btn-secondary, button:not(.primary):not(.ghost):not(.icon-only) rule is overriding the background color. The line numbers in the modal (in desktop) overflow and take another line because td space is not enough. Maybe we can add some width to the modal (only for desktop).
 
 ### BUG: Revision Scroller Drag Visual Displacement
 **Status:** ⏳ **Pending**

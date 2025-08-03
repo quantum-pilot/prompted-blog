@@ -91,4 +91,7 @@ RUN chmod +x /usr/local/bin/container-init-firewall.sh && \
   chmod 0440 /etc/sudoers.d/node-firewall
 USER node
 
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+RUN /home/node/.local/bin/uv tool install claude-monitor
+
 RUN npm i -g @playwright/mcp@latest

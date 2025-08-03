@@ -66,7 +66,7 @@
 **Files:** `blog-header.css`
 
 ## Quick Reference
-- **diff2html issues:** Check diff header generation
+- **diff2html issues:** Check diff header generation and line number display configuration
 - **CSS overflow:** Look for `white-space: nowrap` 
 - **Mobile layout:** Test portrait orientation and viewport height limits
 - **Button positioning:** Use absolute positioning within existing containers
