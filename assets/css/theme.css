@@ -62,6 +62,7 @@
   --dark-diff-deletion-text: #ffa198;
   --dark-diff-deletion-line-number-bg: #2d1b1f;
   --dark-diff-deletion-highlight: #5a1f28;
+  --dark-diff-changed-text: #5b4a0b;
 }
 
 /* Dark theme - explicit */

@@ -115,6 +115,10 @@
   padding: 0 1px;
 }
 
+[data-theme="dark"] .d2h-changed {
+  color: var(--dark-diff-changed-text) !important;
+}
+
 [data-theme="dark"] .d2h-code-line del,
 [data-theme="dark"] .d2h-code-side-line del,
 [data-theme="dark"] .d2h-code-line del.d2h-change,

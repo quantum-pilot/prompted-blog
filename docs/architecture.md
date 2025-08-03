@@ -41,7 +41,17 @@ The application uses TypeScript Web Components with a service-oriented architect
 - `<revision-scroller>` - Continuous line navigation with draggable thumb for revision history
 - `<instructions-modal>` - Floating instructions overlay
 
-The service layer provides shared functionality across components including API handling, URL management, component coordination, diff rendering, and centralized error handling with user-friendly fallbacks.
+The service layer provides shared functionality across components:
+- `ApiService` - HTTP requests with caching and error handling
+- `UrlService` - URL parameter and hash routing management  
+- `AppCoordinator` - Component coordination and state management
+- `DiffRenderer` - Diff visualization and file revision rendering
+- `ErrorHandler` - Centralized error handling with user feedback
+
+Additional utilities provide common functionality:
+- `ThemeManager` - Light/dark theme switching and persistence
+- `EventManager` - Centralized event listener management with cleanup
+- `BaseComponent` - Base class for all web components with common functionality
 
 **For detailed component architecture and migration decisions, see:** `docs/technicals/frontend_migration.md`
 

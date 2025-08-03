@@ -208,7 +208,7 @@ export class RevisionScroller extends BaseComponent {
       document.body.style.userSelect = '';
       
       this.setActiveRevision(targetIndex);
-      this.addTapFeedback(this.thumb);
+      // Note: Removed addTapFeedback for drag operations to prevent visual displacement
     };
 
     // Mouse events

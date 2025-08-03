@@ -74,6 +74,15 @@
 - Simple CSS-only solution avoids complex JavaScript modifications
 **Files:** `diff-renderer.ts`, `diff-viewer.css`
 
+### Instructions Button and Modal Styling
+**Root Cause:** CSS specificity conflicts between button design system and instructions button requirements, plus modal layout constraints
+**Key Insights:**
+- Generic button rules can override specific component styling without proper specificity
+- Instructions button requires exemption from standard secondary button styling to maintain yellow highlight
+- Modal line number overflow requires careful width management in desktop views
+- Close button addition improves modal UX without complex JavaScript changes
+**Files:** `buttons.css`, `diff-viewer.css`, `instructions-modal.ts`
+
 ## Quick Reference
 - **diff2html issues:** Check diff header generation and line number display configuration
 - **CSS overflow:** Look for `white-space: nowrap` 
@@ -84,3 +93,4 @@
 - **Theme initialization:** Ensure theme manager singleton is accessed during module import
 - **CSS specificity:** Increase selector specificity to override system constraints when needed
 - **Single line numbers:** Add `diff-unchanged` class and hide `.line-num1` for non-diff content
+- **Button styling conflicts:** Check specificity and use exclusions in generic selectors

@@ -15,7 +15,8 @@
       "mcp__playwright__browser_evaluate",
       "mcp__playwright__browser_take_screenshot",
       "mcp__playwright__browser_hover",
-      "mcp__sequential-thinking__sequentialthinking"
+      "mcp__sequential-thinking__sequentialthinking",
+      "mcp__playwright__browser_drag"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",
