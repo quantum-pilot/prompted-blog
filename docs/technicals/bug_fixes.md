@@ -65,6 +65,15 @@
 - Desktop optimal spacing: 4px gap between icons, mobile requires 8px spacing in smaller tracks
 **Files:** `blog-header.css`
 
+### Single Line Numbers for Non-Diff Content
+**Root Cause:** When displaying content with no diff (unchanged files), diff2html still shows dual line numbers creating confusing UX
+**Key Insights:**
+- Adding CSS class `diff-unchanged` to container allows targeted styling for non-diff content
+- Hiding `.line-num1` elements removes the redundant first column for cleaner display
+- Mobile optimization requires reducing line number column widths to prevent overflow
+- Simple CSS-only solution avoids complex JavaScript modifications
+**Files:** `diff-renderer.ts`, `diff-viewer.css`
+
 ## Quick Reference
 - **diff2html issues:** Check diff header generation and line number display configuration
 - **CSS overflow:** Look for `white-space: nowrap` 
@@ -74,3 +83,4 @@
 - **Dark theme colors:** Use GitHub's actual rgba values for professional diff styling
 - **Theme initialization:** Ensure theme manager singleton is accessed during module import
 - **CSS specificity:** Increase selector specificity to override system constraints when needed
+- **Single line numbers:** Add `diff-unchanged` class and hide `.line-num1` for non-diff content

@@ -203,3 +203,8 @@
   background-color: #5a3a3d !important;
   color: var(--diff-deletion-text) !important;
 }
+
+/* Hide first line number column for unchanged content */
+.diff-unchanged .line-num1 {
+  display: none !important;
+}

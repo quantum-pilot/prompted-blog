@@ -354,3 +354,20 @@ diff-viewer td {
     gap: 1rem;
   }
 }
+
+/* Hide first line number column for unchanged content */
+.diff-unchanged .line-num1 {
+  display: none !important;
+}
+
+/* Mobile line number width optimization */
+@media (max-width: 768px) {
+  .d2h-code-linenumber {
+    width: 6.5em !important;
+  }
+  
+  .line-num1,
+  .line-num2 {
+    width: 3em !important;
+  }
+}

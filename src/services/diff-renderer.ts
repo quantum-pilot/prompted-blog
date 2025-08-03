@@ -22,7 +22,7 @@ export class DiffRenderer {
       `+++ b/${name}`,
       `@@ -0,0 +0,0 @@`,
       ` `, // dummy line for diff2html parsing
-      `@@ -1,${lines.length} +0,${lines.length} @@`,
+      `@@ -0,0 +1,0 @@`,
       ...lines.map(l => ` ${l}`)
     ].join('\n');
   }
@@ -79,6 +79,9 @@ export class DiffRenderer {
       if (unchanged) {
         const tag = container.querySelector('.d2h-tag');
         if (tag) tag.remove();
+        
+        // Add class to indicate unchanged content for CSS targeting
+        container.classList.add('diff-unchanged');
       }
 
       // Apply sticky header styling
@@ -140,7 +143,7 @@ export class DiffRenderer {
   ): Promise<void> {
     try {
       const fileInRev = revision.files.get(fileName);
-      
+
       if (fileInRev) {
         // File changed in this revision
         if (fileInRev.revIdx === 0) {
@@ -154,13 +157,13 @@ export class DiffRenderer {
             apiService.getDiff(fileName, dir, fileInRev.revIdx),
             apiService.getFileContent(fileName, dir, fileInRev.revIdx)
           ]);
-          
+
           const full = content.split('\n');
           const unchanged = !diff;
-          const diffContent = unchanged ? 
-            DiffRenderer.buildUnchanged(displayName, full) : 
+          const diffContent = unchanged ?
+            DiffRenderer.buildUnchanged(displayName, full) :
             DiffRenderer.expandDiff(diff!, full, displayName);
-          
+
           DiffRenderer.renderDiffInContainer(container, diffContent, unchanged, 'line-by-line');
         }
       } else {
@@ -175,7 +178,7 @@ export class DiffRenderer {
             }
           }
         }
-        
+
         const lines = mostRecentContent ? mostRecentContent.split('\n') : [];
         const diffContent = DiffRenderer.buildUnchanged(displayName, lines);
         DiffRenderer.renderDiffInContainer(container, diffContent, true, 'line-by-line');

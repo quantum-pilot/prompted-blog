@@ -195,11 +195,20 @@ Enhance the Prompted Blog with modern, mobile-responsive UI/UX while preserving 
 ---
 
 ### BUG: Single Line Numbers for Non-Diff Content Display
-**Status:** ⏳ **Pending**
+**Status:** ✅ **Completed**
 
 **Issue:** When viewing a revision with no diff, prompts, outputs, and instructions show dual line numbers even though there's only one version being displayed. This creates confusing UX since users see dual numbering without an actual comparison. We can disable the first line numbers and show only the numbers for the latest snapshot as it does not make sense when there is no diff.
 
-**Solution details in `docs/technicals/bug_fixes.md`**
+**What was built:**
+- Modified diff renderer to add `diff-unchanged` CSS class when content has no diff
+- Added CSS rule to hide `.line-num1` elements for unchanged content in both light and dark themes
+- Successfully tested across all scenarios (prompts, outputs, instructions)
+- Added mobile-responsive CSS rules targeting screens ≤768px
+- Reduced total line number container width from 7.5em to 6.5em
+- Set individual line number columns (line-num1, line-num2) to 3em each
+- Clean, minimal implementation without unnecessary complexity
+
+**File modified:** `/workspace/assets/css/components/diff-viewer.css`
 
 ### BUG: Instructions button and modal styling
 **Status:** ⏳ **Pending**
