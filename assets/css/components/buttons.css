@@ -52,7 +52,7 @@ button.primary:active:not(:disabled) {
 
 /* Secondary Button Style */
 .btn-secondary,
-button:not(.primary):not(.ghost):not(.icon-only) {
+button:not(.primary):not(.ghost):not(.icon-only):not(.instructions-btn) {
   background: var(--button-bg);
   color: var(--text-primary);
   border-color: var(--button-border);

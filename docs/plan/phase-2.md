@@ -211,9 +211,15 @@ Enhance the Prompted Blog with modern, mobile-responsive UI/UX while preserving 
 **File modified:** `/workspace/assets/css/components/diff-viewer.css`
 
 ### BUG: Instructions button and modal styling
-**Status:** ⏳ **Pending**
+**Status:** ✅ **Completed**
 
-**Issue:** When a revision exists, the instruction button should be colored - this is already covered by .instructions-btn.has-changes, but now with button work, .btn-secondary, button:not(.primary):not(.ghost):not(.icon-only) rule is overriding the background color. The line numbers in the modal (in desktop) overflow and take another line because td space is not enough. Maybe we can add some width to the modal (only for desktop).
+**Issue:** When a revision exists, the instruction button should be colored - this is already covered by .instructions-btn.has-changes, but now with button work, `.btn-secondary, button:not(.primary):not(.ghost):not(.icon-only)` rule is overriding the background color so it is no longer yellow, but rather white. The line numbers in the modal (in desktop) overflow and take another line because td space is not enough. Maybe we can add some width to the modal (only for desktop).
+
+**What was built:**
+- Fixed CSS specificity issue by excluding `.instructions-btn` from generic button rule in buttons.css:55
+- Enhanced instructions button styling with higher specificity and `!important` declarations in diff-viewer.css:168-173
+- Added close button to instructions modal positioned in the d2h-file-header (top right corner)
+- Close button uses consistent styling and positioning matching the instructions button pattern
 
 ### BUG: Revision Scroller Drag Visual Displacement
 **Status:** ⏳ **Pending**
