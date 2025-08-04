@@ -1,0 +1,47 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Claude Monitor",
+      "type": "shell",
+      "command": "claude-monitor --plan max20",
+      "isBackground": false,
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "group": "default"
+      },
+      "runOptions": {
+        "runOn": "folderOpen"
+      }
+    },
+    {
+      "label": "Claude Session 1",
+      "type": "shell",
+      "command": "claude",
+      "isBackground": false,
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "group": "default"
+      },
+      "runOptions": {
+        "runOn": "folderOpen"
+      }
+    },
+    {
+      "label": "Claude Session 2",
+      "type": "shell",
+      "command": "claude",
+      "isBackground": false,
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "group": "default"
+      },
+      "runOptions": {
+        "runOn": "folderOpen"
+      }
+    }
+  ]
+}
