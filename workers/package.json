@@ -1,0 +1,11 @@
+{
+  "name": "prompted-blog-workers",
+  "private": true,
+  "scripts": {
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage",
+    "dev": "wrangler dev",
+    "build": "wrangler deploy --dry-run --outdir dist"
+  }
+}

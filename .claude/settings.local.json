@@ -16,7 +16,13 @@
       "mcp__playwright__browser_take_screenshot",
       "mcp__playwright__browser_hover",
       "mcp__sequential-thinking__sequentialthinking",
-      "mcp__playwright__browser_drag"
+      "mcp__playwright__browser_drag",
+      "Bash(npm install:*)",
+      "Bash(npm run test:frontend:*)",
+      "Bash(npm run test:*)",
+      "Bash(npm test:*)",
+      "Bash(npm run:*)",
+      "Bash(mv:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",

@@ -4,7 +4,7 @@
     {
       "label": "Claude Monitor",
       "type": "shell",
-      "command": "claude-monitor --plan max20",
+      "command": "claude-monitor --plan max20 --timezone Asia/Kolkata",
       "isBackground": false,
       "presentation": {
         "reveal": "always",

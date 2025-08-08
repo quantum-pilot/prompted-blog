@@ -1,0 +1,20 @@
+name = "prompted-blog-worker"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+[env.test]
+vars = { ENVIRONMENT = "test" }
+
+# Add your bindings here when needed:
+# [[kv_namespaces]]
+# binding = "MY_KV"
+# id = "test-kv-namespace"
+
+# [[r2_buckets]]
+# binding = "MY_BUCKET"
+# bucket_name = "test-bucket"
+
+# [[d1_databases]]
+# binding = "MY_DB"
+# database_id = "test-database"
+# database_name = "test-db"
