@@ -44,6 +44,9 @@ When planner returns a plan:
 2. Wait for each step to complete before starting the next
 3. If any step fails, report to human with error details
 4. Continue through all steps until plan is complete
+5. **After all steps complete:** Run `npm run validate`
+   - If validation passes → Report success to human
+   - If validation fails → Automatically route back to planner with validation errors for resolution
 
 ## Output formats
 

@@ -8,7 +8,6 @@ describe('Router', () => {
   beforeEach(() => {
     env = {
       CLIENT_ID: 'test-client-id',
-      CLIENT_SECRET: 'test-client-secret',
       REDIRECT_URI: 'https://example.com/oauth/google/callback',
       OAUTH_STATE: {
         put: vi.fn(),

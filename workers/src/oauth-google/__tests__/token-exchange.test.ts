@@ -8,7 +8,6 @@ describe('Token Exchange', () => {
   beforeEach(() => {
     env = {
       CLIENT_ID: 'test-client-id',
-      CLIENT_SECRET: 'test-client-secret',
       REDIRECT_URI: 'https://example.com/oauth/google/callback',
       OAUTH_STATE: {} as any,
     };
@@ -49,6 +48,13 @@ describe('Token Exchange', () => {
           },
         })
       );
+
+      // Verify the request body includes PKCE verifier but not client_secret
+      const fetchCall = (global.fetch as any).mock.calls[0];
+      const requestBody = fetchCall[1].body;
+      expect(requestBody).toContain('code_verifier=test-verifier');
+      expect(requestBody).toContain('client_id=test-client-id');
+      expect(requestBody).not.toContain('client_secret');
     });
 
     it('should throw error on failed exchange', async () => {
@@ -72,6 +78,72 @@ describe('Token Exchange', () => {
       ).rejects.toThrow('Invalid code');
     });
 
+    it('should handle invalid code_verifier error', async () => {
+      global.fetch = vi.fn().mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            error: 'invalid_grant',
+            error_description: 'Invalid PKCE code_verifier',
+          }),
+          { status: 400 }
+        )
+      );
+
+      const stateData: StateData = {
+        codeVerifier: 'wrong-verifier',
+        timestamp: Date.now(),
+      };
+
+      await expect(
+        exchangeCodeForToken('valid-code', stateData, env)
+      ).rejects.toThrow('Invalid PKCE code_verifier');
+    });
+
+    it('should include PKCE verifier in token request', async () => {
+      const mockResponse = {
+        access_token: 'test-token',
+        token_type: 'Bearer',
+        expires_in: 3600,
+        id_token: 'test-id-token',
+      };
+
+      global.fetch = vi.fn().mockResolvedValueOnce(
+        new Response(JSON.stringify(mockResponse), { status: 200 })
+      );
+
+      const stateData: StateData = {
+        codeVerifier: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~',
+        timestamp: Date.now(),
+      };
+
+      await exchangeCodeForToken('test-code', stateData, env);
+
+      const fetchCall = (global.fetch as any).mock.calls[0];
+      const requestBody = fetchCall[1].body;
+      
+      // Parse the URL-encoded body
+      const params = new URLSearchParams(requestBody);
+      
+      // Verify PKCE parameters are included
+      expect(params.get('code_verifier')).toBe('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~');
+      expect(params.get('grant_type')).toBe('authorization_code');
+      expect(params.get('code')).toBe('test-code');
+      expect(params.get('client_id')).toBe('test-client-id');
+      
+      // Verify client_secret is NOT included
+      expect(params.has('client_secret')).toBe(false);
+    });
+
+    it('should handle missing code_verifier in state data', async () => {
+      const invalidStateData = {
+        timestamp: Date.now(),
+      } as any;
+
+      await expect(
+        exchangeCodeForToken('test-code', invalidStateData, env)
+      ).rejects.toThrow();
+    });
+
     it('should complete within 50ms (mocked)', async () => {
       global.fetch = vi.fn().mockResolvedValueOnce(
         new Response(JSON.stringify({ access_token: 'token' }))
@@ -87,6 +159,30 @@ describe('Token Exchange', () => {
       const duration = performance.now() - start;
 
       expect(duration).toBeLessThan(50);
+    });
+
+    it('should handle response with refresh_token', async () => {
+      const mockResponse = {
+        access_token: 'test-token',
+        token_type: 'Bearer',
+        expires_in: 3600,
+        refresh_token: 'test-refresh-token',
+        id_token: 'test-id-token',
+      };
+
+      global.fetch = vi.fn().mockResolvedValueOnce(
+        new Response(JSON.stringify(mockResponse), { status: 200 })
+      );
+
+      const stateData: StateData = {
+        codeVerifier: 'test-verifier',
+        timestamp: Date.now(),
+      };
+
+      const result = await exchangeCodeForToken('test-code', stateData, env);
+
+      expect(result).toEqual(mockResponse);
+      expect(result.refresh_token).toBe('test-refresh-token');
     });
   });
 

@@ -7,5 +7,4 @@ REDIRECT_URI = "https://promptedblog.com/oauth/google/callback"
 
 [[kv_namespaces]]
 binding = "OAUTH_STATE"
-id = "oauth-state-namespace"
-preview_id = "oauth-state-preview"
+id = "859004e0bdaa4d05adf0e16174bc2c82"

@@ -2,7 +2,6 @@ import type { KVNamespace } from '@cloudflare/workers-types';
 
 export interface Env {
   CLIENT_ID: string;
-  CLIENT_SECRET: string;
   REDIRECT_URI: string;
   OAUTH_STATE: KVNamespace;
 }

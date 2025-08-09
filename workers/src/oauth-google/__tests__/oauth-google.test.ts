@@ -8,7 +8,6 @@ describe('Google OAuth Worker Integration', () => {
     // Mock environment variables
     env = {
       CLIENT_ID: 'test-client-id',
-      CLIENT_SECRET: 'test-client-secret',
       REDIRECT_URI: 'https://example.com/oauth/google/callback',
       // Mock KV namespace for storing state
       OAUTH_STATE: {
@@ -89,15 +88,36 @@ describe('Google OAuth Worker Integration', () => {
 
     it('should store PKCE verifier and state in KV', async () => {
       const request = new Request('https://example.com/oauth/google/start');
-      await worker.fetch(request, env);
+      const response = await worker.fetch(request, env);
 
       expect(env.OAUTH_STATE.put).toHaveBeenCalled();
-      const [[stateKey, stateData]] = env.OAUTH_STATE.put.mock.calls;
+      const [[stateKey, stateData, options]] = env.OAUTH_STATE.put.mock.calls;
       expect(stateKey).toMatch(/^state:/);
 
       const parsedData = JSON.parse(stateData);
       expect(parsedData.codeVerifier).toBeTruthy();
       expect(parsedData.timestamp).toBeTruthy();
+      
+      // Verify TTL is set for state cleanup
+      expect(options.expirationTtl).toBe(600); // 10 minutes
+      
+      // Verify relationship between state in URL and KV key
+      const location = response.headers.get('Location')!;
+      const url = new URL(location);
+      const urlState = url.searchParams.get('state');
+      expect(stateKey).toBe(`state:${urlState}`);
+    });
+
+    it('should not include client_secret in OAuth URL', async () => {
+      const request = new Request('https://example.com/oauth/google/start');
+      const response = await worker.fetch(request, env);
+
+      const location = response.headers.get('Location')!;
+      const url = new URL(location);
+      
+      // Verify client_secret is NOT in the authorization URL
+      expect(url.searchParams.has('client_secret')).toBe(false);
+      expect(location).not.toContain('client_secret');
     });
   });
 
@@ -187,6 +207,86 @@ describe('Google OAuth Worker Integration', () => {
       expect(response.status).toBe(500);
       const data = await response.json() as any;
       expect(data.error).toBe('internal_error');
+    });
+
+    it('should handle PKCE verification failure', async () => {
+      const state = 'test-state-pkce-fail';
+      env.OAUTH_STATE.get.mockResolvedValue(JSON.stringify({
+        codeVerifier: 'wrong-verifier',
+        timestamp: Date.now(),
+      }));
+
+      global.fetch = vi.fn().mockResolvedValueOnce(new Response(JSON.stringify({
+        error: 'invalid_grant',
+        error_description: 'PKCE verification failed',
+      }), { status: 400 }));
+
+      const request = new Request(`https://example.com/oauth/google/callback?code=test-code&state=${state}`);
+      const response = await worker.fetch(request, env);
+
+      expect(response.status).toBe(500);
+      const data = await response.json() as any;
+      expect(data.error).toBe('internal_error');
+    });
+
+    it('should successfully complete PKCE flow end-to-end', async () => {
+      // Step 1: Initiate OAuth flow
+      const startRequest = new Request('https://example.com/oauth/google/start');
+      const startResponse = await worker.fetch(startRequest, env);
+      
+      expect(startResponse.status).toBe(302);
+      const authUrl = new URL(startResponse.headers.get('Location')!);
+      const state = authUrl.searchParams.get('state')!;
+      const codeChallenge = authUrl.searchParams.get('code_challenge')!;
+      
+      // Verify PKCE parameters
+      expect(codeChallenge).toBeTruthy();
+      expect(authUrl.searchParams.get('code_challenge_method')).toBe('S256');
+      
+      // Get stored verifier from KV mock
+      const [[, storedData]] = env.OAUTH_STATE.put.mock.calls;
+      const { codeVerifier } = JSON.parse(storedData);
+      
+      // Step 2: Simulate callback with authorization code
+      env.OAUTH_STATE.get.mockResolvedValue(storedData);
+      
+      // Mock successful token exchange with PKCE
+      global.fetch = vi.fn()
+        .mockResolvedValueOnce(new Response(JSON.stringify({
+          access_token: 'pkce-access-token',
+          token_type: 'Bearer',
+          expires_in: 3600,
+          id_token: 'pkce-id-token',
+        })))
+        .mockResolvedValueOnce(new Response(JSON.stringify({
+          id: 'pkce-user-123',
+          email: 'pkce@example.com',
+          name: 'PKCE User',
+          picture: 'https://example.com/pkce-photo.jpg',
+        })));
+      
+      const callbackRequest = new Request(`https://example.com/oauth/google/callback?code=auth-code-123&state=${state}`);
+      const callbackResponse = await worker.fetch(callbackRequest, env);
+      
+      expect(callbackResponse.status).toBe(302);
+      
+      // Verify token exchange used the correct code_verifier
+      const tokenExchangeCall = (global.fetch as any).mock.calls[0];
+      const tokenRequestBody = tokenExchangeCall[1].body;
+      
+      // Parse the URL-encoded body
+      const params = new URLSearchParams(tokenRequestBody);
+      expect(params.get('code_verifier')).toBe(codeVerifier);
+      expect(params.get('code')).toBe('auth-code-123');
+      expect(params.has('client_secret')).toBe(false);
+      
+      // Verify successful redirect with user data
+      const redirectUrl = callbackResponse.headers.get('Location')!;
+      expect(redirectUrl).toContain('/oauth/callback');
+      expect(redirectUrl).toContain('user=');
+      
+      // Verify state was cleaned up
+      expect(env.OAUTH_STATE.delete).toHaveBeenCalledWith(`state:${state}`);
     });
   });
 

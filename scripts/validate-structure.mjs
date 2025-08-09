@@ -207,7 +207,7 @@ class StructureValidator {
         const relativePath = path.join(basePath, file);
         const stat = fs.statSync(fullPath);
 
-        if (stat.isDirectory() && !file.startsWith('__')) {
+        if (stat.isDirectory() && !file.startsWith('__') && file !== 'node_modules') {
           results.push(...findTsFiles(fullPath, relativePath));
         } else if (file.endsWith('.ts') && !file.endsWith('.test.ts') && !file.endsWith('.d.ts')) {
           results.push(fullPath);

@@ -1,4 +1,7 @@
 // Token exchange and user info fetching
+// Security Fix (SEC-002): This implementation uses PKCE (Proof Key for Code Exchange) 
+// instead of client_secret for OAuth token exchange, making it safe for edge workers
+// where secrets cannot be securely stored client-side.
 import type { Env, StateData, GoogleTokenResponse, GoogleUserInfo } from './types';
 import { getTokenUrl, getUserInfoUrl } from './url-builder';
 
@@ -10,7 +13,6 @@ export async function exchangeCodeForToken(
   const tokenBody = new URLSearchParams({
     code,
     client_id: env.CLIENT_ID,
-    client_secret: env.CLIENT_SECRET,
     redirect_uri: env.REDIRECT_URI,
     grant_type: 'authorization_code',
     code_verifier: stateData.codeVerifier,

@@ -1,3 +1,4 @@
+// @agent: styles
 import { test, expect } from '@playwright/test';
 
 test.describe('App-level responsive styles', () => {
