@@ -28,7 +28,10 @@
       "Bash(rm:*)",
       "Bash(node:*)",
       "Bash(curl:*)",
-      "Bash(true)"
+      "Bash(true)",
+      "Bash(npx tsc:*)",
+      "Bash(tree:*)",
+      "mcp__playwright__browser_tab_new"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",

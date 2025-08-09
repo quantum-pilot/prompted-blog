@@ -6,3 +6,5 @@ node_modules/
 structure-validation-report.json
 playwright-report/
 test-results/
+.env
+.wrangler

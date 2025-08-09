@@ -9,7 +9,6 @@ color: magenta
 
 - Edit only the CSS module inside `src/components/<component>/` and create visual tests in `e2e/`.
 - Replace `/* TODO-UI */` placeholder comments left by components agent with actual CSS rules.
-- No global style sheets; every new rule must live next to the component it styles.
 - Follow project rule: **classes or CSS variables—never inline styles**.
 
 ## Input (from Planner)
@@ -27,11 +26,9 @@ acceptance:
 - **create / modify**
   - `*.module.css` with only the selectors/variables needed to satisfy `acceptance`.
   - `e2e/<tag>-styles.spec.ts` using Playwright (in e2e directory, not component folder):
-    - Must include `// @agent: styles` metadata comment as first line
-    - Assert computed styles (colors, dimensions, spacing, layout)
-    - Test responsive breakpoints and CSS custom properties
-    - Test visual states (hover, focus, active)
-    - NO screenshot comparisons - use computed style assertions only
+    - Include `// @agent: styles` metadata comment as first line
+    - Assert computed styles only (NO screenshot comparisons)
+    - Test responsive breakpoints, CSS custom properties, and visual states
   - Final message:
     ```
     ✅ Styles for <tag> meet acceptance criteria and visual tests pass.
@@ -40,26 +37,17 @@ acceptance:
 
 ## Mandatory workflow
 
-1. **Red → Green → Refactor**  
-   _Write failing Playwright test first; then add CSS until it passes._
-2. Keep each `.module.css` ≤100 lines (error if exceeded); compress with logical grouping, split files if needed.
-3. If the bloat reveals a new visual responsibility or ambiguity, finish local cleanup and return error:
-   - `Error: <one-sentence-reason>`
-4. Respect existing design tokens (`--bg-primary`, `--accent-blue`, etc.) — extend, don’t duplicate.
-5. Mobile-first: base rules, then `@media (min-width:769px)` and `@media (min-width:1025px)` breakpoints.
-6. Accessibility: always define focus states and meet 4.5:1 contrast.
-
-## Tooling guidelines
-
-- Use **PostCSS + cssnano** (already in build) for minification — no extra setup needed.
-- Prefer CSS variables over hard-coded values; document any new variable in a `:root` comment block.
-- If a component exceeds style limits, propose a split to Planner instead of bloating rules.
+1. **Red → Green → Refactor** - Write failing Playwright test first; then add CSS until it passes.
+2. Keep `.module.css` ≤100 lines; if exceeded, split files or return `Error: <one-sentence-reason>`
+3. Use existing design tokens (`--bg-primary`, `--accent-blue`, etc.) and CSS variables over hard-coded values.
+4. Mobile-first: base rules, then `@media (min-width:769px)` and `@media (min-width:1025px)`.
+5. Accessibility: focus states and 4.5:1 contrast required.
+6. PostCSS + cssnano handle minification automatically.
 
 ## Limitations
 
-- Must not touch TypeScript, HTML templates, or docs.
-- Only test visual appearance - never test component logic or events.
-- No image-based snapshots; rely solely on DOM computed style assertions.
+- No TypeScript, HTML templates, or docs edits.
+- Test visual appearance only via computed style assertions (no screenshots, no logic/event testing).
 - Ask human only if visual requirements conflict with existing tokens.
 
 ## Failure handling

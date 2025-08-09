@@ -7,15 +7,11 @@ test.describe('OAuth Flow Start Component', () => {
     await waitForComponentReady(page, 'oauth-flow-start');
   });
 
-  test('should display both OAuth provider buttons', async ({ page }) => {
-    const openaiButton = page.locator('[data-provider="openai"]');
-    const claudeButton = page.locator('[data-provider="claude"]');
+  test('should display Google OAuth button', async ({ page }) => {
+    const googleButton = page.locator('[data-provider="google"]');
 
-    await expect(openaiButton).toBeVisible();
-    await expect(claudeButton).toBeVisible();
-
-    await expect(openaiButton).toContainText('OpenAI');
-    await expect(claudeButton).toContainText('Claude');
+    await expect(googleButton).toBeVisible();
+    await expect(googleButton).toContainText('Sign in with Google');
   });
   test('should emit oauth-start event on button click', async ({ page }) => {
 
@@ -27,25 +23,20 @@ test.describe('OAuth Flow Start Component', () => {
       });
     });
 
-    // Click the OpenAI button
-    await page.locator('[data-provider="openai"]').click();
+    // Click the Google button
+    await page.locator('[data-provider="google"]').click();
 
     // Verify event was emitted with correct detail
     const eventDetail = await eventPromise;
-    expect(eventDetail).toEqual({ provider: 'openai' });
+    expect(eventDetail).toEqual({ provider: 'google' });
   });
 
   test('should handle keyboard navigation', async ({ page }) => {
-    const openaiButton = page.locator('[data-provider="openai"]');
-    const claudeButton = page.locator('[data-provider="claude"]');
+    const googleButton = page.locator('[data-provider="google"]');
 
-    // Tab to first button
+    // Tab to Google button
     await page.keyboard.press('Tab');
-    await expect(openaiButton).toBeFocused();
-
-    // Tab to second button
-    await page.keyboard.press('Tab');
-    await expect(claudeButton).toBeFocused();
+    await expect(googleButton).toBeFocused();
 
     // Enter should trigger click
     const eventPromise = page.evaluate(() => {
@@ -58,7 +49,7 @@ test.describe('OAuth Flow Start Component', () => {
 
     await page.keyboard.press('Enter');
     const eventDetail = await eventPromise;
-    expect(eventDetail).toEqual({ provider: 'claude' });
+    expect(eventDetail).toEqual({ provider: 'google' });
   });
 
   test('should be responsive on mobile', async ({ page, isMobile }) => {
@@ -69,11 +60,10 @@ test.describe('OAuth Flow Start Component', () => {
     const buttons = page.locator('.oauth-button');
     const buttonCount = await buttons.count();
 
-    expect(buttonCount).toBe(2);
+    expect(buttonCount).toBe(1);
 
-    // Check buttons are visible on mobile
-    for (let i = 0; i < buttonCount; i++) {
-      await expect(buttons.nth(i)).toBeVisible();
-    }
+    // Check button is visible on mobile
+    await expect(buttons.first()).toBeVisible();
+    await expect(buttons.first()).toContainText('Sign in with Google');
   });
 });

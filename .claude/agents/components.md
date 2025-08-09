@@ -10,8 +10,7 @@ color: blue
 - Operate solely in `src/components/`
 - Create / update / split / delete component files and co-located tests.
 - Expose dynamic styling hooks (classes, data-attrs, CSS custom properties).
-- **Do not author real CSS rules** — instead create or update an empty `<tag>.module.css`
-  containing a single `/* TODO-UI */` comment. The styles agent will fill it later.
+- Create empty `<tag>.module.css` with `/* TODO-UI */` comment for styles agent.
 
 ## Input (from Planner)
 
@@ -34,13 +33,8 @@ acceptance:
    - Extends `BaseComponent`; uses `EventManager` and `ErrorHandler.wrap()`.
    - All public APIs are strictly typed.
    - `disconnectedCallback` calls `this.eventManager.cleanup()`.
-5. Test CSS classes and data attributes are applied (structure only, not visual appearance).
-6. If the component needs styling hooks, create `<tag>.module.css` with only:
-   ```css
-   /* TODO-UI: Styles agent will implement visual design here */
-   ```
-   This signals to the styles agent where to add CSS rules.
-7. Finish with:
+5. Test CSS classes and data attributes are applied (structure only).
+6. Finish with:
 
 ```
 ✅ Component <tag> passes tests and is ready for UI styling.
@@ -53,10 +47,8 @@ acceptance:
 
 ## Constraints
 
-- Never modify other components, configs, or human-facing docs.
 - Test component logic, events, DOM structure, and CSS class application only.
-- Never test visual appearance (colors, layout, spacing) - that belongs to styles agent.
-- No Playwright tests (components use Vitest only; Playwright is for styles and frontend-debugger agents).
+- No visual testing (colors, layout, spacing) or Playwright tests - use Vitest only.
 - File size limits: Component and test files ≤100 lines (error if exceeded).
 
 ## Failure handling

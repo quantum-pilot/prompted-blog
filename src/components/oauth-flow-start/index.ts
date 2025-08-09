@@ -2,11 +2,11 @@ import { BaseComponent } from '../../utils/base-component.js';
 
 export interface OAuthStartEvent extends CustomEvent {
   detail: {
-    provider: 'openai' | 'claude';
+    provider: 'google';
   };
 }
 
-export type OAuthProvider = 'openai' | 'claude';
+export type OAuthProvider = 'google';
 
 export class OAuthFlowStart extends BaseComponent {
   constructor() {
@@ -18,26 +18,19 @@ export class OAuthFlowStart extends BaseComponent {
   private render(): void {
     this.innerHTML = `
       <div class="oauth-buttons">
-        <button type="button" data-provider="openai" class="oauth-button oauth-button--openai">
-          Sign in with OpenAI
-        </button>
-        <button type="button" data-provider="claude" class="oauth-button oauth-button--claude">
-          Sign in with Claude
+        <button type="button" data-provider="google" class="oauth-button oauth-button--google">
+          Sign in with Google
         </button>
       </div>
     `;
   }
 
   private setupEventListeners(): void {
-    const providers: OAuthProvider[] = ['openai', 'claude'];
-
-    providers.forEach(provider => {
-      const button = this.querySelector(`[data-provider="${provider}"]`) as HTMLButtonElement;
-      if (button) {
-        const handleClick = this.handleButtonClick.bind(this, provider);
-        this.addManagedEventListener(button, 'click', handleClick);
-      }
-    });
+    const button = this.querySelector('[data-provider="google"]') as HTMLButtonElement;
+    if (button) {
+      const handleClick = this.handleButtonClick.bind(this, 'google');
+      this.addManagedEventListener(button, 'click', handleClick);
+    }
   }
 
   private handleButtonClick(provider: OAuthProvider): void {

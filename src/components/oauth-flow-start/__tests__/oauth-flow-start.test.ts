@@ -24,51 +24,29 @@ describe('OAuthFlowStart', () => {
     expect(element.constructor.name).toBe('OAuthFlowStart');
   });
 
-  it('should render two authentication buttons', () => {
+  it('should render one authentication button', () => {
     const buttons = element.querySelectorAll('button');
-    expect(buttons).toHaveLength(2);
+    expect(buttons).toHaveLength(1);
   });
 
-  it('should display OpenAI provider button with correct label', () => {
-    const openaiButton = element.querySelector('[data-provider="openai"]') as HTMLButtonElement;
-    expect(openaiButton).toBeTruthy();
-    expect(openaiButton.textContent?.trim()).toContain('OpenAI');
+  it('should display Google provider button with correct label', () => {
+    const googleButton = element.querySelector('[data-provider="google"]') as HTMLButtonElement;
+    expect(googleButton).toBeTruthy();
+    expect(googleButton.textContent?.trim()).toContain('Sign in with Google');
   });
 
-  it('should display Claude provider button with correct label', () => {
-    const claudeButton = element.querySelector('[data-provider="claude"]') as HTMLButtonElement;
-    expect(claudeButton).toBeTruthy();
-    expect(claudeButton.textContent?.trim()).toContain('Claude');
-  });
-
-  it('should emit custom event when OpenAI button is clicked', () => {
+  it('should emit custom event when Google button is clicked', () => {
     const eventSpy = vi.fn();
     element.addEventListener('oauth-start', eventSpy);
 
-    const openaiButton = element.querySelector('[data-provider="openai"]') as HTMLButtonElement;
-    openaiButton.click();
+    const googleButton = element.querySelector('[data-provider="google"]') as HTMLButtonElement;
+    googleButton.click();
 
     expect(eventSpy).toHaveBeenCalledTimes(1);
     expect(eventSpy).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'oauth-start',
-        detail: { provider: 'openai' }
-      })
-    );
-  });
-
-  it('should emit custom event when Claude button is clicked', () => {
-    const eventSpy = vi.fn();
-    element.addEventListener('oauth-start', eventSpy);
-
-    const claudeButton = element.querySelector('[data-provider="claude"]') as HTMLButtonElement;
-    claudeButton.click();
-
-    expect(eventSpy).toHaveBeenCalledTimes(1);
-    expect(eventSpy).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: 'oauth-start',
-        detail: { provider: 'claude' }
+        detail: { provider: 'google' }
       })
     );
   });
@@ -79,27 +57,25 @@ describe('OAuthFlowStart', () => {
   });
 
   it('should use EventManager for event handling', () => {
-    const openaiButton = element.querySelector('[data-provider="openai"]') as HTMLButtonElement;
-    expect(openaiButton).toBeTruthy();
+    const googleButton = element.querySelector('[data-provider="google"]') as HTMLButtonElement;
+    expect(googleButton).toBeTruthy();
 
     const eventSpy = vi.fn();
     element.addEventListener('oauth-start', eventSpy);
-    openaiButton.click();
+    googleButton.click();
     expect(eventSpy).toHaveBeenCalledTimes(1);
   });
 
   it('should apply correct CSS classes for styling hooks', () => {
     const container = element.querySelector('.oauth-buttons');
-    const openaiButton = element.querySelector('[data-provider="openai"]');
-    const claudeButton = element.querySelector('[data-provider="claude"]');
+    const googleButton = element.querySelector('[data-provider="google"]');
 
     expect(container).toBeTruthy();
-    expect(openaiButton).toBeTruthy();
-    expect(claudeButton).toBeTruthy();
+    expect(googleButton).toBeTruthy();
   });
 
   it('should be properly typed with TypeScript interfaces', () => {
-    const provider: 'openai' | 'claude' = 'openai';
+    const provider: 'google' = 'google';
     expect(typeof provider).toBe('string');
   });
 });

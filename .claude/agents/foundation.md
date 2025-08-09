@@ -34,10 +34,7 @@ If HTML:
   ```
 
 If other files:
-- For create/modify:
-  - A **failing Vitest** spec in `__tests__/<name>.test.ts`.
-  - Implementation that turns the test green.
-  - If an API client: a matching mock handler in `__mocks__/`.
+- For create/modify: Follow TDD workflow, add mock handlers for API clients.
   - Final message:
     ```
     ✅ <path> passes tests. Ready for downstream use.
@@ -46,9 +43,10 @@ If other files:
 
 ## Mandatory workflow (typescript)
 
-1. Write failing test per acceptance criteria.
+1. Write failing Vitest spec in `__tests__/<name>.test.ts` per acceptance criteria.
 2. Implement just enough code to pass. Ensure strict TS compile and linter pass.
 3. Refactor while tests stay green.
+4. If API client: add matching mock handler in `__mocks__/`.
 
 ## Quality gates (typescript)
 
@@ -61,9 +59,7 @@ If other files:
 
 ## Limitations
 
-- Do not touch component folders, CSS or infra/config areas.
-- Can use Playwright tests for HTML.
-- No visual or Playwright tests for typescript.
+- No visual tests for typescript files.
 
 ## Failure handling
 
