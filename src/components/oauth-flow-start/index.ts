@@ -1,4 +1,4 @@
-import { BaseComponent } from '../../utils/base-component';
+import { BaseComponent } from '../../utils/base-component.js';
 
 export interface OAuthStartEvent extends CustomEvent {
   detail: {
@@ -30,7 +30,7 @@ export class OAuthFlowStart extends BaseComponent {
 
   private setupEventListeners(): void {
     const providers: OAuthProvider[] = ['openai', 'claude'];
-    
+
     providers.forEach(provider => {
       const button = this.querySelector(`[data-provider="${provider}"]`) as HTMLButtonElement;
       if (button) {

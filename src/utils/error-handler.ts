@@ -1,4 +1,4 @@
-import { createSingleton } from './singleton';
+import { createSingleton } from './singleton.js';
 
 export interface ErrorDetails {
   message: string;
@@ -36,8 +36,8 @@ export class ErrorHandler {
   }
 
   async wrap<T>(
-    operation: () => Promise<T>, 
-    errorDetails: ErrorDetails, 
+    operation: () => Promise<T>,
+    errorDetails: ErrorDetails,
     config: ErrorHandlerConfig = {}
   ): Promise<T | any> {
     try {

@@ -7,7 +7,8 @@ color: magenta
 
 ## Scope
 
-- Edit only the CSS module and its visual-test files inside `src/components/<component>/`.
+- Edit only the CSS module inside `src/components/<component>/` and create visual tests in `e2e/`.
+- Replace `/* TODO-UI */` placeholder comments left by components agent with actual CSS rules.
 - No global style sheets; every new rule must live next to the component it styles.
 - Follow project rule: **classes or CSS variables—never inline styles**.
 
@@ -25,9 +26,12 @@ acceptance:
 
 - **create / modify**
   - `*.module.css` with only the selectors/variables needed to satisfy `acceptance`.
-  - `__tests__/<tag>.visual.ts` using Playwright:
-    - Load the component in a minimal HTML fixture.
-    - Query DOM nodes and assert computed styles, breakpoint classes, or CSS vars (no screenshot diffs)【14file0†L10-L15】.
+  - `e2e/<tag>-styles.spec.ts` using Playwright (in e2e directory, not component folder):
+    - Must include `// @agent: styles` metadata comment as first line
+    - Assert computed styles (colors, dimensions, spacing, layout)
+    - Test responsive breakpoints and CSS custom properties
+    - Test visual states (hover, focus, active)
+    - NO screenshot comparisons - use computed style assertions only
   - Final message:
     ```
     ✅ Styles for <tag> meet acceptance criteria and visual tests pass.
@@ -38,7 +42,7 @@ acceptance:
 
 1. **Red → Green → Refactor**  
    _Write failing Playwright test first; then add CSS until it passes._
-2. Keep each `.module.css` with hard cap at 100 lines; compress with logical grouping, split files, additional imports and shared custom-property blocks.
+2. Keep each `.module.css` ≤100 lines (error if exceeded); compress with logical grouping, split files if needed.
 3. If the bloat reveals a new visual responsibility or ambiguity, finish local cleanup and return error:
    - `Error: <one-sentence-reason>`
 4. Respect existing design tokens (`--bg-primary`, `--accent-blue`, etc.) — extend, don’t duplicate.
@@ -54,9 +58,14 @@ acceptance:
 ## Limitations
 
 - Must not touch TypeScript, HTML templates, or docs.
-- No image-based snapshots; rely solely on DOM style assertions.
+- Only test visual appearance - never test component logic or events.
+- No image-based snapshots; rely solely on DOM computed style assertions.
 - Ask human only if visual requirements conflict with existing tokens.
 
 ## Failure handling
 
-Test fails or linter errors → iterate locally until `npm run test:visual` succeeds before returning control.
+Test fails or linter errors → iterate locally until:
+- `npm run test:e2e` succeeds
+- `npm run validate` passes (CSS ≤100 lines, test naming correct)
+
+Before returning control.

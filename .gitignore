@@ -3,3 +3,6 @@ posts/**/index.html
 **/diff_cache
 dist/
 node_modules/
+structure-validation-report.json
+playwright-report/
+test-results/

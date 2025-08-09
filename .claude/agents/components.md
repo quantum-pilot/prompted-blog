@@ -31,12 +31,16 @@ acceptance:
 2. **Green phase** – implement exactly enough in `index.ts` to pass.
 3. **Refactor phase** – clean up while tests stay green.
 4. Ensure:
-   - Component file ≤ 100 TS lines (target 20-80).
    - Extends `BaseComponent`; uses `EventManager` and `ErrorHandler.wrap()`.
    - All public APIs are strictly typed.
    - `disconnectedCallback` calls `this.eventManager.cleanup()`.
-5. If the component needs styling hooks, create or touch `<tag>.module.css` as a placeholder (meant for styles agent).
-6. Finish with:
+5. Test CSS classes and data attributes are applied (structure only, not visual appearance).
+6. If the component needs styling hooks, create `<tag>.module.css` with only:
+   ```css
+   /* TODO-UI: Styles agent will implement visual design here */
+   ```
+   This signals to the styles agent where to add CSS rules.
+7. Finish with:
 
 ```
 ✅ Component <tag> passes tests and is ready for UI styling.
@@ -50,8 +54,10 @@ acceptance:
 ## Constraints
 
 - Never modify other components, configs, or human-facing docs.
-- No Git commands—apply edits directly.
-- No Playwright or visual tests (reserved for UI agent).
+- Test component logic, events, DOM structure, and CSS class application only.
+- Never test visual appearance (colors, layout, spacing) - that belongs to styles agent.
+- No Playwright tests (components use Vitest only; Playwright is for styles and frontend-debugger agents).
+- File size limits: Component and test files ≤100 lines (error if exceeded).
 
 ## Failure handling
 
@@ -59,6 +65,6 @@ Iterate locally until:
 
 - `npm run build` succeeds (strict TS, lint clean).
 - All Vitest specs are green.
-- File size budget is respected.
+- `npm run validate` passes (checks structure and line limits).
 
 Only then send the success message.

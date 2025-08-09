@@ -1,12 +1,8 @@
-/* OAuth Flow Start - Button Styling */
-
-/* Container - mobile-first flexbox layout */
 .oauth-buttons {
   display: flex; flex-direction: column; gap: 1rem; width: 100%; max-width: 600px;
   margin: 0 auto; padding: 1rem;
 }
 
-/* Base OAuth button - 25vw width requirement */
 .oauth-button {
   width: 25vw; min-height: 44px; padding: 0.75rem 1rem;
   display: inline-flex; align-items: center; justify-content: center;
@@ -18,7 +14,6 @@
   -webkit-tap-highlight-color: transparent; transition: all 0.2s ease; position: relative;
 }
 
-/* Interaction states */
 .oauth-button:hover:not(:disabled) {
   background: var(--button-bg-hover); border-color: var(--border-color);
   box-shadow: 0 2px 4px var(--shadow-small); transform: translateY(-1px);
@@ -28,18 +23,15 @@
   transform: translateY(0); box-shadow: 0 1px 2px var(--shadow-small);
 }
 
-/* Focus states - 4.5:1 contrast compliance */
 .oauth-button:focus-visible {
   outline: 2px solid var(--focus-outline); outline-offset: 2px; z-index: 1;
 }
 .oauth-button:focus:not(:focus-visible) { outline: none; }
 
-/* Disabled state */
 .oauth-button:disabled {
   opacity: 0.6; cursor: not-allowed; box-shadow: none !important; transform: none !important;
 }
 
-/* Provider-specific styling for visual distinction */
 .oauth-button--openai {
   background: linear-gradient(135deg, #10a37f 0%, #1a7f37 100%);
   color: white; border-color: #10a37f;
@@ -60,7 +52,6 @@
   border-color: #e65a2e; box-shadow: 0 4px 8px rgba(255, 107, 53, 0.2);
 }
 
-/* Responsive breakpoints */
 @media (min-width: 769px) {
   .oauth-buttons {
     flex-direction: row; justify-content: center; gap: 2rem; padding: 1.5rem;
@@ -78,7 +69,6 @@
   }
 }
 
-/* Accessibility */
 @media (prefers-contrast: high) {
   .oauth-button:focus-visible { outline-width: 3px; }
   .oauth-button { border-width: 2px; }

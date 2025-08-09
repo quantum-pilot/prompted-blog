@@ -18,8 +18,7 @@ color: teal
   - web components → components (`.claude/agents/components.md`)
   - frontend: misc utils, API, mocks, HTML → foundation (`.claude/agents/foundation.md`)
   - UI bugs → frontend-debugger (`.claude/agents/frontend-debugger.md`)
-  - Cloudflare backend logic → cloudflare-backend (`.claude/agents/cloudflare-backend.md`)
-    - NOTE: Since cloudflare backend logic is small, bugs will be forwarded to the same agent with `modify` operation describing the subtask
+  - Cloudflare backend (features & bugs) → cloudflare-backend (`.claude/agents/cloudflare-backend.md`)
 - **Error triage**: on downstream failure decide whether to (a) adjust the task and retry once, or (b) ask the human.
 - **Out of scope**: editing code or docs directly; deployment/infra (handled manually by user).
 

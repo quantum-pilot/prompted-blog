@@ -25,6 +25,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   jq \
   nano \
   vim \
+  && apt-get install -y libnspr4 libnss3 libdbus-1-3 libatk1.0-0 \
+    libatk-bridge2.0-0 libcups2 libxkbcommon0 libatspi2.0-0 \
+    libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libasound2 \
+    libx11-xcb1 libxcursor1 libgtk-3-0 libgdk-pixbuf2.0-0 \
+    libgstreamer1.0-0 libgtk-4-1 libgraphene-1.0-0 libwoff1 \
+    libvpx7 libopus0 libgstreamer-plugins-base1.0-0 \
+    libgstreamer-plugins-bad1.0-0 gstreamer1.0-plugins-base \
+    gstreamer1.0-plugins-good gstreamer1.0-plugins-bad \
+    gstreamer1.0-libav flite libavif15 libharfbuzz-icu0 \
+    libenchant-2-2 libsecret-1-0 libhyphen0 libmanette-0.2-0 \
+    libgles2 libx264-dev libxss1 libdrm2 libglib2.0-0 \
+    libpango-1.0-0 libpangocairo-1.0-0 libcairo2 \
+    libfreetype6 libfontconfig1 libwebp7 libwebpdemux2 \
   && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Ensure default node user has access to /usr/local/share
@@ -95,3 +108,4 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 RUN /home/node/.local/bin/uv tool install claude-monitor
 
 RUN npm i -g @playwright/mcp@latest
+RUN npx playwright install

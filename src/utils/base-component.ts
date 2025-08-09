@@ -1,13 +1,6 @@
-import { ErrorHandler } from './error-handler';
-import { EventManager } from './event-manager';
+import { ErrorHandler } from './error-handler.js';
+import { EventManager } from './event-manager.js';
 
-/**
- * Base class for web components that provides:
- * - Centralized service initialization
- * - Event management with automatic cleanup
- * - Error handling integration
- * - Consistent lifecycle management
- */
 export abstract class BaseComponent extends HTMLElement {
   protected errorHandler: ErrorHandler;
   protected eventManager: EventManager;
@@ -23,9 +16,7 @@ export abstract class BaseComponent extends HTMLElement {
     this.cleanup();
   }
 
-  protected cleanup(): void {
-    // Subclasses can override for additional cleanup
-  }
+  protected cleanup(): void {}
 
   protected addManagedEventListener(
     element: Element | Window | Document,

@@ -28,7 +28,7 @@ acceptance:
 ## Output
 
 If HTML:
-- Make changes, test with playwright and emit:
+- Make changes, test with Playwright (tests in `e2e/` directory) and emit:
   ```
   ✅ <path> Ready for downstream use.
   ```
@@ -49,7 +49,6 @@ If other files:
 1. Write failing test per acceptance criteria.
 2. Implement just enough code to pass. Ensure strict TS compile and linter pass.
 3. Refactor while tests stay green.
-4. Keep each file ≤ 100 logical LOC; split if bigger.
 
 ## Quality gates (typescript)
 
@@ -57,6 +56,8 @@ If other files:
 - All public functions fully typed and exported from an `index.ts` barrel.
 - Utilities must be side-effect free.
 - API client functions return typed objects, never raw `Response`.
+- File size limits: All modules and tests ≤100 lines (error if exceeded).
+- Run `npm run validate` to ensure structure compliance.
 
 ## Limitations
 

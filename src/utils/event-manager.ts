@@ -5,10 +5,6 @@ export interface EventListenerRecord {
   options?: boolean | AddEventListenerOptions;
 }
 
-/**
- * Centralized event management utility for preventing memory leaks
- * in web components by tracking and cleaning up event listeners
- */
 export class EventManager {
   private listeners: EventListenerRecord[] = [];
 
