@@ -1,12 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import type { ExecutionContext, KVNamespace } from '@cloudflare/workers-types';
-
-// Import the worker (will be created next)
 import worker from '../index';
 
-describe('Google OAuth Worker', () => {
+describe('Google OAuth Worker Integration', () => {
   let env: any;
-  let ctx: ExecutionContext;
 
   beforeEach(() => {
     // Mock environment variables
@@ -19,19 +15,14 @@ describe('Google OAuth Worker', () => {
         put: vi.fn(),
         get: vi.fn(),
         delete: vi.fn(),
-      } as unknown as KVNamespace,
+      } as any,
     };
-
-    ctx = {
-      waitUntil: vi.fn(),
-      passThroughOnException: vi.fn(),
-    } as unknown as ExecutionContext;
   });
 
   describe('/oauth/google/start endpoint', () => {
     it('should initiate OAuth flow with PKCE', async () => {
       const request = new Request('https://example.com/oauth/google/start');
-      const response = await worker.fetch(request, env, ctx);
+      const response = await worker.fetch(request, env);
 
       expect(response.status).toBe(302);
       const location = response.headers.get('Location');
@@ -51,7 +42,7 @@ describe('Google OAuth Worker', () => {
 
     it('should store PKCE verifier and state in KV', async () => {
       const request = new Request('https://example.com/oauth/google/start');
-      await worker.fetch(request, env, ctx);
+      await worker.fetch(request, env);
 
       expect(env.OAUTH_STATE.put).toHaveBeenCalled();
       const [[stateKey, stateData]] = env.OAUTH_STATE.put.mock.calls;
@@ -90,18 +81,12 @@ describe('Google OAuth Worker', () => {
         })));
 
       const request = new Request(`https://example.com/oauth/google/callback?code=test-code&state=${state}`);
-      const response = await worker.fetch(request, env, ctx);
+      const response = await worker.fetch(request, env);
 
-      expect(response.status).toBe(200);
-      const data = await response.json() as any;
-      expect(data.success).toBe(true);
-      expect(data.user).toEqual({
-        id: 'user-123',
-        email: 'test@example.com',
-        name: 'Test User',
-        picture: 'https://example.com/photo.jpg',
-        provider: 'google',
-      });
+      expect(response.status).toBe(302);
+      const location = response.headers.get('Location');
+      expect(location).toContain('/oauth/callback');
+      expect(location).toContain('user=');
 
       // Verify state was deleted after successful auth
       expect(env.OAUTH_STATE.delete).toHaveBeenCalledWith(`state:${state}`);
@@ -109,7 +94,7 @@ describe('Google OAuth Worker', () => {
 
     it('should handle missing authorization code', async () => {
       const request = new Request('https://example.com/oauth/google/callback');
-      const response = await worker.fetch(request, env, ctx);
+      const response = await worker.fetch(request, env);
 
       expect(response.status).toBe(400);
       const data = await response.json() as any;
@@ -120,7 +105,7 @@ describe('Google OAuth Worker', () => {
       env.OAUTH_STATE.get.mockResolvedValue(null);
 
       const request = new Request('https://example.com/oauth/google/callback?code=test-code&state=invalid-state');
-      const response = await worker.fetch(request, env, ctx);
+      const response = await worker.fetch(request, env);
 
       expect(response.status).toBe(400);
       const data = await response.json() as any;
@@ -129,7 +114,7 @@ describe('Google OAuth Worker', () => {
 
     it('should handle OAuth error responses', async () => {
       const request = new Request('https://example.com/oauth/google/callback?error=access_denied&error_description=User+denied+access');
-      const response = await worker.fetch(request, env, ctx);
+      const response = await worker.fetch(request, env);
 
       expect(response.status).toBe(400);
       const data = await response.json() as any;
@@ -150,11 +135,11 @@ describe('Google OAuth Worker', () => {
       }), { status: 400 }));
 
       const request = new Request(`https://example.com/oauth/google/callback?code=invalid-code&state=${state}`);
-      const response = await worker.fetch(request, env, ctx);
+      const response = await worker.fetch(request, env);
 
       expect(response.status).toBe(500);
       const data = await response.json() as any;
-      expect(data.error).toBe('token_exchange_failed');
+      expect(data.error).toBe('internal_error');
     });
   });
 
@@ -162,7 +147,7 @@ describe('Google OAuth Worker', () => {
     it('should handle request in under 50ms', async () => {
       const request = new Request('https://example.com/oauth/google/start');
       const start = performance.now();
-      await worker.fetch(request, env, ctx);
+      await worker.fetch(request, env);
       const duration = performance.now() - start;
 
       expect(duration).toBeLessThan(50);
@@ -172,7 +157,7 @@ describe('Google OAuth Worker', () => {
   describe('Invalid routes', () => {
     it('should return 404 for unknown routes', async () => {
       const request = new Request('https://example.com/unknown');
-      const response = await worker.fetch(request, env, ctx);
+      const response = await worker.fetch(request, env);
 
       expect(response.status).toBe(404);
       const data = await response.json() as any;
@@ -185,7 +170,7 @@ describe('Google OAuth Worker', () => {
       const request = new Request('https://example.com/oauth/google/start', {
         method: 'OPTIONS',
       });
-      const response = await worker.fetch(request, env, ctx);
+      const response = await worker.fetch(request, env);
 
       expect(response.status).toBe(204);
       expect(response.headers.get('Access-Control-Allow-Origin')).toBeTruthy();

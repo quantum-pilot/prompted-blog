@@ -8,17 +8,11 @@
     "copy-assets": "mkdir -p dist/assets && cp assets/*.css assets/*.js assets/*.svg dist/assets/ 2>/dev/null || true && cp -r assets/css dist/assets/ 2>/dev/null || true",
     "dev": "npx http-server . -p 8000 -c-1",
     "test": "vitest",
-    "test:ui": "vitest --ui",
-    "test:coverage": "vitest --coverage",
     "test:frontend": "vitest --config vitest.config.ts",
     "test:workers": "cd workers && vitest",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui",
-    "test:e2e:headed": "playwright test --headed",
-    "test:e2e:debug": "playwright test --debug",
     "test:all": "npm run test:frontend && npm run test:workers && npm run test:e2e",
-    "validate": "node scripts/validate-structure.mjs",
-    "validate:fix": "node scripts/validate-structure.mjs --fix"
+    "validate": "node scripts/validate-structure.mjs"
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.8.60",
