@@ -11,7 +11,7 @@ export function buildAuthorizationUrl(
   env: Env
 ): string {
   const url = new URL(GOOGLE_AUTH_URL);
-  
+
   url.searchParams.set('client_id', env.CLIENT_ID);
   url.searchParams.set('response_type', 'code');
   url.searchParams.set('scope', 'openid email profile');
@@ -21,7 +21,7 @@ export function buildAuthorizationUrl(
   url.searchParams.set('code_challenge_method', 'S256');
   url.searchParams.set('access_type', 'online');
   url.searchParams.set('prompt', 'select_account');
-  
+
   return url.toString();
 }
 
@@ -38,9 +38,9 @@ export function buildRedirectUrl(userData: any, env: Env): string {
   const appUrl = env.REDIRECT_URI.includes('localhost')
     ? 'http://localhost:8000'
     : 'https://promptedblog.com';
-  
+
   const redirectUrl = new URL('/oauth/callback', appUrl);
   redirectUrl.searchParams.set('user', encodeURIComponent(JSON.stringify(userData)));
-  
+
   return redirectUrl.toString();
 }

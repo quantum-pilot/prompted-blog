@@ -31,7 +31,11 @@
       "Bash(true)",
       "Bash(npx tsc:*)",
       "Bash(tree:*)",
-      "mcp__playwright__browser_tab_new"
+      "mcp__playwright__browser_tab_new",
+      "Bash(npx eslint:*)",
+      "Bash(npx wrangler deploy:*)",
+      "Bash(npx wrangler build:*)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",

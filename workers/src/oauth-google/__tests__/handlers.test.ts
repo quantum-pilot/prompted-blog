@@ -26,11 +26,11 @@ describe('OAuth Handlers', () => {
   describe('handleOAuthStart', () => {
     it('should generate auth URL with PKCE parameters', async () => {
       const response = await handleOAuthStart(env);
-      
+
       expect(response.status).toBe(302);
       const location = response.headers.get('Location');
       expect(location).toBeTruthy();
-      
+
       const url = new URL(location!);
       expect(url.hostname).toBe('accounts.google.com');
       expect(url.searchParams.get('code_challenge')).toBeTruthy();
@@ -39,13 +39,13 @@ describe('OAuth Handlers', () => {
 
     it('should store state in KV', async () => {
       await handleOAuthStart(env);
-      
+
       expect(mockKV.put).toHaveBeenCalledTimes(1);
       const [[key, data, options]] = mockKV.put.mock.calls;
-      
+
       expect(key).toMatch(/^state:/);
       expect(options.expirationTtl).toBe(600);
-      
+
       const parsed = JSON.parse(data);
       expect(parsed.codeVerifier).toBeTruthy();
       expect(parsed.timestamp).toBeTruthy();
@@ -53,9 +53,9 @@ describe('OAuth Handlers', () => {
 
     it('should handle errors gracefully', async () => {
       mockKV.put.mockRejectedValueOnce(new Error('KV error'));
-      
+
       const response = await handleOAuthStart(env);
-      
+
       expect(response.status).toBe(500);
       const data = await response.json() as any;
       expect(data.error).toBe('internal_error');
@@ -65,7 +65,7 @@ describe('OAuth Handlers', () => {
       const start = performance.now();
       await handleOAuthStart(env);
       const duration = performance.now() - start;
-      
+
       expect(duration).toBeLessThan(50);
     });
   });
@@ -84,9 +84,9 @@ describe('OAuth Handlers', () => {
         error: 'access_denied',
         error_description: 'User denied'
       });
-      
+
       const response = await handleOAuthCallback(url, env);
-      
+
       expect(response.status).toBe(400);
       const data = await response.json() as any;
       expect(data.error).toBe('access_denied');
@@ -94,9 +94,9 @@ describe('OAuth Handlers', () => {
 
     it('should validate required parameters', async () => {
       const url = mockUrl({});
-      
+
       const response = await handleOAuthCallback(url, env);
-      
+
       expect(response.status).toBe(400);
       const data = await response.json() as any;
       expect(data.error).toBe('missing_code');
@@ -104,9 +104,9 @@ describe('OAuth Handlers', () => {
 
     it('should validate state parameter', async () => {
       const url = mockUrl({ code: 'test-code' });
-      
+
       const response = await handleOAuthCallback(url, env);
-      
+
       expect(response.status).toBe(400);
       const data = await response.json() as any;
       expect(data.error).toBe('missing_state');
@@ -115,9 +115,9 @@ describe('OAuth Handlers', () => {
     it('should handle invalid state', async () => {
       mockKV.get.mockResolvedValueOnce(null);
       const url = mockUrl({ code: 'test-code', state: 'invalid' });
-      
+
       const response = await handleOAuthCallback(url, env);
-      
+
       expect(response.status).toBe(400);
       const data = await response.json() as any;
       expect(data.error).toBe('invalid_state');
@@ -125,11 +125,11 @@ describe('OAuth Handlers', () => {
 
     it('should complete within 50ms for validation errors', async () => {
       const url = mockUrl({});
-      
+
       const start = performance.now();
       await handleOAuthCallback(url, env);
       const duration = performance.now() - start;
-      
+
       expect(duration).toBeLessThan(50);
     });
   });
