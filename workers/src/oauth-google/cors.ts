@@ -1,3 +1,4 @@
+// @agent: cloudflare-backend
 // CORS headers configuration and handling
 
 // Whitelist of allowed origins

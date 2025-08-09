@@ -207,9 +207,10 @@ class StructureValidator {
         const relativePath = path.join(basePath, file);
         const stat = fs.statSync(fullPath);
 
-        if (stat.isDirectory() && !file.startsWith('__') && file !== 'node_modules') {
+        if (stat.isDirectory() && file !== 'node_modules' && file !== 'dist') {
           results.push(...findTsFiles(fullPath, relativePath));
-        } else if (file.endsWith('.ts') && !file.endsWith('.test.ts') && !file.endsWith('.d.ts')) {
+        } else if (file.endsWith('.ts') && !file.endsWith('.d.ts')) {
+          // Include both source files and test files
           results.push(fullPath);
         }
       });
@@ -219,7 +220,23 @@ class StructureValidator {
 
     const workerFiles = findTsFiles(workersPath);
     workerFiles.forEach(file => {
-      this.validateFileLength(file, RULES.lineLimits.worker, 'worker module');
+      const relativePath = path.relative(process.cwd(), file);
+      const isTestFile = file.endsWith('.test.ts');
+
+      // Check for agent metadata comment
+      const content = fs.readFileSync(file, 'utf8');
+      const firstLine = content.split('\n')[0];
+
+      if (!firstLine.includes('@agent: cloudflare-backend')) {
+        this.errors.push(`${relativePath}: Must start with '// @agent: cloudflare-backend' metadata comment`);
+      }
+
+      // Validate file length for all files
+      if (isTestFile) {
+        this.validateFileLength(file, RULES.lineLimits.test, 'test');
+      } else {
+        this.validateFileLength(file, RULES.lineLimits.worker, 'worker module');
+      }
     });
   }
 

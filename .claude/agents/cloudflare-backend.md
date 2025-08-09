@@ -28,6 +28,7 @@ acceptance:
 
 - **create / modify**
   - Implement minimal code in `index.ts` following TDD workflow.
+  - Include `// @agent: cloudflare-backend` metadata comment in tests
   - Auto-generate lightweight **resource stubs** for any bindings (e.g. KV mock, D1 in-memory DB) so tests run offline.
   - Add a latency test that asserts the main handler resolves in **< 50 ms** under a representative request.
   - End with:

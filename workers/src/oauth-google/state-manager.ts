@@ -1,3 +1,4 @@
+// @agent: cloudflare-backend
 // State management for OAuth flow
 import type { Env, StateData } from './types';
 import { generateRandomString, generateCodeChallenge } from './pkce';

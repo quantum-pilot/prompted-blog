@@ -1,3 +1,4 @@
+// @agent: cloudflare-backend
 // PKCE (Proof Key for Code Exchange) utilities for OAuth 2.0
 
 export function generateRandomString(length: number): string {

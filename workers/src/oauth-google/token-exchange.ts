@@ -1,3 +1,4 @@
+// @agent: cloudflare-backend
 // Token exchange and user info fetching
 // Security Fix (SEC-002): This implementation uses PKCE (Proof Key for Code Exchange) 
 // instead of client_secret for OAuth token exchange, making it safe for edge workers

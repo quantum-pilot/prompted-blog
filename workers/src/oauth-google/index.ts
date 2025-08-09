@@ -1,3 +1,4 @@
+// @agent: cloudflare-backend
 // Main entry point for OAuth Google Worker
 import type { Env } from './types';
 import router from './router';
