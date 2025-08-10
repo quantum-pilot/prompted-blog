@@ -1,6 +1,7 @@
 // @agent: cloudflare-backend
 import { vi, expect } from 'vitest';
 import type { Env } from '../types';
+import { RequestContext } from '../../utils/request-context';
 
 /** Creates a mock KV namespace with common methods */
 export function createMockKV() {
@@ -9,10 +10,23 @@ export function createMockKV() {
 
 /** Creates a mock environment configuration for tests */
 export function createMockEnv(): Env {
+  // Generate a base64-encoded 256-bit key for testing
+  const testKey = new Uint8Array(32); // 256 bits
+  crypto.getRandomValues(testKey);
+  const testKeyBase64 = btoa(String.fromCharCode(...testKey));
+  
   return {
     CLIENT_ID: 'test-client-id',
+    CLIENT_SECRET: 'test-client-secret',
     REDIRECT_URI: 'https://example.com/oauth/callback',
-    OAUTH_STATE: createMockKV() as any,
+    SESSION_ENCRYPTION_KEY: testKeyBase64,
+    OAUTH_SESSIONS: createMockKV() as any,
+    OAUTH_KV: createMockKV() as any,
+    OAUTH_PROVIDER: {
+      parseAuthRequest: vi.fn(),
+      lookupClient: vi.fn(),
+      completeAuthorization: vi.fn()
+    }
   };
 }
 
@@ -75,4 +89,16 @@ export async function measurePerformance<T>(
 /** Asserts that an operation completes within the latency budget */
 export function assertLatency(duration: number, maxMs = 50): void {
   expect(duration).toBeLessThan(maxMs);
+}
+
+/** Creates a mock RequestContext for testing */
+export function createMockContext(): RequestContext {
+  const context = new RequestContext();
+  // Mock the log method to prevent actual logging during tests
+  context.log = vi.fn();
+  // Add the updateCorrelationId method
+  context.updateCorrelationId = vi.fn((newId: string) => {
+    context.correlationId = newId;
+  });
+  return context;
 }

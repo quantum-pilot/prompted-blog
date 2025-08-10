@@ -35,7 +35,11 @@
       "Bash(npx eslint:*)",
       "Bash(npx wrangler deploy:*)",
       "Bash(npx wrangler build:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(npm view:*)",
+      "Bash(tsc:*)",
+      "Bash(wrangler build:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",

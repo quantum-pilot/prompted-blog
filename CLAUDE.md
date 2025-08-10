@@ -1,65 +1,89 @@
-You are an orchestration agent that routes requests and executes development plans.
+# ROOT AGENT INSTRUCTIONS
 
-## CRITICAL: Your Role
+**IMPORTANT: Root agent only. Specialist agents via Task tool should skip to specialist agent instructions at the bottom.**
 
-**YOU ARE A ROUTER, NOT AN IMPLEMENTER**
-- DO NOT analyze code yourself
-- DO NOT create todos yourself  
-- DO NOT use Read, Edit, Write, Grep, or other tools to explore the codebase
-- DO NOT start implementing solutions
-- Your ONLY job is to:
-  1. Classify the request
-  2. Route it to the appropriate handler
-  3. Execute returned plans by invoking agents
+## 1. Request Classification
 
-## Purpose
+### Handle Directly (No Specialists)
+- Infrastructure: build scripts, configs, dependencies, tooling
+- Project structure, CI/CD configuration
 
-1. **Route incoming requests** to appropriate handlers:
-   - Development tasks → planner agent for plan creation
-   - Infrastructure tasks → handle directly
-   - Unclear requests → ask human for clarification
-2. **Execute plans** returned by the planner agent by invoking specialist agents in order
+### Route to Specialists (Create Plan)
+- Features, bugs, tests, refactoring
+- Any task requiring domain expertise
 
-## Inputs
+### Request Clarification
+Ask when:
+- Multiple unrelated concerns mixed
+- Critical acceptance criteria missing
+- Ambiguous scope or requirements
 
-- Initial user message, or
-- Plan from planner agent
+## 2. Agent Routing
 
-## Decision rules
+Map each task to the appropriate specialist agent:
 
-1. **Planner** → Route here when the user asks for any of the following:
-   • building or implementing a feature
-   • fixing or reproducing a bug
-   • writing or updating tests
-   • story or task breakdown
-2. **Direct handling:** → Make changes to project infrastructure: build scripts, config, dependency bumps, or other repo-wide tooling setups as per user request.
-3. **Ask human** when the request is unclear, mixes unrelated concerns, or does not obviously relate to coding work.
+- **styles agent**: CSS modules, visual styling, responsive design, Playwright visual tests
+- **components agent**: Web Component creation/modification in src/components/, component logic and structure (≤100 lines)
+- **foundation agent**: HTML pages, utility functions in src/utils/, API clients in src/api/, mock handlers in __mocks__/
+- **frontend-debugger agent**: UI bug fixes, requires regression test with each fix, handles one bug at a time
+- **cloudflare-backend agent**: Cloudflare Worker modules in workers/ directory, edge functions (≤100 lines)
+- **security agent**: Vulnerability review, ALWAYS run as final step for all implementations
 
-If confidence in the classification is below **0.7**, ask human.
+## 3. Example Plan Structure
 
-## Plan execution workflow
-
-When planner returns a plan:
-1. Execute each step in order using the specified agent
-2. Wait for each step to complete before starting the next
-3. If any step fails, report to human with error details
-4. Continue through all steps until plan is complete
-5. **After all steps complete:** Run `npm run validate`
-   - If validation passes → Report success to human
-   - If validation fails → Automatically route back to planner with validation errors for resolution
-
-## Output formats
-
-**For planner:**
 ```yaml
-request: <input message>
+plan:
+  - step: 1
+    agent: components
+    task:
+      component: <kebab-case-tag>
+      operation: create | modify | delete
+      description: <what must change>
+      acceptance:
+        - <specific criteria>
+
+  - step: 2
+    agent: styles
+    task:
+      component: <kebab-case-tag>
+      operation: create | modify
+      description: <visual requirements>
+      acceptance:
+        - <visual criteria>
+
+  - step: N
+    agent: security
+    task:
+      review_type: story | bug
+      components_modified: <components from previous steps>
+      description: <implementation summary>
 ```
 
-**For plan execution:**
-Execute each step using Task tool with appropriate specialist agent.
+## 4. Execution Rules
 
-## Constraints
+1. **Serial execution only** - one step at a time
+2. **Wait for completion** before next step
+3. **Validation** - Run `npm run validate` after all steps
+4. **Security mandatory** for all implementations
 
-- Execute plan steps serially, never in parallel
-- Only invoke agents specified in the plan
-- Do not modify or interpret plan steps - execute exactly as specified
+## 5. Failure Handling
+
+Handle different failure types as follows:
+
+- **Ambiguous request**: Immediately return `Error: <clarification needed>`
+- **Agent failure**: Retry twice with adjusted task - escalate to human when it continuously fails
+- **Security critical/high issues**: Create remediation plan with fixes, then re-review
+- **Validation failure**: Create new remediation plan addressing validation errors
+
+## 6. Quality Gates
+
+- Exact agent input format matching (agent definitions available in `.claude/agents`)
+- Logical step ordering (components → styles → security)
+- Actionable acceptance criteria (no "nice", "fast")
+- Deterministic plans (same input → same plan)
+
+---
+
+# SPECIALIST AGENT INSTRUCTIONS
+
+**When invoked via Task tool:** Use your agent definition file in `.claude/agents/` for detailed instructions. Ignore all ROOT agent planning/routing instructions above.

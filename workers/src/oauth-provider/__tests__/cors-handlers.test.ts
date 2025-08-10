@@ -2,6 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import { handleCorsOptions, jsonResponse, errorResponse } from '../cors';
 import { measurePerformance, assertLatency } from './test-helpers';
+import { RequestContext } from '../../utils/request-context';
 
 // Helper to create OPTIONS request
 const optionsReq = (origin?: string) => new Request('https://example.com/test', {
@@ -22,27 +23,31 @@ const assertCors = (res: Response, origin: string | null, hasCredentials = false
 
 describe('handleCorsOptions', () => {
   it('should handle OPTIONS preflight for allowed origin', () => {
-    const response = handleCorsOptions(optionsReq('https://promptedblog.com'));
+    const context = new RequestContext(optionsReq('https://promptedblog.com'));
+    const response = handleCorsOptions(context);
     expect(response.status).toBe(204);
     assertCors(response, 'https://promptedblog.com', true);
   });
 
   it('should not set CORS headers for non-whitelisted origin', () => {
-    const response = handleCorsOptions(optionsReq('https://evil-site.com'));
+    const context = new RequestContext(optionsReq('https://evil-site.com'));
+    const response = handleCorsOptions(context);
     expect(response.status).toBe(204);
     assertCors(response, null);
   });
 
   it('should handle OPTIONS without origin header', () => {
-    const response = handleCorsOptions(optionsReq());
+    const context = new RequestContext(optionsReq());
+    const response = handleCorsOptions(context);
     expect(response.status).toBe(204);
     assertCors(response, null);
   });
 
   it('should complete within 50ms', async () => {
-    const { duration } = await measurePerformance(() =>
-      handleCorsOptions(optionsReq('https://promptedblog.com'))
-    );
+    const { duration } = await measurePerformance(() => {
+      const context = new RequestContext(optionsReq('https://promptedblog.com'));
+      return handleCorsOptions(context);
+    });
     assertLatency(duration);
   });
 });

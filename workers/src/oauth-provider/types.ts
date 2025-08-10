@@ -3,8 +3,12 @@ import type { KVNamespace } from '@cloudflare/workers-types';
 
 export interface Env {
   CLIENT_ID: string;
+  CLIENT_SECRET: string;
   REDIRECT_URI: string;
-  OAUTH_STATE: KVNamespace;
+  SESSION_ENCRYPTION_KEY: string; // Cloudflare secret for persistent encryption
+  OAUTH_SESSIONS: KVNamespace; // Required for secure session storage
+  OAUTH_KV: KVNamespace; // OAuth provider library storage (required by @cloudflare/workers-oauth-provider)
+  OAUTH_PROVIDER: any; // OAuth provider instance injected by library
 }
 
 export interface StateData {

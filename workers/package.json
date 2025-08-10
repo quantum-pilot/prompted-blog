@@ -9,6 +9,9 @@
     "build": "wrangler deploy --dry-run --outdir dist",
     "validate": "tsc --noEmit && npm test"
   },
+  "dependencies": {
+    "@cloudflare/workers-oauth-provider": "^0.0.6"
+  },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.8.61",
     "@cloudflare/workers-types": "^4.20250809.0",

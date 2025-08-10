@@ -1,10 +1,7 @@
 name = "prompted-blog-worker"
-main = "src/oauth-google/index.ts"
+main = "src/oauth-provider/index.ts"
 compatibility_date = "2024-01-01"
 
-[vars]
-REDIRECT_URI = "https://promptedblog.com/oauth/google/callback"
-
 [[kv_namespaces]]
-binding = "OAUTH_STATE"
-id = "859004e0bdaa4d05adf0e16174bc2c82"
+binding = "OAUTH_KV"
+id = "c87a837fa6134c58b2ceda8686c1687f"
