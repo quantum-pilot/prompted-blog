@@ -1,6 +1,5 @@
 // @agent: cloudflare-backend
 // Request context management for user info, correlation, and session tracking
-import type { Env } from '../oauth-provider/types';
 import { AuditLogger, AuditEventType } from './audit-logger';
 
 export interface LogEntry {
@@ -33,7 +32,7 @@ export class RequestContext {
     return `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
   }
 
-  static async create(request: Request, _env: Env): Promise<RequestContext> {
+  static async create(request: Request, _env: any): Promise<RequestContext> {
     const context = new RequestContext(request);
 
     // Extract correlation ID from headers, state parameter, or keep generated one

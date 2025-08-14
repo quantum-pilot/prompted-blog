@@ -16,7 +16,7 @@
       }
     },
     {
-      "label": "Claude Session 1",
+      "label": "Project Main",
       "type": "shell",
       "command": "claude",
       "isBackground": false,
@@ -30,7 +30,7 @@
       }
     },
     {
-      "label": "Claude Session 2",
+      "label": "Project Sidekick",
       "type": "shell",
       "command": "claude",
       "isBackground": false,

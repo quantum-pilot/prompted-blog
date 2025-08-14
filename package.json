@@ -4,14 +4,15 @@
   "description": "Prompt-driven commit history as a blog",
   "type": "module",
   "scripts": {
-    "build": "tsc && npm run copy-assets",
-    "copy-assets": "mkdir -p dist/assets && cp assets/*.css assets/*.js assets/*.svg dist/assets/ 2>/dev/null || true && cp -r assets/css dist/assets/ 2>/dev/null || true",
+    "build": "npm run build:prod",
+    "build:dev": "node scripts/build.mjs && node scripts/bundle-css.mjs",
+    "build:prod": "NODE_ENV=production node scripts/build.mjs && node scripts/bundle-css.mjs",
+    "build:watch": "node scripts/build.mjs --watch",
     "dev": "npx http-server . -p 8000 -c-1",
-    "test": "vitest",
+    "test": "npm run test:frontend && npm run test:workers && npm run test:e2e",
     "test:frontend": "vitest --config vitest.config.ts",
     "test:workers": "cd workers && vitest",
     "test:e2e": "playwright test",
-    "test:all": "npm run test:frontend && npm run test:workers && npm run test:e2e",
     "validate": "node scripts/validate-structure.mjs"
   },
   "devDependencies": {
@@ -20,10 +21,15 @@
     "@playwright/test": "^1.54.2",
     "@types/node": "^20.0.0",
     "@vitest/ui": "^3.2.4",
+    "esbuild": "^0.25.9",
+    "glob": "^11.0.3",
     "happy-dom": "^18.0.1",
     "playwright": "^1.54.2",
     "typescript": "^5.3.0",
     "vitest": "^3.2.4",
     "wrangler": "^4.28.0"
+  },
+  "dependencies": {
+    "oauth4webapi": "^3.7.0"
   }
 }

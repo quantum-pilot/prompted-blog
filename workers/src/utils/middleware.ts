@@ -3,10 +3,14 @@
 
 import { RequestContext } from './request-context';
 import { AuditLogger } from './audit-logger';
-import type { Env } from '../oauth-provider/types';
+
+// Generic environment interface for middleware
+interface MiddlewareEnv {
+  [key: string]: any;
+}
 
 export type MiddlewareHandler = (
-  env: Env,
+  env: MiddlewareEnv,
   context: RequestContext
 ) => Promise<Response>;
 
@@ -22,7 +26,7 @@ export function withDataAccessAudit(
   operation: 'read' | 'write' | 'delete'
 ): Middleware {
   return (handler: MiddlewareHandler) => {
-    return async (env: Env, context: RequestContext): Promise<Response> => {
+    return async (env: MiddlewareEnv, context: RequestContext): Promise<Response> => {
       const userId = context.userId || 'anonymous';
 
       try {
@@ -69,9 +73,9 @@ export function compose(...middlewares: Middleware[]): Middleware {
  * Convert a traditional handler to a middleware-compatible handler
  */
 export function adaptHandler(
-  handler: (env: Env, origin: string | null, request?: Request) => Promise<Response>
+  handler: (env: MiddlewareEnv, origin: string | null, request?: Request) => Promise<Response>
 ): MiddlewareHandler {
-  return async (env: Env, context: RequestContext): Promise<Response> => {
+  return async (env: MiddlewareEnv, context: RequestContext): Promise<Response> => {
     const origin = context.request.headers.get('Origin');
     // Pass the context-enriched request to the handler
     const enrichedRequest = context.propagate();
@@ -83,9 +87,9 @@ export function adaptHandler(
  * Convert a callback handler to a middleware-compatible handler
  */
 export function adaptCallbackHandler(
-  handler: (url: URL, env: Env, origin: string | null, request?: Request) => Promise<Response>
+  handler: (url: URL, env: MiddlewareEnv, origin: string | null, request?: Request) => Promise<Response>
 ): MiddlewareHandler {
-  return async (env: Env, context: RequestContext): Promise<Response> => {
+  return async (env: MiddlewareEnv, context: RequestContext): Promise<Response> => {
     const url = new URL(context.request.url);
     const origin = context.request.headers.get('Origin');
     // Pass the context-enriched request to the handler

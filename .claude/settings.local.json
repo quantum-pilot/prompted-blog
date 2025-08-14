@@ -39,7 +39,10 @@
       "WebFetch(domain:github.com)",
       "Bash(npm view:*)",
       "Bash(tsc:*)",
-      "Bash(wrangler build:*)"
+      "Bash(wrangler build:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(npx wrangler:*)",
+      "Bash(/dev/null)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",
@@ -47,6 +50,7 @@
   },
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
-    "playwright"
+    "playwright",
+    "sequential-thinking"
   ]
 }
