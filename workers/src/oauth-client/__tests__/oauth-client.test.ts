@@ -321,28 +321,34 @@ describe('OAuth Client Worker', () => {
     });
 
     it('should return session data for valid session', async () => {
-      // Generate a valid session ID format (43-44 chars, base64url)
-      const validSessionId = 'Abc123def456GHI789jkl012MNO345pqr678STU90-_';
+      // Use SessionManager to properly encrypt the session data
+      const { SessionManager } = await import('../session-manager');
+      const sessionManager = new SessionManager(env);
+      
+      // Create a session properly with encryption
       const sessionData = {
-        id: validSessionId,
         provider: 'google',
         userId: 'user-123',
         email: 'test@example.com',
         name: 'Test User',
-        createdAt: Date.now(),
         expiresAt: Date.now() + 3600000
       };
-
-      env.OAUTH_SESSIONS.get = async (key: string) => {
-        if (key === `session:${validSessionId}`) {
-          return JSON.stringify(sessionData);
-        }
-        return null;
+      
+      // Store encrypted session data in mock KV
+      const kvStore = new Map<string, string>();
+      env.OAUTH_SESSIONS.put = async (key: string, value: string) => {
+        kvStore.set(key, value);
       };
+      env.OAUTH_SESSIONS.get = async (key: string) => {
+        return kvStore.get(key) || null;
+      };
+      
+      // Create session (will be encrypted)
+      const sessionId = await sessionManager.createSession(sessionData);
 
       const request = new Request('http://localhost/oauth/session', {
         headers: {
-          'Authorization': `Bearer ${validSessionId}`
+          'Authorization': `Bearer ${sessionId}`
         }
       });
       const response = await worker.fetch(request, env, {});

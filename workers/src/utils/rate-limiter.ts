@@ -36,7 +36,7 @@ export class RateLimiter {
 
     // Get current request data from KV
     const data = await this.kv.get(kvKey);
-    
+
     if (data) {
       let requestData;
       try {
@@ -63,7 +63,7 @@ export class RateLimiter {
         JSON.stringify({ requests: recentRequests }),
         { expirationTtl: Math.ceil(this.windowMs / 1000) }
       );
-      
+
       return true;
     } else {
       // First request in the window
@@ -78,7 +78,7 @@ export class RateLimiter {
    */
   static getClientIp(request: Request): string {
     // CF-Connecting-IP is Cloudflare's header for the real client IP
-    return request.headers.get('CF-Connecting-IP') || 
+    return request.headers.get('CF-Connecting-IP') ||
            request.headers.get('X-Forwarded-For')?.split(',')[0]?.trim() ||
            'unknown';
   }

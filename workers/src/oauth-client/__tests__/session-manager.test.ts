@@ -12,6 +12,7 @@ describe('SessionManager', () => {
     kvStore = new Map();
     
     mockEnv = {
+      SESSION_ENCRYPTION_KEY: 'test-encryption-key-for-tests-32-bytes-long!',
       OAUTH_SESSIONS: {
         put: vi.fn(async (key: string, value: string, options?: any) => {
           kvStore.set(key, { 
@@ -99,19 +100,18 @@ describe('SessionManager', () => {
     });
 
     it('should delete expired sessions', async () => {
-      // Use a valid session ID format
-      const sessionId = 'Expired123def456GHI789jkl012MNO345pqr678STU_';
+      // Create a valid session first
       const sessionData = {
-        id: sessionId,
         provider: 'google',
         userId: 'user-123',
         email: 'test@example.com',
-        createdAt: Date.now() - 7200000,
-        expiresAt: Date.now() - 1000 // Already expired
+        expiresAt: Date.now() + 100 // expires in 100ms
       };
       
-      // Store it directly
-      kvStore.set(`session:${sessionId}`, { value: JSON.stringify(sessionData) });
+      const sessionId = await sessionManager.createSession(sessionData);
+      
+      // Wait for session to expire
+      await new Promise(resolve => setTimeout(resolve, 150));
       
       const retrieved = await sessionManager.getSession(sessionId);
       

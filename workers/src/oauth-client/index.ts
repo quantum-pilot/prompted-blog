@@ -36,7 +36,7 @@ router.post('/oauth/callback', handleCallback, {
 router.get('/oauth/session', handleSessionGet);
 
 // Health check endpoint
-router.get('/oauth/health', handleHealthCheck);
+router.get('/health', handleHealthCheck);
 
 export default {
   async fetch(request: Request, env: Env, _ctx: any): Promise<Response> {
@@ -56,7 +56,7 @@ export default {
 
       // Try to route the request
       const response = await router.handle(request, env, context);
-      
+
       if (response) {
         return response;
       }

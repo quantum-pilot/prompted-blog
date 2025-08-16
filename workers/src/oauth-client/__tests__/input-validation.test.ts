@@ -21,7 +21,8 @@ describe('Input Validation Security Tests', () => {
       GOOGLE_CLIENT_ID: 'test-client-id',
       CLIENT_ID: 'test-client-id',
       REDIRECT_URI: 'http://localhost/callback',
-      FRONTEND_URL: 'http://localhost'
+      FRONTEND_URL: 'http://localhost',
+      SESSION_ENCRYPTION_KEY: 'test-encryption-key-for-input-validation-test!'
     } as unknown as Env;
   });
 
@@ -64,34 +65,45 @@ describe('Input Validation Security Tests', () => {
     });
 
     it('should accept valid session IDs', async () => {
-      const validIds = [
-        'Abc123def456GHI789jkl012MNO345pqr678STU90-_', // 43 chars
-        'Abc123def456GHI789jkl012MNO345pqr678STU90-_a', // 44 chars
-      ];
+      // Use SessionManager to properly encrypt the session data
+      const { SessionManager } = await import('../session-manager');
+      const sessionManager = new SessionManager(env);
+      
+      // Store encrypted session data in mock KV
+      const kvStore = new Map<string, string>();
+      env.OAUTH_SESSIONS.put = vi.fn(async (key: string, value: string) => {
+        kvStore.set(key, value);
+      });
+      env.OAUTH_SESSIONS.get = vi.fn(async (key: string) => {
+        return kvStore.get(key) || null;
+      });
 
-      for (const validId of validIds) {
-        env.OAUTH_SESSIONS.get = vi.fn().mockResolvedValue(JSON.stringify({
-          id: validId,
-          provider: 'google',
-          userId: 'user-123',
-          email: 'test@example.com',
-          createdAt: Date.now(),
-          expiresAt: Date.now() + 3600000
-        }));
+      // Create a valid session with encryption
+      const sessionData = {
+        provider: 'google',
+        userId: 'user-123',
+        email: 'test@example.com',
+        name: 'Test User',
+        expiresAt: Date.now() + 3600000
+      };
+      
+      const sessionId = await sessionManager.createSession(sessionData);
 
-        const request = new Request('http://localhost/oauth/session', {
-          headers: {
-            'Authorization': `Bearer ${validId}`
-          }
-        });
-        
-        const response = await worker.fetch(request, env, {});
-        expect(response.status).toBe(200);
-        
-        // Ensure KV was called with the safe input
-        expect(env.OAUTH_SESSIONS.get).toHaveBeenCalledWith(`session:${validId}`);
-        vi.clearAllMocks();
-      }
+      const request = new Request('http://localhost/oauth/session', {
+        headers: {
+          'Authorization': `Bearer ${sessionId}`
+        }
+      });
+      
+      const response = await worker.fetch(request, env, {});
+      expect(response.status).toBe(200);
+      
+      // Ensure KV was called with the safe input
+      expect(env.OAUTH_SESSIONS.get).toHaveBeenCalledWith(`session:${sessionId}`);
+      
+      const responseData = await response.json() as any;
+      expect(responseData.userId).toBe('user-123');
+      expect(responseData.email).toBe('test@example.com');
     });
   });
 
