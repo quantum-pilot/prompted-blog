@@ -2,6 +2,13 @@ name = "prompted-blog-worker"
 main = "src/oauth-client/index.ts"
 compatibility_date = "2024-01-01"
 
+[assets]
+directory = "../dist"
+
 [[kv_namespaces]]
 binding = "OAUTH_SESSIONS"
 id = "f1472e40eabb4718a0153daad5a458a7"
+
+routes = [
+    { pattern = "*promptedblog.com/*", custom_domain = true }
+]

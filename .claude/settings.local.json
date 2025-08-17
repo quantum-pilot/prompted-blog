@@ -42,7 +42,8 @@
       "Bash(wrangler build:*)",
       "Bash(npm uninstall:*)",
       "Bash(npx wrangler:*)",
-      "Bash(/dev/null)"
+      "Bash(/dev/null)",
+      "Bash(cp:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",

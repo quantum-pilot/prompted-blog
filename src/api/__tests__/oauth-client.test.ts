@@ -44,12 +44,20 @@ describe('OAuthClient', () => {
     mockPopupHandler.openPopup.mockClear();
     mockPopupHandler.waitForCallback.mockClear();
     mockPopupHandler.cleanup.mockClear();
+    mockPopupHandler.isPopupBlocked.mockClear();
     mockPopupHandler.isPopupBlocked.mockReturnValue(false);
     
     client = new OAuthClient(mockConfig);
   });
 
   afterEach(() => {
+    // Explicitly reset all mocks to default state
+    mockPopupHandler.openPopup.mockReset();
+    mockPopupHandler.waitForCallback.mockReset();
+    mockPopupHandler.cleanup.mockReset();
+    mockPopupHandler.isPopupBlocked.mockReset();
+    mockPopupHandler.isPopupBlocked.mockReturnValue(false);
+    mockPopupHandler.getPopup.mockReset();
     vi.clearAllMocks();
   });
 
@@ -111,10 +119,16 @@ describe('OAuthClient', () => {
         scopes: ['custom', 'scope']
       });
       
-      mockPopupHandler.waitForCallback.mockResolvedValue({
-        code: 'auth-code',
-        state: 'test-state'
+      let capturedState: string | null = null;
+      mockPopupHandler.openPopup.mockImplementation((url: string) => {
+        const urlObj = new URL(url);
+        capturedState = urlObj.searchParams.get('state');
       });
+      
+      mockPopupHandler.waitForCallback.mockImplementation(async () => ({
+        code: 'auth-code',
+        state: capturedState // Use the actual state from the URL
+      }));
       
       (global.fetch as any).mockResolvedValueOnce({
         ok: true,
@@ -140,9 +154,16 @@ describe('OAuthClient', () => {
       await expect(client.startAuthFlow()).rejects.toThrow('Popup was blocked. Please allow popups for authentication.');
       
       expect(mockPopupHandler.cleanup).toHaveBeenCalled();
+      
+      // Reset isPopupBlocked for next tests
+      mockPopupHandler.isPopupBlocked.mockReturnValue(false);
     });
 
     it('should validate state to prevent CSRF attacks', async () => {
+      // Reset and explicitly set isPopupBlocked to false
+      mockPopupHandler.isPopupBlocked.mockReset();
+      mockPopupHandler.isPopupBlocked.mockReturnValue(false);
+      
       mockPopupHandler.waitForCallback.mockResolvedValue({
         code: 'auth-code',
         state: 'wrong-state'
@@ -154,6 +175,10 @@ describe('OAuthClient', () => {
     });
 
     it('should handle OAuth errors from popup', async () => {
+      // Reset and explicitly set isPopupBlocked to false
+      mockPopupHandler.isPopupBlocked.mockReset();
+      mockPopupHandler.isPopupBlocked.mockReturnValue(false);
+      
       mockPopupHandler.waitForCallback.mockRejectedValue(
         new Error('OAuth error: access_denied - User denied access')
       );
@@ -213,13 +238,20 @@ describe('OAuthClient', () => {
       
       expect(result).toEqual({ success: true });
       
-      // Check worker was called correctly
+      // Check worker was called correctly with POST method
       expect(global.fetch).toHaveBeenCalledWith(
-        'https://worker.example.com/oauth/callback?code=auth-code&state=test-state&code_verifier=test-verifier&provider=google',
+        'https://worker.example.com/oauth/callback',
         expect.objectContaining({
-          method: 'GET',
+          method: 'POST',
           headers: expect.objectContaining({
-            'Accept': 'application/json'
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }),
+          body: JSON.stringify({
+            code: 'auth-code',
+            state: 'test-state',
+            code_verifier: 'test-verifier',
+            provider: 'google'
           })
         })
       );

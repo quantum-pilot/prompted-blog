@@ -4,6 +4,7 @@
  */
 
 import { getCorsHeaders, errorResponse } from './cors';
+import { HTTP_STATUS } from '../../../shared';
 import { RequestContext } from '../utils/request-context';
 import { AuditEventType } from '../utils/audit-logger';
 import { getGoogleProvider } from './oauth-provider';
@@ -33,11 +34,11 @@ export async function handleInitiateOAuth(
   const provider = url.searchParams.get('provider') || 'google';
 
   if (!codeChallenge) {
-    return errorResponse('invalid_request', 'Authentication failed', 400, origin, context, env);
+    return errorResponse('invalid_request', 'Authentication failed', HTTP_STATUS.BAD_REQUEST, origin, context, env);
   }
 
   if (!state) {
-    return errorResponse('invalid_request', 'Authentication failed', 400, origin, context, env);
+    return errorResponse('invalid_request', 'Authentication failed', HTTP_STATUS.BAD_REQUEST, origin, context, env);
   }
 
   // SECURITY: Validate state parameter format to prevent injection attacks
@@ -46,7 +47,7 @@ export async function handleInitiateOAuth(
       reason: 'Invalid state parameter format',
       stateLength: state.length
     });
-    return errorResponse('invalid_request', 'Authentication failed', 400, origin, context, env);
+    return errorResponse('invalid_request', 'Authentication failed', HTTP_STATUS.BAD_REQUEST, origin, context, env);
   }
 
   // Store the PKCE challenge with a 10-minute expiration

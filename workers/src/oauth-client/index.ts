@@ -5,6 +5,7 @@
  */
 
 import { getCorsHeaders, errorResponse } from './cors';
+import { HTTP_STATUS } from '../../../shared';
 import { RequestContext } from '../utils/request-context';
 import { AuditEventType } from '../utils/audit-logger';
 import { Router } from './router';
@@ -36,7 +37,7 @@ router.post('/oauth/callback', handleCallback, {
 router.get('/oauth/session', handleSessionGet);
 
 // Health check endpoint
-router.get('/health', handleHealthCheck);
+router.get('/oauth/health', handleHealthCheck);
 
 export default {
   async fetch(request: Request, env: Env, _ctx: any): Promise<Response> {
@@ -67,7 +68,7 @@ export default {
         method: request.method
       });
 
-      return errorResponse('not_found', 'Route not found', 404, origin, context, env);
+      return errorResponse('not_found', 'Route not found', HTTP_STATUS.NOT_FOUND, origin, context, env);
     } catch (error) {
       console.error('OAuth client error:', error);
       context.log(AuditEventType.REQUEST_ERROR, 'failure', {
@@ -78,7 +79,7 @@ export default {
       return errorResponse(
         'internal_error',
         'An unexpected error occurred',
-        500,
+        HTTP_STATUS.INTERNAL_SERVER_ERROR,
         origin,
         context,
         env

@@ -1,18 +1,18 @@
 // @agent: cloudflare-backend
 import { describe, it, expect } from 'vitest';
-import { getAllowedOrigins, getCorsHeaders } from '../cors';
+import { isAllowedOrigin, getCorsHeaders } from '../cors';
 import type { Env } from '../types';
 
 describe('CORS Configuration', () => {
-  describe('getAllowedOrigins', () => {
-    it('should return production domain when no env variable is set', () => {
-      const origins = getAllowedOrigins();
-      expect(origins).toEqual(['https://promptedblog.com']);
+  describe('isAllowedOrigin', () => {
+    it('should allow production domain when no env variable is set', () => {
+      const allowed = isAllowedOrigin('https://promptedblog.com');
+      expect(allowed).toBe(true);
     });
 
-    it('should return production domain when env is undefined', () => {
-      const origins = getAllowedOrigins(undefined);
-      expect(origins).toEqual(['https://promptedblog.com']);
+    it('should allow production domain when env is undefined', () => {
+      const allowed = isAllowedOrigin('https://promptedblog.com', undefined);
+      expect(allowed).toBe(true);
     });
 
     it('should parse comma-separated origins from environment variable', () => {
@@ -27,12 +27,10 @@ describe('CORS Configuration', () => {
         SESSION_ENCRYPTION_KEY: 'test'
       };
       
-      const origins = getAllowedOrigins(mockEnv);
-      expect(origins).toEqual([
-        'https://example.com',
-        'https://app.example.com',
-        'https://staging.example.com'
-      ]);
+      expect(isAllowedOrigin('https://example.com', mockEnv)).toBe(true);
+      expect(isAllowedOrigin('https://app.example.com', mockEnv)).toBe(true);
+      expect(isAllowedOrigin('https://staging.example.com', mockEnv)).toBe(true);
+      expect(isAllowedOrigin('https://malicious.com', mockEnv)).toBe(false);
     });
 
     it('should trim whitespace from origins', () => {
@@ -47,11 +45,8 @@ describe('CORS Configuration', () => {
         SESSION_ENCRYPTION_KEY: 'test'
       };
       
-      const origins = getAllowedOrigins(mockEnv);
-      expect(origins).toEqual([
-        'https://example.com',
-        'https://app.example.com'
-      ]);
+      expect(isAllowedOrigin('https://example.com', mockEnv)).toBe(true);
+      expect(isAllowedOrigin('https://app.example.com', mockEnv)).toBe(true);
     });
 
     it('should handle single origin', () => {
@@ -66,8 +61,8 @@ describe('CORS Configuration', () => {
         SESSION_ENCRYPTION_KEY: 'test'
       };
       
-      const origins = getAllowedOrigins(mockEnv);
-      expect(origins).toEqual(['https://example.com']);
+      expect(isAllowedOrigin('https://example.com', mockEnv)).toBe(true);
+      expect(isAllowedOrigin('https://other.com', mockEnv)).toBe(false);
     });
   });
 

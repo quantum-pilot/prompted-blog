@@ -4,11 +4,9 @@
   "description": "Prompt-driven commit history as a blog",
   "type": "module",
   "scripts": {
-    "build": "npm run build:prod",
-    "build:dev": "node scripts/build.mjs && node scripts/bundle-css.mjs",
-    "build:prod": "NODE_ENV=production node scripts/build.mjs && node scripts/bundle-css.mjs",
+    "build": "node scripts/build.mjs && node scripts/bundle-css.mjs",
     "build:watch": "node scripts/build.mjs --watch",
-    "dev": "npx http-server . -p 8000 -c-1",
+    "dev": "npm run build && cd workers && wrangler dev",
     "test": "npm run test:frontend && npm run test:workers && npm run test:e2e",
     "test:frontend": "vitest --config vitest.config.ts",
     "test:workers": "cd workers && vitest",

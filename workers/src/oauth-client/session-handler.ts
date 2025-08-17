@@ -4,6 +4,7 @@
  */
 
 import { getCorsHeaders, errorResponse } from './cors';
+import { HTTP_STATUS } from '../../../shared';
 import { RequestContext } from '../utils/request-context';
 import { AuditEventType } from '../utils/audit-logger';
 import { SessionManager } from './session-manager';
@@ -23,7 +24,7 @@ export async function handleSessionGet(
     context.log(AuditEventType.AUTH_SESSION_INVALID, 'failure', {
       reason: 'Missing session ID in Authorization header'
     });
-    return errorResponse('invalid_request', 'Authentication failed', 400, origin, context, env);
+    return errorResponse('invalid_request', 'Authentication failed', HTTP_STATUS.BAD_REQUEST, origin, context, env);
   }
 
   const sessionId = authHeader.substring(7); // Remove 'Bearer ' prefix
@@ -34,14 +35,14 @@ export async function handleSessionGet(
       reason: 'Invalid session ID format',
       sessionIdLength: sessionId.length
     });
-    return errorResponse('invalid_request', 'Authentication failed', 400, origin, context, env);
+    return errorResponse('invalid_request', 'Authentication failed', HTTP_STATUS.BAD_REQUEST, origin, context, env);
   }
   
   const sessionManager = new SessionManager(env);
   const session = await sessionManager.validateSession(sessionId, context);
   
   if (!session) {
-    return errorResponse('invalid_grant', 'Authentication failed', 404, origin, context, env);
+    return errorResponse('invalid_grant', 'Authentication failed', HTTP_STATUS.NOT_FOUND, origin, context, env);
   }
 
   // Return session data (excluding sensitive fields)

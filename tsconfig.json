@@ -9,12 +9,17 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "outDir": "./dist",
-    "rootDir": "./src",
+    "rootDir": "./",
     "declaration": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "paths": {
+      "@app/shared": ["./shared/index.ts"],
+      "@app/shared/*": ["./shared/*"]
+    }
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "shared/**/*"
   ],
   "exclude": [
     "node_modules",

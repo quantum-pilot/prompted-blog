@@ -1,22 +1,39 @@
 // @agent: cloudflare-backend
 /**
- * OAuth client type definitions
+ * OAuth client type definitions for worker
  */
 
+// Extend WorkerEnv to properly type KVNamespace
 export interface Env {
-  // OAuth configuration
-  GOOGLE_CLIENT_ID: string;
-  REDIRECT_URI: string;
-
-  // Security
-  SESSION_ENCRYPTION_KEY: string;
-
-  // CORS configuration
-  ALLOWED_ORIGINS?: string; // Comma-separated list of allowed origins
-
-  // KV Namespaces
+  ALLOWED_ORIGINS: string;
   OAUTH_SESSIONS: KVNamespace;
+}
 
-  // Optional GitHub support for future
-  GITHUB_CLIENT_ID?: string;
+// Worker-specific types not in shared module
+export interface OAuthCallbackResult {
+  success: boolean;
+  error?: string;
+  sessionId?: string;
+}
+
+export interface ProviderConfig {
+  authorizationEndpoint: string;
+  tokenEndpoint: string;
+  userInfoEndpoint: string;
+  scopes: readonly string[];
+}
+
+export interface OAuthTokenResponse {
+  access_token: string;
+  token_type: string;
+  expires_in?: number;
+  refresh_token?: string;
+  scope?: string;
+  id_token?: string;
+}
+
+export interface OAuthUserInfo {
+  email: string;
+  name?: string;
+  picture?: string;
 }

@@ -5,6 +5,8 @@
  */
 
 import * as oauth from 'oauth4webapi';
+// Using local types for now, but these could be imported from shared module:
+// import { OAuthConfig, OAuthSession, OAuthCallbackResult, OAuthProvider } from '../../shared';
 import { OAuthConfig, OAuthSession, OAuthCallbackResult, OAuthProvider } from './oauth-types';
 import { getProviderConfig } from './oauth-providers';
 import { getSessionId, validateSessionWithWorker, clearOAuthData, storeSessionId } from './oauth-session';
@@ -40,7 +42,7 @@ export class OAuthClient {
       .replace(/=/g, '');
 
     // Get provider configuration
-    const providerConfig = getProviderConfig(this.config.provider!);
+    const providerConfig = getProviderConfig(this.config.provider);
     const scopes = this.config.scopes || providerConfig.scopes;
 
     // Build authorization URL
@@ -64,24 +66,24 @@ export class OAuthClient {
     const popupHandler = new OAuthPopupHandler();
     try {
       popupHandler.openPopup(authUrl.toString());
-      
+
       // Get the origin for message validation
       const callbackUrl = new URL(this.config.redirectUri);
       const allowedOrigin = callbackUrl.origin;
-      
+
       // Wait for callback from popup
       const callbackData = await popupHandler.waitForCallback(allowedOrigin);
-      
+
       // Validate state
       if (callbackData.state !== this.state) {
         throw new Error('State mismatch - possible CSRF attack');
       }
-      
+
       // Exchange code for tokens
       if (callbackData.code) {
         await this.exchangeCodeForTokens(callbackData.code, this.state);
       }
-      
+
     } catch (error) {
       // Handle popup-specific errors
       if (popupHandler.isPopupBlocked()) {
@@ -105,7 +107,7 @@ export class OAuthClient {
 
     // Call worker to exchange code for tokens and create session
     const url = new URL('/oauth/callback', this.config.workerUrl);
-    
+
     const response = await fetch(url.toString(), {
       method: 'POST',
       headers: {
@@ -119,13 +121,13 @@ export class OAuthClient {
         provider: this.config.provider!
       })
     });
-    
+
     if (!response.ok) {
       throw new Error(`Worker error: ${response.status}`);
     }
-    
+
     const result = await response.json() as OAuthCallbackResult;
-    
+
     // Store session ID if successful
     if (result.success && result.sessionId) {
       storeSessionId(result.sessionId);
@@ -149,8 +151,8 @@ export class OAuthClient {
    * as the popup handler manages the callback internally
    */
   async handleCallback(
-    callbackUrl: URL, 
-    codeVerifier?: string, 
+    callbackUrl: URL,
+    codeVerifier?: string,
     state?: string
   ): Promise<OAuthCallbackResult> {
     // This method is only for popup mode with provided PKCE params
@@ -161,20 +163,20 @@ export class OAuthClient {
     const params = callbackUrl.searchParams;
     const code = params.get('code');
     const callbackState = params.get('state');
-    
+
     // Verify state
     if (callbackState !== state) {
       throw new Error('State mismatch - possible CSRF attack');
     }
-    
+
     if (!code) {
       throw new Error('Missing authorization code');
     }
-    
+
     // Exchange code directly
     this.codeVerifier = codeVerifier;
     this.state = state;
-    
+
     try {
       await this.exchangeCodeForTokens(code, state);
       return { success: true };
@@ -196,11 +198,7 @@ export class OAuthClient {
     return validateSessionWithWorker(this.config.workerUrl, sessionId);
   }
 
-  /**
-   * Clear session data
-   */
   logout(): void {
     clearOAuthData();
   }
-
 }

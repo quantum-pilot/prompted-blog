@@ -1,5 +1,5 @@
 import { OAuthFlowStart } from './components/oauth-flow-start/index.js';
-import { setupOAuthHandler } from 'oauth-handler';
+import { setupOAuthHandler } from './oauth-handler.js';
 
 function registerComponents(): void {
   if (!customElements.get('oauth-flow-start')) {

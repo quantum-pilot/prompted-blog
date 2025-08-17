@@ -8,17 +8,15 @@ import type { RequestContext } from '../utils/request-context';
 import { AuditEventType } from '../utils/audit-logger';
 import { SessionStorage } from './session-storage';
 import { isValidSessionId } from './session-validation';
+import type { OAuthSession } from '../../../shared';
 
-export interface SessionData {
+// Extend OAuthSession with worker-specific fields
+export interface SessionData extends Omit<OAuthSession, 'codeChallenge'> {
   id: string;
   provider: string;
-  userId: string;
-  email: string;
-  name?: string;
-  picture?: string;
   createdAt: number;
-  expiresAt: number;
   state?: string;
+  codeChallenge?: string; // Keep for backward compatibility
 }
 
 export class SessionManager {

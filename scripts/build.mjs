@@ -13,23 +13,18 @@ if (!existsSync(resolve(rootDir, 'dist'))) {
   mkdirSync(resolve(rootDir, 'dist'), { recursive: true });
 }
 
-// Get build mode from environment or arguments
-const isProduction = process.env.NODE_ENV === 'production' || process.argv.includes('--production');
+// Check for watch mode
 const isWatch = process.argv.includes('--watch');
 
-console.log(`Building in ${isProduction ? 'production' : 'development'} mode...`);
+console.log('Building in production mode...');
 
-// Use different oauth handler based on environment
-const oauthHandler = isProduction 
-  ? 'src/oauth-handler.prod.ts' 
-  : 'src/oauth-handler.dev.ts';
-
-// Create alias for oauth-handler to point to the right version
+// Create alias configuration
 const alias = {
-  'oauth-handler': resolve(rootDir, oauthHandler)
+  'oauth-handler': resolve(rootDir, 'src/oauth-handler.ts'),
+  '@app/shared': resolve(rootDir, 'shared')
 };
 
-// Common build options
+// Build options - always optimized for production
 const buildOptions = {
   entryPoints: [resolve(rootDir, 'src/main.ts')],
   bundle: true,
@@ -40,19 +35,19 @@ const buildOptions = {
   sourcemap: true,
   metafile: true,
   
-  // Tree-shaking configuration
+  // Tree-shaking configuration - always enabled
   treeShaking: true,
   
-  // Production-specific optimizations
-  minify: isProduction,
+  // Always minify for production
+  minify: true,
   
-  // Define build-time constants
+  // Define build-time constants for production
   define: {
-    'process.env.NODE_ENV': isProduction ? '"production"' : '"development"',
-    '__DEV__': (!isProduction).toString(),
+    'process.env.NODE_ENV': '"production"',
+    '__DEV__': 'false',
   },
   
-  // Alias oauth-handler to the appropriate version
+  // Alias configuration
   alias,
   
   // External dependencies (if any should not be bundled)
@@ -70,22 +65,25 @@ const buildOptions = {
   
   // Banner for the output file
   banner: {
-    js: `// Build: ${new Date().toISOString()} - Mode: ${isProduction ? 'production' : 'development'}`,
+    js: `// Build: ${new Date().toISOString()} - Mode: production`,
   },
-};
-
-// Production-specific dead code elimination
-if (isProduction) {
-  // Add production-specific plugins or settings
-  buildOptions.drop = ['console', 'debugger'];
-  buildOptions.pure = ['console.log', 'console.debug'];
   
-  // No need for content scanning - we're using separate entry points!
-  // Production build uses oauth-handler.prod.ts which doesn't import mock-oauth at all
-}
+  // Always drop console and debugger statements for production
+  drop: ['console', 'debugger'],
+  pure: ['console.log', 'console.debug'],
+};
 
 // Copy assets function
 function copyAssets() {
+  // Copy HTML files to dist
+  try {
+    cpSync(resolve(rootDir, 'index.html'), resolve(rootDir, 'dist/index.html'));
+    cpSync(resolve(rootDir, 'src/oauth-callback.html'), resolve(rootDir, 'dist/oauth-callback.html'));
+    console.log('HTML files copied successfully');
+  } catch (error) {
+    console.warn('Warning: Could not copy HTML files:', error.message);
+  }
+
   const assetsSource = resolve(rootDir, 'assets');
   const assetsDest = resolve(rootDir, 'dist/assets');
   
@@ -143,11 +141,9 @@ async function build() {
           const size = (info.bytes / 1024).toFixed(2);
           console.log(`  ${output}: ${size} KB`);
         });
-        
-        // No need to check for mock-oauth - we're using separate entry points!
       }
       
-      console.log(`Build completed successfully in ${isProduction ? 'production' : 'development'} mode`);
+      console.log('Build completed successfully');
     }
   } catch (error) {
     console.error('Build failed:', error);

@@ -9,16 +9,16 @@ vi.mock('oauth4webapi', () => ({
   calculatePKCECodeChallenge: vi.fn()
 }));
 
-// Create mock functions for popup handler
+// Create stable mock functions
 const mockOpenPopup = vi.fn();
 const mockWaitForCallback = vi.fn();
 const mockCleanup = vi.fn();
-const mockIsPopupBlocked = vi.fn().mockReturnValue(false);
+const mockIsPopupBlocked = vi.fn();
 const mockGetPopup = vi.fn();
 
 // Mock the popup handler
 vi.mock('../api/oauth-popup-handler', () => ({
-  OAuthPopupHandler: vi.fn().mockImplementation(() => ({
+  OAuthPopupHandler: vi.fn(() => ({
     openPopup: mockOpenPopup,
     waitForCallback: mockWaitForCallback,
     cleanup: mockCleanup,
@@ -51,11 +51,10 @@ describe('OAuthClient - Popup Mode', () => {
     mockWaitForCallback.mockClear();
     mockCleanup.mockClear();
     mockIsPopupBlocked.mockClear();
+    mockIsPopupBlocked.mockReturnValue(false);
     mockGetPopup.mockClear();
     
-    // Reset popup blocked state
-    mockIsPopupBlocked.mockReturnValue(false);
-    
+    // Create new client
     client = new OAuthClient(mockConfig);
     
     // Mock crypto.getRandomValues
@@ -179,13 +178,14 @@ describe('OAuthClient - Popup Mode', () => {
         'https://app.example.com'
       );
       
-      // Verify code exchange call to worker
+      // Verify code exchange call to worker using POST
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining('/oauth/callback'),
         expect.objectContaining({
-          method: 'GET',
+          method: 'POST',
           headers: expect.objectContaining({
-            'Accept': 'application/json'
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
           })
         })
       );
@@ -207,26 +207,22 @@ describe('OAuthClient - Popup Mode', () => {
       expect(mockCleanup).toHaveBeenCalled();
     });
 
-    it('should fall back to redirect mode if popup is blocked', async () => {
+    it('should throw error if popup is blocked', async () => {
       // Mock popup being blocked
       mockOpenPopup.mockImplementation(() => {
         throw new Error('Popup blocked');
       });
       mockIsPopupBlocked.mockReturnValue(true);
       
-      // Mock window.location
-      delete (window as any).location;
-      window.location = { href: '' } as any;
+      await expect(client.startAuthFlow()).rejects.toThrow('Popup was blocked. Please allow popups for authentication.');
       
-      await client.startAuthFlow();
+      // Verify cleanup was still called
+      expect(mockCleanup).toHaveBeenCalled();
       
-      // Should fall back to redirect
-      expect(window.location.href).toContain('https://accounts.google.com/o/oauth2/v2/auth');
-      
-      // In fallback mode, PKCE should be stored in sessionStorage
-      expect(sessionStorage.getItem('oauth_code_verifier')).toBe('test-verifier-123');
-      expect(sessionStorage.getItem('oauth_challenge')).toBe('test-challenge-456');
-      expect(sessionStorage.getItem('oauth_state')).toBeTruthy();
+      // Verify no sessionStorage is used (popup-only mode)
+      expect(sessionStorage.getItem('oauth_code_verifier')).toBeNull();
+      expect(sessionStorage.getItem('oauth_challenge')).toBeNull();
+      expect(sessionStorage.getItem('oauth_state')).toBeNull();
     });
 
     it('should handle popup errors gracefully', async () => {
@@ -266,10 +262,14 @@ describe('OAuthClient - Popup Mode', () => {
       
       await client.startAuthFlow();
       
-      // Verify session ID is stored
-      expect(sessionStorage.getItem('oauth_session_id')).toBe('session-123');
+      // Import getSessionId to verify session is stored in memory
+      const { getSessionId } = await import('../api/oauth-session');
       
-      // Verify PKCE parameters are NOT in storage
+      // Verify session ID is stored in memory (not sessionStorage)
+      expect(getSessionId()).toBe('session-123');
+      
+      // Verify NO data is in sessionStorage (popup-only mode)
+      expect(sessionStorage.getItem('oauth_session_id')).toBeNull();
       expect(sessionStorage.getItem('oauth_code_verifier')).toBeNull();
       expect(sessionStorage.getItem('oauth_state')).toBeNull();
     });

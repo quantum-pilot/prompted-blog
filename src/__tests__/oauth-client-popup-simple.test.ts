@@ -10,7 +10,7 @@ vi.mock('oauth4webapi', () => ({
   calculatePKCECodeChallenge: vi.fn(() => Promise.resolve('test-challenge-456'))
 }));
 
-// Create mock functions for popup handler
+// Create stable mock functions
 const mockOpenPopup = vi.fn();
 const mockWaitForCallback = vi.fn();
 const mockCleanup = vi.fn();
@@ -19,7 +19,7 @@ const mockGetPopup = vi.fn();
 
 // Mock the popup handler
 vi.mock('../api/oauth-popup-handler', () => ({
-  OAuthPopupHandler: vi.fn().mockImplementation(() => ({
+  OAuthPopupHandler: vi.fn(() => ({
     openPopup: mockOpenPopup,
     waitForCallback: mockWaitForCallback,
     cleanup: mockCleanup,
@@ -54,7 +54,8 @@ describe('OAuthClient - Popup Mode (Simplified)', () => {
     mockOpenPopup.mockClear();
     mockWaitForCallback.mockClear();
     mockCleanup.mockClear();
-    mockIsPopupBlocked.mockClear().mockReturnValue(false);
+    mockIsPopupBlocked.mockClear();
+    mockIsPopupBlocked.mockReturnValue(false);
     mockGetPopup.mockClear();
     
     // Mock crypto

@@ -10,7 +10,7 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "outDir": "./dist",
-    "rootDir": "./",
+    "rootDirs": ["./", "../shared"],
     "declaration": true,
     "sourceMap": true,
     "noEmit": true,
@@ -21,7 +21,8 @@
   },
   "include": [
     "**/*.ts",
-    "**/*.tsx"
+    "**/*.tsx",
+    "../shared/**/*.ts"
   ],
   "exclude": [
     "node_modules",

@@ -1,12 +1,11 @@
 import { BaseComponent } from '../../utils/base-component.js';
+import { OAuthProvider, OAUTH_PROVIDERS } from '@app/shared';
 
 export interface OAuthStartEvent extends CustomEvent {
   detail: {
-    provider: 'google';
+    provider: OAuthProvider;
   };
 }
-
-export type OAuthProvider = 'google';
 
 export class OAuthFlowStart extends BaseComponent {
   constructor() {
@@ -28,7 +27,7 @@ export class OAuthFlowStart extends BaseComponent {
   private setupEventListeners(): void {
     const button = this.querySelector('[data-provider="google"]') as HTMLButtonElement;
     if (button) {
-      const handleClick = this.handleButtonClick.bind(this, 'google');
+      const handleClick = this.handleButtonClick.bind(this, OAuthProvider.Google);
       this.addManagedEventListener(button, 'click', handleClick);
     }
   }

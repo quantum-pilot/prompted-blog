@@ -9,6 +9,7 @@ import { RateLimiter } from '../utils/rate-limiter';
 import { AuditEventType } from '../utils/audit-logger';
 import { applySecurityHeaders } from '../utils/security-headers';
 import type { Route } from './router';
+import { HTTP_STATUS } from '../../../shared';
 
 export class RateLimitHandler {
   private rateLimiters: Map<string, RateLimiter> = new Map();
@@ -28,7 +29,7 @@ export class RateLimitHandler {
       const response = new Response(
         JSON.stringify({ error: 'rate_limit_exceeded', message: 'Too many requests' }),
         { 
-          status: 429,
+          status: HTTP_STATUS.TOO_MANY_REQUESTS,
           headers: {
             'Content-Type': 'application/json',
             'Retry-After': String(Math.ceil(route.rateLimit.windowMs / 1000))

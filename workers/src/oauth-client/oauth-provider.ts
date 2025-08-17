@@ -4,8 +4,9 @@
  */
 
 import type { Env } from './types';
+import { OAUTH_SCOPES, OAUTH_PROVIDERS } from '../../../shared';
 
-export interface OAuthProvider {
+export interface OAuthProviderConfig {
   name: string;
   authorizationServer: URL;
   clientId: string;
@@ -13,12 +14,12 @@ export interface OAuthProvider {
   scopes: string[];
 }
 
-export function getGoogleProvider(env: Env): OAuthProvider {
+export function getGoogleProvider(env: Env): OAuthProviderConfig {
   return {
-    name: 'google',
+    name: OAUTH_PROVIDERS.GOOGLE,
     authorizationServer: new URL('https://accounts.google.com'),
     clientId: env.GOOGLE_CLIENT_ID,
     redirectUri: env.REDIRECT_URI,
-    scopes: ['openid', 'email', 'profile']
+    scopes: [...OAUTH_SCOPES.GOOGLE]
   };
 }

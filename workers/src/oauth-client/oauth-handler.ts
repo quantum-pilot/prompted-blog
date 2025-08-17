@@ -11,10 +11,11 @@ import { isValidStateParameter } from './oauth-validation';
 import { exchangeCodeForTokens, validateGoogleIdToken } from './token-handler';
 import { extractUserInfo } from './user-info-handler';
 import { jsonResponse, logAndReturnError } from './oauth-errors';
+import { HTTP_STATUS } from '../../../shared';
 import { validateStoredChallenge, parseRequestParams } from './pkce-validation';
 import { getGoogleProvider } from './oauth-provider';
 
-export type { OAuthProvider } from './oauth-provider';
+export type { OAuthProviderConfig } from './oauth-provider';
 export { getGoogleProvider } from './oauth-provider';
 
 export async function handleOAuthCallback(
@@ -27,7 +28,7 @@ export async function handleOAuthCallback(
     return jsonResponse({
       error: 'invalid_request',
       error_description: 'Authentication failed'
-    }, 400, undefined, context);
+    }, HTTP_STATUS.BAD_REQUEST, undefined, context);
   }
 
   const { code, state, codeVerifier } = params;
@@ -40,7 +41,7 @@ export async function handleOAuthCallback(
       !codeVerifier ? AuditEventType.PKCE_VERIFICATION_FAILURE : AuditEventType.AUTH_LOGIN_FAILURE,
       reason,
       'invalid_request',
-      400
+      HTTP_STATUS.BAD_REQUEST
     );
   }
 
@@ -50,7 +51,7 @@ export async function handleOAuthCallback(
       AuditEventType.AUTH_LOGIN_FAILURE,
       'Invalid state parameter format',
       'invalid_request',
-      400
+      HTTP_STATUS.BAD_REQUEST
     );
   }
 
@@ -59,7 +60,7 @@ export async function handleOAuthCallback(
     return jsonResponse({
       error: 'invalid_grant',
       error_description: 'Authentication failed'
-    }, 400, undefined, context);
+    }, HTTP_STATUS.BAD_REQUEST, undefined, context);
   }
 
   const provider = getGoogleProvider(env);
@@ -84,7 +85,7 @@ export async function handleOAuthCallback(
         AuditEventType.AUTH_LOGIN_FAILURE,
         'ID token validation failed',
         'invalid_grant',
-        400,
+        HTTP_STATUS.BAD_REQUEST,
         error
       );
     }
@@ -105,7 +106,7 @@ export async function handleOAuthCallback(
       AuditEventType.AUTH_LOGIN_FAILURE,
       'OAuth flow failed',
       'server_error',
-      500,
+      HTTP_STATUS.INTERNAL_SERVER_ERROR,
       error
     );
   }

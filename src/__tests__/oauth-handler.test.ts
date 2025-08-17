@@ -69,8 +69,7 @@ describe('OAuth Handler', () => {
         configurable: true
       });
 
-      // Note: In the updated code, we need to mock the GOOGLE_CLIENT_ID constant
-      // For now, the test will use the real value from oauth-handler.ts
+      // Production OAuth flow should always be used
 
       // Dynamically import to get fresh module with mocks
       const module = await import('../oauth-handler');
@@ -88,16 +87,13 @@ describe('OAuth Handler', () => {
       expect(mockStartAuthFlow).toHaveBeenCalled();
     });
 
-    it('should use mock flow in development without client ID', async () => {
-      // Set development environment
+    it('should always use real OAuth flow regardless of environment', async () => {
+      // Set development environment (localhost)
       Object.defineProperty(window, 'location', {
         value: { ...window.location, hostname: 'localhost', origin: 'http://localhost' },
         writable: true,
         configurable: true
       });
-
-      // Note: Mock OAuth will trigger on localhost when GOOGLE_CLIENT_ID is empty
-      // which is the default in oauth-handler.ts
 
       // Dynamically import to get fresh module with mocks
       const module = await import('../oauth-handler');
@@ -107,18 +103,13 @@ describe('OAuth Handler', () => {
         detail: { provider: 'google' }
       });
 
-      const successListener = vi.fn();
-      document.addEventListener('oauth-success', successListener);
-
       document.dispatchEvent(event);
 
       // Wait for async operations
       await new Promise(resolve => setTimeout(resolve, 10));
 
-      expect(mockStartAuthFlow).not.toHaveBeenCalled();
-      expect(sessionStorage.getItem('oauth_session_id')).toBe('mock-session-123');
-      expect(console.log).toHaveBeenCalledWith('Development mode: Mocking OAuth flow');
-      expect(successListener).toHaveBeenCalled();
+      // Should always call real OAuth, never mock
+      expect(mockStartAuthFlow).toHaveBeenCalled();
     });
 
     it('should dispatch oauth-error event on failure', async () => {
@@ -129,7 +120,7 @@ describe('OAuth Handler', () => {
         configurable: true
       });
 
-      // Note: Tests assume production environment based on hostname
+      // Production OAuth flow is always used
 
       // Mock failure
       mockStartAuthFlow.mockRejectedValueOnce(new Error('Network error'));
