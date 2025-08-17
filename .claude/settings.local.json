@@ -43,7 +43,8 @@
       "Bash(npm uninstall:*)",
       "Bash(npx wrangler:*)",
       "Bash(/dev/null)",
-      "Bash(cp:*)"
+      "Bash(cp:*)",
+      "Bash(npx vitest run:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",

@@ -366,4 +366,126 @@ describe('OAuthClient', () => {
         .toThrow('Provider github not yet supported');
     });
   });
+
+  describe('security considerations', () => {
+    it('should not expose PKCE verifier in any logs or errors', async () => {
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      
+      // Mock network error during popup flow
+      mockPopupHandler.waitForCallback.mockRejectedValue(new Error('Network error'));
+      
+      try {
+        await client.startAuthFlow();
+      } catch (error) {
+        // Check error message doesn't contain verifier
+        expect((error as Error).message).not.toContain('test-verifier');
+      }
+      
+      // Check console logs don't contain verifier
+      const consoleCallsStr = JSON.stringify(consoleSpy.mock.calls);
+      expect(consoleCallsStr).not.toContain('test-verifier');
+      
+      consoleSpy.mockRestore();
+    });
+
+    it('should validate message origin strictly', async () => {
+      // Mock successful popup callback with matching state
+      let capturedState: string | null = null;
+      mockPopupHandler.openPopup.mockImplementation((url: string) => {
+        const urlObj = new URL(url);
+        capturedState = urlObj.searchParams.get('state');
+      });
+      
+      mockPopupHandler.waitForCallback.mockImplementation(async () => ({
+        code: 'auth-code',
+        state: capturedState
+      }));
+      
+      // Mock successful token exchange
+      (global.fetch as any).mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          success: true,
+          sessionId: 'session-123'
+        })
+      });
+      
+      await client.startAuthFlow();
+      
+      // Verify that waitForCallback is called with the correct origin
+      expect(mockPopupHandler.waitForCallback).toHaveBeenCalledWith('https://app.example.com');
+    });
+
+    it('should store PKCE parameters in memory only, not sessionStorage', async () => {
+      // Mock successful popup flow with matching state
+      let capturedState: string | null = null;
+      mockPopupHandler.openPopup.mockImplementation((url: string) => {
+        const urlObj = new URL(url);
+        capturedState = urlObj.searchParams.get('state');
+      });
+      
+      mockPopupHandler.waitForCallback.mockImplementation(async () => ({
+        code: 'auth-code',
+        state: capturedState
+      }));
+      
+      // Mock successful token exchange
+      (global.fetch as any).mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          success: true,
+          sessionId: 'session-123'
+        })
+      });
+      
+      // Clear sessionStorage before test
+      sessionStorage.clear();
+      
+      await client.startAuthFlow();
+      
+      // Verify PKCE parameters are NOT in sessionStorage
+      expect(sessionStorage.getItem('oauth_code_verifier')).toBeNull();
+      expect(sessionStorage.getItem('oauth_challenge')).toBeNull();
+      expect(sessionStorage.getItem('oauth_state')).toBeNull();
+      expect(sessionStorage.getItem('oauth_provider')).toBeNull();
+      
+      // Verify session ID is also NOT in sessionStorage (memory only)
+      expect(sessionStorage.getItem('oauth_session_id')).toBeNull();
+      
+      // But session ID should be in memory
+      expect(getSessionId()).toBe('session-123');
+    });
+
+    it('should clear memory after successful authentication', async () => {
+      // Mock successful popup flow with matching state
+      let capturedState: string | null = null;
+      mockPopupHandler.openPopup.mockImplementation((url: string) => {
+        const urlObj = new URL(url);
+        capturedState = urlObj.searchParams.get('state');
+      });
+      
+      mockPopupHandler.waitForCallback.mockImplementation(async () => ({
+        code: 'auth-code',
+        state: capturedState
+      }));
+      
+      // Mock successful token exchange
+      (global.fetch as any).mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          success: true,
+          sessionId: 'session-123',
+          expiresAt: Date.now() + 3600000
+        })
+      });
+      
+      await client.startAuthFlow();
+      
+      // Verify session ID is stored in memory
+      expect(getSessionId()).toBe('session-123');
+      
+      // Verify cleanup was called
+      expect(mockPopupHandler.cleanup).toHaveBeenCalled();
+    });
+  });
 });

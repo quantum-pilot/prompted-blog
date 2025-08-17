@@ -5,7 +5,6 @@
   "type": "module",
   "scripts": {
     "build": "node scripts/build.mjs && node scripts/bundle-css.mjs",
-    "build:watch": "node scripts/build.mjs --watch",
     "dev": "npm run build && cd workers && wrangler dev",
     "test": "npm run test:frontend && npm run test:workers && npm run test:e2e",
     "test:frontend": "vitest --config vitest.config.ts",

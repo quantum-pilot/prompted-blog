@@ -7,6 +7,13 @@
 export interface Env {
   ALLOWED_ORIGINS: string;
   OAUTH_SESSIONS: KVNamespace;
+  SESSION_ENCRYPTION_KEY: string;
+  SESSION_ENCRYPTION_SALT: string;
+  GOOGLE_CLIENT_ID: string;
+  CLIENT_ID: string;
+  REDIRECT_URI: string;
+  FRONTEND_URL: string;
+  OAUTH_KV?: KVNamespace; // Optional, for legacy support
 }
 
 // Worker-specific types not in shared module

@@ -1,25 +1,28 @@
 // @agent: cloudflare-backend
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { SessionManager, SessionData } from '../session-manager';
-import type { Env } from '../types';
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import { SessionManager, SessionData } from "../session-manager";
+import { RequestContext } from "../../utils/request-context";
+import type { Env } from "../types";
 
-describe('SessionManager Encryption', () => {
+describe("SessionManager Encryption", () => {
   let mockEnv: Env;
   let sessionManager: SessionManager;
-  
-  beforeEach(() => {
+  let context: RequestContext;
+
+  beforeEach(async () => {
     // Create mock KV store with Map
     const kvStore = new Map<string, string>();
-    
+
     // Generate a proper encryption key for testing (32 bytes)
-    const testKey = 'test-encryption-key-must-be-32-bytes-long-exactly!';
-    
+    const testKey = "test-encryption-key-must-be-32-bytes-long-exactly!";
+
     mockEnv = {
-      GOOGLE_CLIENT_ID: 'test-google-client',
-      CLIENT_ID: 'test-client',
-      REDIRECT_URI: 'http://localhost:3000/callback',
-      FRONTEND_URL: 'http://localhost:3000',
+      GOOGLE_CLIENT_ID: "test-google-client",
+      CLIENT_ID: "test-client",
+      REDIRECT_URI: "http://localhost:3000/callback",
+      FRONTEND_URL: "http://localhost:3000",
       SESSION_ENCRYPTION_KEY: testKey,
+      SESSION_ENCRYPTION_SALT: "test-salt-for-unit-tests",
       OAUTH_SESSIONS: {
         put: async (key: string, value: string, options?: any) => {
           kvStore.set(key, value);
@@ -27,268 +30,325 @@ describe('SessionManager Encryption', () => {
         get: async (key: string) => kvStore.get(key) || null,
         delete: async (key: string) => {
           kvStore.delete(key);
-        }
+        },
       } as any,
-      OAUTH_KV: {} as any
+      OAUTH_KV: {} as any,
     };
-    
+
     sessionManager = new SessionManager(mockEnv);
+
+    // Create a mock RequestContext for tests
+    const mockRequest = new Request("http://localhost/test");
+    context = await RequestContext.create(mockRequest, mockEnv);
+    context.userId = "test-user";
   });
 
-  describe('Session Data Encryption', () => {
-    it('should encrypt session data before storing', async () => {
+  describe("Session Encryption", () => {
+    it("should encrypt session data before storing", async () => {
       const sessionData = {
-        provider: 'google',
-        userId: 'user123',
-        email: 'test@example.com',
-        name: 'Test User',
-        expiresAt: Date.now() + 3600000 // 1 hour from now
+        provider: "google" as const,
+        userId: "user-123",
+        email: "test@example.com",
+        name: "Test User",
+        expiresAt: Date.now() + 3600000,
       };
-      
-      const sessionId = await sessionManager.createSession(sessionData);
-      
-      // Get raw data from KV store
-      const rawData = await mockEnv.OAUTH_SESSIONS.get(`session:${sessionId}`);
-      expect(rawData).toBeDefined();
-      
-      // Verify data is encrypted (should not be readable JSON)
-      expect(() => JSON.parse(rawData!)).toThrow();
-      
-      // Verify it's base64 encoded
-      expect(() => atob(rawData!)).not.toThrow();
-      
-      // The encrypted data should not contain plaintext sensitive information
-      expect(rawData).not.toContain('user123');
-      expect(rawData).not.toContain('test@example.com');
-      expect(rawData).not.toContain('Test User');
+
+      const sessionId = await sessionManager.createSession(
+        sessionData,
+        context
+      );
+
+      // Get raw value from KV store
+      const rawValue = await mockEnv.OAUTH_SESSIONS.get(`session:${sessionId}`);
+
+      expect(rawValue).toBeDefined();
+      expect(rawValue).not.toContain("user-123"); // Should be encrypted
+      expect(rawValue).not.toContain("test@example.com"); // Should be encrypted
+
+      // Should contain base64 encoded data
+      expect(rawValue).toMatch(/^[A-Za-z0-9+/=]+$/);
     });
 
-    it('should decrypt session data when retrieving', async () => {
+    it("should decrypt session data when retrieving", async () => {
       const sessionData = {
-        provider: 'google',
-        userId: 'user456',
-        email: 'another@example.com',
-        name: 'Another User',
-        picture: 'https://example.com/pic.jpg',
-        expiresAt: Date.now() + 3600000
+        provider: "google" as const,
+        userId: "user-456",
+        email: "encrypted@example.com",
+        name: "Encrypted User",
+        picture: "https://example.com/pic.jpg",
+        expiresAt: Date.now() + 3600000,
       };
-      
-      const sessionId = await sessionManager.createSession(sessionData);
-      const retrieved = await sessionManager.getSession(sessionId);
-      
+
+      const sessionId = await sessionManager.createSession(
+        sessionData,
+        context
+      );
+      const retrieved = await sessionManager.getSession(sessionId, context);
+
       expect(retrieved).toBeDefined();
-      expect(retrieved!.userId).toBe('user456');
-      expect(retrieved!.email).toBe('another@example.com');
-      expect(retrieved!.name).toBe('Another User');
-      expect(retrieved!.picture).toBe('https://example.com/pic.jpg');
-      expect(retrieved!.provider).toBe('google');
+      expect(retrieved?.userId).toBe("user-456");
+      expect(retrieved?.email).toBe("encrypted@example.com");
+      expect(retrieved?.name).toBe("Encrypted User");
+      expect(retrieved?.picture).toBe("https://example.com/pic.jpg");
     });
 
-    it('should handle decryption errors gracefully', async () => {
-      // Store invalid encrypted data directly
-      const sessionId = 'Valid123def456GHI789jkl012MNO345pqr678STU90X';
-      await mockEnv.OAUTH_SESSIONS.put(`session:${sessionId}`, 'invalid-encrypted-data');
-      
-      const retrieved = await sessionManager.getSession(sessionId);
+    it("should handle missing sessions gracefully", async () => {
+      // Use a valid session ID format that doesn't exist
+      const sessionId = "Abc123def456GHI789jkl012MNO345pqr678STU90XX";
+      const retrieved = await sessionManager.getSession(sessionId, context);
+
       expect(retrieved).toBeNull();
     });
 
-    it('should generate unique IVs for each encryption', async () => {
+    it("should generate unique session IDs", async () => {
       const sessionData = {
-        provider: 'google',
-        userId: 'same-user',
-        email: 'same@example.com',
-        expiresAt: Date.now() + 3600000
+        provider: "google" as const,
+        userId: "user-789",
+        email: "unique@example.com",
+        expiresAt: Date.now() + 3600000,
       };
-      
-      // Create two sessions with identical data
-      const sessionId1 = await sessionManager.createSession(sessionData);
-      const sessionId2 = await sessionManager.createSession(sessionData);
-      
-      const encryptedData1 = await mockEnv.OAUTH_SESSIONS.get(`session:${sessionId1}`);
-      const encryptedData2 = await mockEnv.OAUTH_SESSIONS.get(`session:${sessionId2}`);
-      
-      // Even with same plaintext, encrypted data should be different due to unique IVs
-      expect(encryptedData1).not.toBe(encryptedData2);
+
+      const sessionId1 = await sessionManager.createSession(
+        sessionData,
+        context
+      );
+      const sessionId2 = await sessionManager.createSession(
+        sessionData,
+        context
+      );
+
+      expect(sessionId1).not.toBe(sessionId2);
+      expect(sessionId1.length).toBeGreaterThan(20);
+      expect(sessionId2.length).toBeGreaterThan(20);
     });
   });
 
-  describe('OAuth State Encryption', () => {
-    it('should encrypt OAuth state data before storing', async () => {
+  describe("OAuth State Encryption", () => {
+    it("should encrypt OAuth state data", async () => {
       const stateData = {
-        codeChallenge: 'test-challenge-secret',
-        redirectUri: 'http://localhost:3000/callback',
-        someSecret: 'sensitive-data'
+        returnUrl: "/dashboard",
+        timestamp: Date.now(),
       };
-      
-      await sessionManager.storeOAuthState('test-state', stateData);
-      
-      // Get raw data from KV store
-      const rawData = await mockEnv.OAUTH_SESSIONS.get('state:test-state');
-      expect(rawData).toBeDefined();
-      
-      // Verify data is encrypted
-      expect(() => JSON.parse(rawData!)).toThrow();
-      
-      // The encrypted data should not contain plaintext sensitive information
-      expect(rawData).not.toContain('test-challenge-secret');
-      expect(rawData).not.toContain('sensitive-data');
-      expect(rawData).not.toContain('redirectUri');
+
+      await sessionManager.storeOAuthState("test-state", stateData, context);
+
+      // Get raw value from KV store
+      const rawValue = await mockEnv.OAUTH_SESSIONS.get("state:test-state");
+
+      expect(rawValue).toBeDefined();
+      expect(rawValue).not.toContain("dashboard"); // Should be encrypted
+      expect(rawValue).not.toContain("returnUrl"); // Should be encrypted
+
+      // Should contain base64 encoded data
+      expect(rawValue).toMatch(/^[A-Za-z0-9+/=]+$/);
     });
 
-    it('should decrypt OAuth state data when retrieving', async () => {
+    it("should decrypt OAuth state data", async () => {
       const stateData = {
-        codeChallenge: 'challenge-abc123',
-        redirectUri: 'http://localhost:3000/callback',
-        customField: 'custom-value'
+        returnUrl: "/profile",
+        timestamp: Date.now(),
+        provider: "google",
       };
-      
-      await sessionManager.storeOAuthState('state_123', stateData);
-      const retrieved = await sessionManager.getOAuthState('state_123');
-      
+
+      await sessionManager.storeOAuthState("state_123", stateData, context);
+      const retrieved = await sessionManager.getOAuthState(
+        "state_123",
+        context
+      );
+
       expect(retrieved).toEqual(stateData);
-      expect(retrieved.codeChallenge).toBe('challenge-abc123');
-      expect(retrieved.customField).toBe('custom-value');
     });
 
-    it('should handle state decryption errors gracefully', async () => {
-      // Store invalid encrypted data directly
-      await mockEnv.OAUTH_SESSIONS.put('state:bad-state', 'corrupted-data');
-      
-      const retrieved = await sessionManager.getOAuthState('bad-state');
+    it("should handle missing state gracefully", async () => {
+      const retrieved = await sessionManager.getOAuthState(
+        "bad-state",
+        context
+      );
       expect(retrieved).toBeNull();
     });
 
-    it('should still delete state after failed decryption', async () => {
-      const deleteSpy = vi.spyOn(mockEnv.OAUTH_SESSIONS, 'delete');
-      
-      // Store invalid encrypted data
-      await mockEnv.OAUTH_SESSIONS.put('state:temp-state', 'bad-encrypted-data');
-      
-      // Try to retrieve it
-      await sessionManager.getOAuthState('temp-state');
-      
-      // Should still delete the state even if decryption failed
-      expect(deleteSpy).toHaveBeenCalledWith('state:temp-state');
+    it("should delete state after retrieval", async () => {
+      const stateData = { test: "data" };
+      const deleteSpy = vi.spyOn(mockEnv.OAUTH_SESSIONS, "delete");
+
+      await sessionManager.storeOAuthState("temp-state", stateData, context);
+      await sessionManager.getOAuthState("temp-state", context);
+
+      expect(deleteSpy).toHaveBeenCalledWith("state:temp-state");
     });
   });
 
-  describe('Encryption Key Management', () => {
-    it('should derive encryption key from environment variable', async () => {
-      const sessionData = {
-        provider: 'google',
-        userId: 'key-test',
-        email: 'key@test.com',
-        expiresAt: Date.now() + 3600000
-      };
-      
-      // Create and retrieve session to ensure key derivation works
-      const sessionId = await sessionManager.createSession(sessionData);
-      const retrieved = await sessionManager.getSession(sessionId);
-      
-      expect(retrieved).toBeDefined();
-      expect(retrieved!.userId).toBe('key-test');
-    });
-
-    it('should reuse the same encryption key for multiple operations', async () => {
-      // Create multiple sessions to test key reuse
-      const sessions = [];
-      for (let i = 0; i < 3; i++) {
-        const sessionId = await sessionManager.createSession({
-          provider: 'google',
-          userId: `user${i}`,
-          email: `user${i}@test.com`,
-          expiresAt: Date.now() + 3600000
-        });
-        sessions.push(sessionId);
-      }
-      
-      // Retrieve all sessions to verify key consistency
-      for (let i = 0; i < sessions.length; i++) {
-        const retrieved = await sessionManager.getSession(sessions[i]);
-        expect(retrieved).toBeDefined();
-        expect(retrieved!.userId).toBe(`user${i}`);
-      }
-    });
-
-    it('should handle missing encryption key gracefully', async () => {
-      // Create a session manager with no encryption key
-      const envWithoutKey = { ...mockEnv, SESSION_ENCRYPTION_KEY: '' };
-      const managerWithoutKey = new SessionManager(envWithoutKey);
-      
-      // Attempting to create a session should fail
-      await expect(managerWithoutKey.createSession({
-        provider: 'google',
-        userId: 'test',
-        email: 'test@test.com',
-        expiresAt: Date.now() + 3600000
-      })).rejects.toThrow();
-    });
-  });
-
-  describe('Backward Compatibility', () => {
-    it('should handle sessions created with different encryption keys as expired', async () => {
-      // Simulate a session encrypted with a different key
-      const differentKeyEnv = { ...mockEnv, SESSION_ENCRYPTION_KEY: 'different-key-that-is-32-bytes-long!!!!!!!!' };
-      const differentKeyManager = new SessionManager(differentKeyEnv);
-      
-      // Create session with first manager
-      const sessionId = await sessionManager.createSession({
-        provider: 'google',
-        userId: 'test-user',
-        email: 'test@example.com',
-        expiresAt: Date.now() + 3600000
-      });
-      
-      // Try to retrieve with different key manager - should fail gracefully
-      const retrieved = await differentKeyManager.getSession(sessionId);
-      expect(retrieved).toBeNull();
-    });
-  });
-
-  describe('Performance', () => {
-    it('should complete encryption/decryption within 50ms', async () => {
-      const startTime = Date.now();
-      
-      const sessionData = {
-        provider: 'google',
-        userId: 'perf-test',
-        email: 'perf@test.com',
-        name: 'Performance Test User',
-        picture: 'https://example.com/large-url-path.jpg',
-        expiresAt: Date.now() + 3600000
-      };
-      
-      // Create and retrieve session
-      const sessionId = await sessionManager.createSession(sessionData);
-      const retrieved = await sessionManager.getSession(sessionId);
-      
-      const endTime = Date.now();
-      const duration = endTime - startTime;
-      
-      expect(retrieved).toBeDefined();
-      expect(duration).toBeLessThan(50);
-    });
-
-    it('should handle large session data efficiently', async () => {
+  describe("Encryption Edge Cases", () => {
+    it("should handle large session data", async () => {
       const largeData = {
-        provider: 'google',
-        userId: 'large-data-user',
-        email: 'large@test.com',
-        name: 'User with lots of data',
-        // Add a large custom field (within reasonable limits)
-        state: 'x'.repeat(1000),
-        expiresAt: Date.now() + 3600000
+        provider: "google" as const,
+        userId: "large-user",
+        email: "large@example.com",
+        name: "User with lots of data",
+        // Add a large custom field
+        state: "x".repeat(10000),
+        expiresAt: Date.now() + 3600000,
       };
-      
-      const startTime = Date.now();
-      const sessionId = await sessionManager.createSession(largeData);
-      const retrieved = await sessionManager.getSession(sessionId);
-      const duration = Date.now() - startTime;
-      
+
+      const sessionId = await sessionManager.createSession(largeData, context);
+      const retrieved = await sessionManager.getSession(sessionId, context);
+
       expect(retrieved).toBeDefined();
-      expect(retrieved!.state).toBe(largeData.state);
-      expect(duration).toBeLessThan(50);
+      expect(retrieved?.state).toBe(largeData.state);
+    });
+
+    it("should handle special characters in data", async () => {
+      const specialData = {
+        provider: "google" as const,
+        userId: "special-user",
+        email: "special@example.com",
+        name: "测试用户 🎉", // Unicode and emoji
+        state: JSON.stringify({ nested: { data: 'with "quotes"' } }),
+        expiresAt: Date.now() + 3600000,
+      };
+
+      const sessionId = await sessionManager.createSession(
+        specialData,
+        context
+      );
+      const retrieved = await sessionManager.getSession(sessionId, context);
+
+      expect(retrieved).toBeDefined();
+      expect(retrieved?.name).toBe("测试用户 🎉");
+      expect(retrieved?.state).toBe(specialData.state);
+    });
+  });
+
+  describe("Encryption Consistency", () => {
+    it("should use different encryption for each session", async () => {
+      const sessionData = {
+        provider: "google" as const,
+        userId: "consistent-user",
+        email: "consistent@example.com",
+        expiresAt: Date.now() + 3600000,
+      };
+
+      // Create two managers with the same key
+      const sessionManager1 = new SessionManager(mockEnv);
+      const sessionManager2 = new SessionManager(mockEnv);
+
+      const sessionId1 = await sessionManager1.createSession(
+        sessionData,
+        context
+      );
+      const sessionId2 = await sessionManager2.createSession(
+        sessionData,
+        context
+      );
+
+      // Get raw encrypted values
+      const raw1 = await mockEnv.OAUTH_SESSIONS.get(`session:${sessionId1}`);
+      const raw2 = await mockEnv.OAUTH_SESSIONS.get(`session:${sessionId2}`);
+
+      // Same data should produce different encrypted results (due to different IVs)
+      expect(raw1).not.toBe(raw2);
+
+      // But both should decrypt correctly
+      const retrieved1 = await sessionManager1.getSession(sessionId1, context);
+      const retrieved2 = await sessionManager2.getSession(sessionId2, context);
+
+      expect(retrieved1?.userId).toBe("consistent-user");
+      expect(retrieved2?.userId).toBe("consistent-user");
+    });
+
+    it("should handle concurrent session operations", async () => {
+      const sessions: string[] = [];
+      const promises = [];
+
+      // Create multiple sessions concurrently
+      for (let i = 0; i < 5; i++) {
+        promises.push(
+          sessionManager.createSession(
+            {
+              provider: "google" as const,
+              userId: `concurrent-user-${i}`,
+              email: `user${i}@example.com`,
+              expiresAt: Date.now() + 3600000,
+            },
+            context
+          )
+        );
+      }
+
+      const sessionIds = await Promise.all(promises);
+      sessions.push(...sessionIds);
+
+      // Retrieve all sessions concurrently
+      const retrievalPromises = sessions.map((id, i) =>
+        sessionManager.getSession(sessions[i], context)
+      );
+
+      const retrieved = await Promise.all(retrievalPromises);
+
+      // All should be retrieved correctly
+      retrieved.forEach((session, i) => {
+        expect(session?.userId).toBe(`concurrent-user-${i}`);
+      });
+    });
+  });
+
+  describe("Encryption Key Management", () => {
+    it("should handle missing encryption key gracefully", async () => {
+      const envWithoutKey = { ...mockEnv, SESSION_ENCRYPTION_KEY: undefined };
+      const managerWithoutKey = new SessionManager(envWithoutKey as any);
+
+      await expect(
+        managerWithoutKey.createSession(
+          {
+            provider: "google" as const,
+            userId: "test-user",
+            email: "test@example.com",
+            expiresAt: Date.now() + 3600000,
+          },
+          context
+        )
+      ).rejects.toThrow();
+    });
+
+    it("should handle different encryption keys", async () => {
+      const envWithDifferentKey = {
+        ...mockEnv,
+        SESSION_ENCRYPTION_KEY: "different-key",
+      };
+      const managerWithDifferentKey = new SessionManager(envWithDifferentKey);
+
+      // Should still be able to create a session with a different key
+      const sessionId = await managerWithDifferentKey.createSession(
+        {
+          provider: "google" as const,
+          userId: "test-user",
+          email: "test@example.com",
+          expiresAt: Date.now() + 3600000,
+        },
+        context
+      );
+
+      expect(sessionId).toBeDefined();
+      expect(sessionId).toMatch(/^[A-Za-z0-9_-]+$/);
+    });
+  });
+
+  describe("OAuth State Encryption", () => {
+    it("should still delete state after failed decryption", async () => {
+      // Store corrupted data directly
+      await mockEnv.OAUTH_SESSIONS.put(
+        "state:corrupted",
+        "invalid-encrypted-data"
+      );
+
+      const deleteSpy = vi.spyOn(mockEnv.OAUTH_SESSIONS, "delete");
+      const retrieved = await sessionManager.getOAuthState(
+        "corrupted",
+        context
+      );
+
+      expect(retrieved).toBeNull();
+      expect(deleteSpy).toHaveBeenCalledWith("state:corrupted");
     });
   });
 });

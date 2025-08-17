@@ -1,172 +1,281 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>OAuth Authentication</title>
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    }
-
-    .container {
-      background: white;
-      padding: 2rem;
-      border-radius: 8px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      text-align: center;
-      max-width: 400px;
-    }
-
-    .spinner {
-      width: 50px;
-      height: 50px;
-      margin: 0 auto 1rem;
-      border: 3px solid #f3f3f3;
-      border-top: 3px solid #667eea;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    .success {
-      color: #10b981;
-      font-size: 3rem;
-      margin-bottom: 1rem;
-    }
-
-    .error {
-      color: #ef4444;
-      font-size: 3rem;
-      margin-bottom: 1rem;
-    }
-
-    h1 {
-      margin: 0 0 0.5rem;
-      font-size: 1.5rem;
-      color: #1f2937;
-    }
-
-    p {
-      margin: 0;
-      color: #6b7280;
-      line-height: 1.5;
-    }
-
-    .error-details {
-      margin-top: 1rem;
-      padding: 1rem;
-      background: #fef2f2;
-      border: 1px solid #fee2e2;
-      border-radius: 4px;
-      color: #991b1b;
-      font-size: 0.875rem;
-      text-align: left;
-    }
-
-    .hidden {
-      display: none;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div id="loading">
-      <div class="spinner"></div>
-      <h1>Authenticating...</h1>
-      <p>Please wait while we complete your sign-in.</p>
-    </div>
-
-    <div id="success" class="hidden">
-      <div class="success">✓</div>
-      <h1>Authentication Successful!</h1>
-      <p>You can now close this window.</p>
-    </div>
-
-    <div id="error" class="hidden">
-      <div class="error">✗</div>
-      <h1>Authentication Failed</h1>
-      <p>There was a problem signing you in.</p>
-      <div id="error-details" class="error-details"></div>
-    </div>
-  </div>
-
-  <script>
-    (function() {
-      // Get URL parameters
-      const params = new URLSearchParams(window.location.search);
-      const code = params.get('code');
-      const state = params.get('state');
-      const error = params.get('error');
-      const errorDescription = params.get('error_description');
-
-      // Function to show success
-      function showSuccess() {
-        document.getElementById('loading').classList.add('hidden');
-        document.getElementById('success').classList.remove('hidden');
-
-        // Auto-close after 2 seconds
-        setTimeout(() => {
-          window.close();
-        }, 2000);
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self'; frame-ancestors 'self'; base-uri 'self'; form-action 'self';">
+    <title>OAuth Callback</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
       }
 
-      // Function to show error
-      function showError(message) {
-        document.getElementById('loading').classList.add('hidden');
-        document.getElementById('error').classList.remove('hidden');
-        document.getElementById('error-details').textContent = message;
-
-        // Auto-close after 5 seconds
-        setTimeout(() => {
-          window.close();
-        }, 5000);
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #333;
       }
 
-      // This page is only used for popup mode
-      // Check if we're in a popup
-      if (window.opener && !window.opener.closed) {
-        // We're in a popup - send message to parent
-        try {
-          // Prepare message data
-          const messageData = {};
+      .container {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+          0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        text-align: center;
+        max-width: 400px;
+        width: 90%;
+      }
 
-          if (error) {
-            messageData.error = error;
-            messageData.error_description = errorDescription || 'Authentication failed';
-            showError(messageData.error_description);
-          } else if (code && state) {
-            messageData.code = code;
-            messageData.state = state;
-            showSuccess();
-          } else {
-            messageData.error = 'invalid_response';
-            messageData.error_description = 'Invalid OAuth response';
-            showError('Invalid OAuth response - missing required parameters');
+      .spinner {
+        display: inline-block;
+        width: 50px;
+        height: 50px;
+        border: 3px solid rgba(102, 126, 234, 0.3);
+        border-radius: 50%;
+        border-top-color: #667eea;
+        animation: spin 1s ease-in-out infinite;
+        margin-bottom: 1rem;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .message {
+        font-size: 1.1rem;
+        line-height: 1.6;
+        margin-top: 0.5rem;
+      }
+
+      .success {
+        color: #10b981;
+      }
+
+      .error {
+        color: #ef4444;
+      }
+
+      .info {
+        color: #6b7280;
+        font-size: 0.9rem;
+        margin-top: 1rem;
+      }
+
+      .error-details {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 6px;
+        padding: 0.75rem;
+        margin-top: 1rem;
+        font-size: 0.85rem;
+        color: #991b1b;
+        word-break: break-word;
+      }
+
+      .hidden {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div id="loading" class="state">
+        <div class="spinner"></div>
+        <div class="message">Processing OAuth response...</div>
+      </div>
+
+      <div id="success" class="state hidden">
+        <svg
+          width="50"
+          height="50"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#10b981"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          style="margin-bottom: 1rem"
+        >
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+        <div class="message success">Processing complete!</div>
+        <div class="info">
+          This window will close automatically.
+        </div>
+      </div>
+
+      <div id="error" class="state hidden">
+        <svg
+          width="50"
+          height="50"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#ef4444"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          style="margin-bottom: 1rem"
+        >
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <div class="message error">Authentication failed</div>
+        <div id="error-details" class="error-details hidden"></div>
+        <div class="info">You can close this window and try again.</div>
+      </div>
+
+      <div id="no-parent" class="state hidden">
+        <svg
+          width="50"
+          height="50"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#f59e0b"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          style="margin-bottom: 1rem"
+        >
+          <path
+            d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
+          ></path>
+          <line x1="12" y1="9" x2="12" y2="13"></line>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+        <div class="message">OAuth callback received</div>
+        <div class="info">
+          This window was opened directly. OAuth data has been processed but
+          couldn't be sent to a parent window.
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        "use strict";
+
+        // Parse URL parameters with validation
+        function parseUrlParams() {
+          const params = {};
+          const ALLOWED_PARAMS = ['code', 'state', 'error', 'error_description', 'error_uri'];
+          const searchParams = new URLSearchParams(window.location.search);
+          for (const [key, value] of searchParams) {
+            // Only accept whitelisted parameters
+            if (ALLOWED_PARAMS.includes(key)) {
+              params[key] = value;
+            }
+          }
+          return params;
+        }
+
+        // Show a specific state
+        function showState(stateId) {
+          document.querySelectorAll(".state").forEach((state) => {
+            state.classList.add("hidden");
+          });
+          const state = document.getElementById(stateId);
+          if (state) {
+            state.classList.remove("hidden");
+          }
+        }
+
+        // Handle OAuth callback
+        function handleOAuthCallback() {
+          const params = parseUrlParams();
+
+          // Check if we have OAuth response parameters
+          const hasOAuthResponse =
+            params.code || params.error || params.token || params.access_token;
+
+          if (!hasOAuthResponse) {
+            showState("error");
+            const errorDetails = document.getElementById("error-details");
+            errorDetails.textContent = "No OAuth parameters found in URL";
+            errorDetails.classList.remove("hidden");
+            return;
           }
 
-          // Post message to opener
-          window.opener.postMessage(messageData, window.location.origin);
+          // Determine if this is a success or error response
+          const isError =
+            params.error ||
+            (!params.code && !params.token && !params.access_token);
 
-        } catch (e) {
-          console.error('Failed to send message to parent:', e);
-          showError('Failed to communicate with parent window');
+          // Prepare the message data
+          // Spread params at the root level for compatibility with the popup handler
+          const messageData = {
+            ...params,
+            type: "oauth-callback",
+            timestamp: Date.now(),
+          };
+
+          // Try to send to parent window
+          let messageSent = false;
+
+          // Get the allowed origin (same origin as this page)
+          const allowedOrigin = window.location.origin;
+          
+          // Try window.opener first (popup scenario)
+          if (window.opener && window.opener !== window) {
+            try {
+              window.opener.postMessage(messageData, allowedOrigin);
+              messageSent = true;
+            } catch (e) {
+              console.error("Failed to post message to opener:", e);
+            }
+          }
+
+          // Try parent window (iframe scenario)
+          if (!messageSent && window.parent && window.parent !== window) {
+            try {
+              window.parent.postMessage(messageData, allowedOrigin);
+              messageSent = true;
+            } catch (e) {
+              console.error("Failed to post message to parent:", e);
+            }
+          }
+
+          // Update UI based on result
+          if (messageSent) {
+            // Always show success state since message was sent
+            // The main window will handle error display
+            showState("success");
+            
+            // Always try to close the window after a short delay
+            // regardless of success or error
+            setTimeout(() => {
+              try {
+                window.close();
+              } catch (e) {
+                // Window might not be closeable if not opened by script
+                console.log("Could not auto-close window");
+              }
+            }, 1500);
+          } else {
+            // No parent window found
+            showState("no-parent");
+            console.log("OAuth callback parameters:", params);
+          }
         }
-      } else {
-        // Not in a popup - this shouldn't happen as we only support popup mode
-        showError('This page must be opened in a popup window for authentication.');
-      }
-    })();
-  </script>
-</body>
+
+        // Run on page load
+        if (document.readyState === "loading") {
+          document.addEventListener("DOMContentLoaded", handleOAuthCallback);
+        } else {
+          handleOAuthCallback();
+        }
+      })();
+    </script>
+  </body>
 </html>

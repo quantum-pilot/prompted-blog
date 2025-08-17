@@ -1,12 +1,12 @@
 // @agent: cloudflare-backend
 // Logging functionality for RequestContext
 
-import { AuditLogger, AuditEventType } from './audit-logger';
+import { AuditLogger, AuditEventType } from "./audit-logger";
 
 export interface LogEntry {
   timestamp: string;
   eventType: AuditEventType;
-  result: 'success' | 'failure';
+  result: "success" | "failure";
   metadata?: Record<string, any>;
 }
 
@@ -15,7 +15,7 @@ export class ContextLogger {
 
   log(
     eventType: AuditEventType,
-    result: 'success' | 'failure',
+    result: "success" | "failure",
     contextData: {
       correlationId: string;
       userId?: string;
@@ -30,7 +30,7 @@ export class ContextLogger {
       timestamp: new Date().toISOString(),
       eventType,
       result,
-      metadata
+      metadata,
     };
 
     this.logs.push(logEntry);
@@ -45,8 +45,8 @@ export class ContextLogger {
       ...metadata,
       metadata: {
         ...(contextMetadata ? Object.fromEntries(contextMetadata) : {}),
-        ...metadata
-      }
+        ...metadata,
+      },
     });
   }
 

@@ -21,7 +21,7 @@ export class RateLimiter {
     this.kv = config.kv;
     this.limit = config.limit;
     this.windowMs = config.windowMs;
-    this.keyPrefix = config.keyPrefix || 'rate-limit';
+    this.keyPrefix = config.keyPrefix || "rate-limit";
   }
 
   /**
@@ -48,8 +48,9 @@ export class RateLimiter {
       }
 
       // Filter out requests outside the current window
-      const recentRequests = (requestData.requests || [])
-        .filter((timestamp: number) => timestamp > windowStart);
+      const recentRequests = (requestData.requests || []).filter(
+        (timestamp: number) => timestamp > windowStart
+      );
 
       // Check if limit exceeded
       if (recentRequests.length >= this.limit) {
@@ -58,11 +59,9 @@ export class RateLimiter {
 
       // Add current request and update KV
       recentRequests.push(now);
-      await this.kv.put(
-        kvKey,
-        JSON.stringify({ requests: recentRequests }),
-        { expirationTtl: Math.ceil(this.windowMs / 1000) }
-      );
+      await this.kv.put(kvKey, JSON.stringify({ requests: recentRequests }), {
+        expirationTtl: Math.ceil(this.windowMs / 1000),
+      });
 
       return true;
     } else {
@@ -73,25 +72,36 @@ export class RateLimiter {
 
   /**
    * Get the client IP address from the request
+   * SECURITY: Only trusts CF-Connecting-IP header as this worker
+   * MUST be deployed to Cloudflare Workers for security
    * @param request - The incoming request
    * @returns The client IP address
+   * @throws Error if not running on Cloudflare
    */
   static getClientIp(request: Request): string {
-    // CF-Connecting-IP is Cloudflare's header for the real client IP
-    return request.headers.get('CF-Connecting-IP') ||
-           request.headers.get('X-Forwarded-For')?.split(',')[0]?.trim() ||
-           'unknown';
+    // CRITICAL: Only trust CF-Connecting-IP header
+    // This header is set by Cloudflare and cannot be spoofed
+    const cfIp = request.headers.get("CF-Connecting-IP");
+    
+    if (!cfIp) {
+      // If CF-Connecting-IP is missing, we're not behind Cloudflare
+      // This is a security issue - fail closed with no fallback
+      throw new Error("Security Error: CF-Connecting-IP header missing - this worker must be deployed to Cloudflare");
+    }
+    
+    return cfIp;
   }
 
   /**
    * Record a new request
    */
-  private async recordRequest(kvKey: string, timestamp: number): Promise<boolean> {
-    await this.kv.put(
-      kvKey,
-      JSON.stringify({ requests: [timestamp] }),
-      { expirationTtl: Math.ceil(this.windowMs / 1000) }
-    );
+  private async recordRequest(
+    kvKey: string,
+    timestamp: number
+  ): Promise<boolean> {
+    await this.kv.put(kvKey, JSON.stringify({ requests: [timestamp] }), {
+      expirationTtl: Math.ceil(this.windowMs / 1000),
+    });
     return true;
   }
 }

@@ -27,11 +27,12 @@ export class EventManager {
     element.removeEventListener(event, handler, options);
 
     this.listeners = this.listeners.filter(
-      listener => !(
-        listener.element === element &&
-        listener.event === event &&
-        listener.handler === handler
-      )
+      (listener) =>
+        !(
+          listener.element === element &&
+          listener.event === event &&
+          listener.handler === handler
+        )
     );
   }
 

@@ -4,13 +4,18 @@
  * Uses popup-only mode for security - no sessionStorage or redirect mode
  */
 
-import * as oauth from 'oauth4webapi';
+import * as oauth from "oauth4webapi";
 // Using local types for now, but these could be imported from shared module:
 // import { OAuthConfig, OAuthSession, OAuthCallbackResult, OAuthProvider } from '../../shared';
-import { OAuthConfig, OAuthSession, OAuthCallbackResult, OAuthProvider } from './oauth-types';
-import { getProviderConfig } from './oauth-providers';
-import { getSessionId, validateSessionWithWorker, clearOAuthData, storeSessionId } from './oauth-session';
-import { OAuthPopupHandler } from './oauth-popup-handler';
+import { OAuthConfig, OAuthSession, OAuthCallbackResult } from "./oauth-types";
+import { getProviderConfig } from "./oauth-providers";
+import {
+  getSessionId,
+  validateSessionWithWorker,
+  clearOAuthData,
+  storeSessionId,
+} from "./oauth-session";
+import { OAuthPopupHandler } from "./oauth-popup-handler";
 
 export class OAuthClient {
   private readonly config: OAuthConfig;
@@ -21,7 +26,7 @@ export class OAuthClient {
 
   constructor(config: OAuthConfig) {
     this.config = {
-      ...config
+      ...config,
     };
   }
 
@@ -31,15 +36,17 @@ export class OAuthClient {
   async startAuthFlow(): Promise<void> {
     // Generate PKCE parameters
     this.codeVerifier = oauth.generateRandomCodeVerifier();
-    this.codeChallenge = await oauth.calculatePKCECodeChallenge(this.codeVerifier);
+    this.codeChallenge = await oauth.calculatePKCECodeChallenge(
+      this.codeVerifier
+    );
 
     // Generate secure random state for CSRF protection
     const randomBytes = new Uint8Array(32);
     crypto.getRandomValues(randomBytes);
     this.state = btoa(String.fromCharCode(...randomBytes))
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_')
-      .replace(/=/g, '');
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=/g, "");
 
     // Get provider configuration
     const providerConfig = getProviderConfig(this.config.provider);
@@ -47,19 +54,21 @@ export class OAuthClient {
 
     // Build authorization URL
     const authUrl = new URL(providerConfig.authorizationEndpoint);
-    authUrl.searchParams.set('client_id', this.config.clientId);
-    authUrl.searchParams.set('redirect_uri', this.config.redirectUri);
-    authUrl.searchParams.set('response_type', 'code');
-    authUrl.searchParams.set('scope', scopes.join(' '));
-    authUrl.searchParams.set('state', this.state);
-    authUrl.searchParams.set('code_challenge', this.codeChallenge);
-    authUrl.searchParams.set('code_challenge_method', 'S256');
+    authUrl.searchParams.set("client_id", this.config.clientId);
+    authUrl.searchParams.set("redirect_uri", this.config.redirectUri);
+    authUrl.searchParams.set("response_type", "code");
+    authUrl.searchParams.set("scope", scopes.join(" "));
+    authUrl.searchParams.set("state", this.state);
+    authUrl.searchParams.set("code_challenge", this.codeChallenge);
+    authUrl.searchParams.set("code_challenge_method", "S256");
 
     // Add provider-specific parameters
     if (providerConfig.additionalParams) {
-      Object.entries(providerConfig.additionalParams).forEach(([key, value]) => {
-        authUrl.searchParams.set(key, value);
-      });
+      Object.entries(providerConfig.additionalParams).forEach(
+        ([key, value]) => {
+          authUrl.searchParams.set(key, value);
+        }
+      );
     }
 
     // Use popup mode only
@@ -76,18 +85,19 @@ export class OAuthClient {
 
       // Validate state
       if (callbackData.state !== this.state) {
-        throw new Error('State mismatch - possible CSRF attack');
+        throw new Error("State mismatch - possible CSRF attack");
       }
 
       // Exchange code for tokens
       if (callbackData.code) {
         await this.exchangeCodeForTokens(callbackData.code, this.state);
       }
-
     } catch (error) {
       // Handle popup-specific errors
       if (popupHandler.isPopupBlocked()) {
-        throw new Error('Popup was blocked. Please allow popups for authentication.');
+        throw new Error(
+          "Popup was blocked. Please allow popups for authentication."
+        );
       }
       throw error;
     } finally {
@@ -100,33 +110,36 @@ export class OAuthClient {
   /**
    * Exchange authorization code for tokens
    */
-  private async exchangeCodeForTokens(code: string, state: string): Promise<void> {
+  private async exchangeCodeForTokens(
+    code: string,
+    state: string
+  ): Promise<void> {
     if (!this.codeVerifier) {
-      throw new Error('Missing code verifier');
+      throw new Error("Missing code verifier");
     }
 
     // Call worker to exchange code for tokens and create session
-    const url = new URL('/oauth/callback', this.config.workerUrl);
+    const url = new URL("/oauth/callback", this.config.workerUrl);
 
     const response = await fetch(url.toString(), {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
+        Accept: "application/json",
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         code,
         state,
         code_verifier: this.codeVerifier,
-        provider: this.config.provider!
-      })
+        provider: this.config.provider!,
+      }),
     });
 
     if (!response.ok) {
       throw new Error(`Worker error: ${response.status}`);
     }
 
-    const result = await response.json() as OAuthCallbackResult;
+    const result = (await response.json()) as OAuthCallbackResult;
 
     // Store session ID if successful
     if (result.success && result.sessionId) {
@@ -157,20 +170,22 @@ export class OAuthClient {
   ): Promise<OAuthCallbackResult> {
     // This method is only for popup mode with provided PKCE params
     if (!codeVerifier || !state) {
-      throw new Error('Missing required PKCE parameters. Popup mode requires codeVerifier and state.');
+      throw new Error(
+        "Missing required PKCE parameters. Popup mode requires codeVerifier and state."
+      );
     }
 
     const params = callbackUrl.searchParams;
-    const code = params.get('code');
-    const callbackState = params.get('state');
+    const code = params.get("code");
+    const callbackState = params.get("state");
 
     // Verify state
     if (callbackState !== state) {
-      throw new Error('State mismatch - possible CSRF attack');
+      throw new Error("State mismatch - possible CSRF attack");
     }
 
     if (!code) {
-      throw new Error('Missing authorization code');
+      throw new Error("Missing authorization code");
     }
 
     // Exchange code directly

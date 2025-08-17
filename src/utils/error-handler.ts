@@ -1,4 +1,4 @@
-import { createSingleton } from './singleton.js';
+import { createSingleton } from "./singleton.js";
 
 export interface ErrorDetails {
   message: string;
@@ -15,20 +15,21 @@ export interface ErrorHandlerConfig {
 export class ErrorHandler {
   static getInstance = createSingleton<ErrorHandler>(ErrorHandler);
 
-  handle(error: Error | string, details: ErrorDetails, config: ErrorHandlerConfig = {}): any {
-    const {
-      logToConsole = true,
-      fallbackValue = null
-    } = config;
+  handle(
+    error: Error | string,
+    details: ErrorDetails,
+    config: ErrorHandlerConfig = {}
+  ): any {
+    const { logToConsole = true, fallbackValue = null } = config;
 
-    const errorMessage = typeof error === 'string' ? error : error.message;
+    const errorMessage = typeof error === "string" ? error : error.message;
     const fullMessage = `${details.message}: ${errorMessage}`;
 
     if (logToConsole) {
       console.error(fullMessage, {
         code: details.code,
         context: details.context,
-        originalError: typeof error === 'string' ? new Error(error) : error
+        originalError: typeof error === "string" ? new Error(error) : error,
       });
     }
 

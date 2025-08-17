@@ -3,7 +3,7 @@
  * User information extraction from OAuth tokens
  */
 
-import * as oauth from 'oauth4webapi';
+import * as oauth from "oauth4webapi";
 
 export interface UserInfo {
   provider: string;
@@ -30,7 +30,7 @@ export function extractUserInfo(
     email: claims.email as string,
     name: claims.name as string | undefined,
     picture: claims.picture as string | undefined,
-    expiresAt: Date.now() + ((expiresIn ?? 3600) * 1000),
-    state
+    expiresAt: Date.now() + (expiresIn ?? 3600) * 1000,
+    state,
   };
 }

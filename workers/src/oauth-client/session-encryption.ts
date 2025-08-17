@@ -3,9 +3,9 @@
  * Encryption utilities for session management
  */
 
-import type { Env } from './types';
+import type { Env } from "./types";
 
-const ENCRYPTION_ALGO = 'AES-GCM';
+const ENCRYPTION_ALGO = "AES-GCM";
 const KEY_LENGTH = 256;
 const IV_LENGTH = 12; // 96 bits for GCM
 
@@ -22,35 +22,39 @@ export class SessionEncryption {
       return this.encryptionKey;
     }
 
-    // Validate that encryption key is provided
+    // Validate that encryption key and salt are provided
     if (!this.env.SESSION_ENCRYPTION_KEY) {
-      throw new Error('SESSION_ENCRYPTION_KEY is not configured');
+      throw new Error("SESSION_ENCRYPTION_KEY is not configured");
+    }
+
+    if (!this.env.SESSION_ENCRYPTION_SALT) {
+      throw new Error("SESSION_ENCRYPTION_SALT is not configured");
     }
 
     const encoder = new TextEncoder();
     const keyMaterial = await crypto.subtle.importKey(
-      'raw',
+      "raw",
       encoder.encode(this.env.SESSION_ENCRYPTION_KEY),
-      { name: 'PBKDF2' },
+      { name: "PBKDF2" },
       false,
-      ['deriveBits', 'deriveKey']
+      ["deriveBits", "deriveKey"]
     );
 
-    // Use a fixed salt for deterministic key derivation
-    // In production, you might want to use a different salt per deployment
-    const salt = encoder.encode('cloudflare-oauth-session-salt');
+    // Use environment-specific salt for key derivation
+    // Different salts per environment (dev/staging/prod) ensure cryptographic isolation
+    const salt = encoder.encode(this.env.SESSION_ENCRYPTION_SALT);
 
     this.encryptionKey = await crypto.subtle.deriveKey(
       {
-        name: 'PBKDF2',
+        name: "PBKDF2",
         salt: salt,
         iterations: 100000,
-        hash: 'SHA-256'
+        hash: "SHA-256",
       },
       keyMaterial,
       { name: ENCRYPTION_ALGO, length: KEY_LENGTH },
       false,
-      ['encrypt', 'decrypt']
+      ["encrypt", "decrypt"]
     );
 
     return this.encryptionKey;
@@ -83,8 +87,8 @@ export class SessionEncryption {
       // Encode as base64 for storage
       return btoa(String.fromCharCode(...Array.from(combined)));
     } catch (error) {
-      console.error('Encryption failed:', error);
-      throw new Error('Failed to encrypt data');
+      console.error("Encryption failed:", error);
+      throw new Error("Failed to encrypt data");
     }
   }
 
@@ -97,7 +101,9 @@ export class SessionEncryption {
       const decoder = new TextDecoder();
 
       // Decode from base64
-      const combined = Uint8Array.from(atob(encryptedData), c => c.charCodeAt(0));
+      const combined = Uint8Array.from(atob(encryptedData), (c) =>
+        c.charCodeAt(0)
+      );
 
       // Extract IV and ciphertext
       const iv = combined.slice(0, IV_LENGTH);
@@ -112,8 +118,8 @@ export class SessionEncryption {
 
       return decoder.decode(plaintext);
     } catch (error) {
-      console.error('Decryption failed:', error);
-      throw new Error('Failed to decrypt data');
+      console.error("Decryption failed:", error);
+      throw new Error("Failed to decrypt data");
     }
   }
 }

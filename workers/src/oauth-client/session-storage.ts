@@ -3,88 +3,135 @@
  * Storage operations for OAuth sessions and state
  */
 
-import type { Env } from './types';
-import type { SessionData } from './session-manager';
-import { SessionEncryption } from './session-encryption';
-import { isValidSessionId, isValidStateParameter } from './session-validation';
+import type { Env } from "./types";
+import type { SessionData } from "./session-manager";
+import type { RequestContext } from "../utils/request-context";
+import { SessionEncryption } from "./session-encryption";
+import { isValidSessionId, isValidStateParameter } from "./session-validation";
+import { AuditedKVStore } from "../utils/audit-kvstore";
 
 const SESSION_TTL = 24 * 60 * 60; // 24 hours in seconds
 
 export class SessionStorage {
   private encryption: SessionEncryption;
+  private auditedKV: AuditedKVStore;
 
   constructor(private env: Env) {
     this.encryption = new SessionEncryption(env);
+    this.auditedKV = new AuditedKVStore(env.OAUTH_SESSIONS);
   }
 
-  async storeSession(session: SessionData, ttl: number): Promise<void> {
+  async storeSession(
+    session: SessionData,
+    ttl: number,
+    context: RequestContext
+  ): Promise<void> {
     const effectiveTtl = Math.min(ttl, SESSION_TTL);
-    const encryptedData = await this.encryption.encrypt(JSON.stringify(session));
-    
-    await this.env.OAUTH_SESSIONS.put(
+    const encryptedData = await this.encryption.encrypt(
+      JSON.stringify(session)
+    );
+
+    await this.auditedKV.put(
       `session:${session.id}`,
       encryptedData,
+      context.userId || "anonymous",
       { expirationTtl: effectiveTtl }
     );
   }
 
-  async retrieveSession(sessionId: string): Promise<SessionData | null> {
+  async retrieveSession(
+    sessionId: string,
+    context: RequestContext
+  ): Promise<SessionData | null> {
     if (!isValidSessionId(sessionId)) {
-      console.error('Invalid session ID format:', { length: sessionId.length });
+      console.error("Invalid session ID format:", { length: sessionId.length });
       return null;
     }
 
-    const encryptedData = await this.env.OAUTH_SESSIONS.get(`session:${sessionId}`);
+    const encryptedData = await this.auditedKV.get(
+      `session:${sessionId}`,
+      context.userId || "anonymous"
+    );
     if (!encryptedData) return null;
 
     try {
       const decryptedData = await this.encryption.decrypt(encryptedData);
       return JSON.parse(decryptedData);
     } catch (error) {
-      console.error('Failed to parse session:', error);
+      console.error("Failed to parse session:", error);
       return null;
     }
   }
 
-  async removeSession(sessionId: string): Promise<void> {
+  async removeSession(
+    sessionId: string,
+    context: RequestContext
+  ): Promise<void> {
     if (!isValidSessionId(sessionId)) {
-      console.error('Invalid session ID format for deletion:', { length: sessionId.length });
+      console.error("Invalid session ID format for deletion:", {
+        length: sessionId.length,
+      });
       return;
     }
-    await this.env.OAUTH_SESSIONS.delete(`session:${sessionId}`);
+    await this.auditedKV.delete(
+      `session:${sessionId}`,
+      context.userId || "anonymous"
+    );
   }
 
-  async storeOAuthState(state: string, data: any, ttl = 600): Promise<void> {
+  async storeOAuthState(
+    state: string,
+    data: any,
+    context: RequestContext,
+    ttl = 600
+  ): Promise<void> {
     if (!isValidStateParameter(state)) {
-      console.error('Invalid state parameter format for storage:', { length: state.length });
-      throw new Error('Invalid state parameter format');
+      console.error("Invalid state parameter format for storage:", {
+        length: state.length,
+      });
+      throw new Error("Invalid state parameter format");
     }
-    
+
     const encryptedData = await this.encryption.encrypt(JSON.stringify(data));
-    await this.env.OAUTH_SESSIONS.put(
+    await this.auditedKV.put(
       `state:${state}`,
       encryptedData,
+      context.userId || "anonymous",
       { expirationTtl: ttl }
     );
   }
 
-  async retrieveOAuthState(state: string): Promise<any | null> {
+  async retrieveOAuthState(
+    state: string,
+    context: RequestContext
+  ): Promise<any | null> {
     if (!isValidStateParameter(state)) {
-      console.error('Invalid state parameter format for retrieval:', { length: state.length });
+      console.error("Invalid state parameter format for retrieval:", {
+        length: state.length,
+      });
       return null;
     }
-    
-    const encryptedData = await this.env.OAUTH_SESSIONS.get(`state:${state}`);
+
+    const encryptedData = await this.auditedKV.get(
+      `state:${state}`,
+      context.userId || "anonymous"
+    );
     if (!encryptedData) return null;
-    
+
     try {
       const decryptedData = await this.encryption.decrypt(encryptedData);
       const stateData = JSON.parse(decryptedData);
-      await this.env.OAUTH_SESSIONS.delete(`state:${state}`);
+      await this.auditedKV.delete(
+        `state:${state}`,
+        context.userId || "anonymous"
+      );
       return stateData;
     } catch (error) {
-      console.error('Failed to parse OAuth state:', error);
-      await this.env.OAUTH_SESSIONS.delete(`state:${state}`);
+      console.error("Failed to parse OAuth state:", error);
+      await this.auditedKV.delete(
+        `state:${state}`,
+        context.userId || "anonymous"
+      );
       return null;
     }
   }

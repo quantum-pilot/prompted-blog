@@ -1,8 +1,8 @@
 // @agent: cloudflare-backend
 // Middleware system for request handling with RequestContext support
 
-import { RequestContext } from './request-context';
-import { AuditLogger } from './audit-logger';
+import { RequestContext } from "./request-context";
+import { AuditLogger } from "./audit-logger";
 
 // Generic environment interface for middleware
 interface MiddlewareEnv {
@@ -14,40 +14,45 @@ export type MiddlewareHandler = (
   context: RequestContext
 ) => Promise<Response>;
 
-export type Middleware = (
-  handler: MiddlewareHandler
-) => MiddlewareHandler;
+export type Middleware = (handler: MiddlewareHandler) => MiddlewareHandler;
 
 /**
  * Enhanced data access audit middleware that integrates with RequestContext
  */
 export function withDataAccessAudit(
   resourceType: string,
-  operation: 'read' | 'write' | 'delete'
+  operation: "read" | "write" | "delete"
 ): Middleware {
   return (handler: MiddlewareHandler) => {
-    return async (env: MiddlewareEnv, context: RequestContext): Promise<Response> => {
-      const userId = context.userId || 'anonymous';
+    return async (
+      env: MiddlewareEnv,
+      context: RequestContext
+    ): Promise<Response> => {
+      const userId = context.userId || "anonymous";
 
       try {
         const response = await handler(env, context);
 
         if (response.status >= 200 && response.status < 300) {
           AuditLogger.logDataAccess(userId, resourceType, operation, true);
-        } else if (response.status === 400 || response.status === 401 || response.status === 403) {
+        } else if (
+          response.status === 400 ||
+          response.status === 401 ||
+          response.status === 403
+        ) {
           AuditLogger.logDataAccess(userId, resourceType, operation, false);
         }
 
         // Add correlation ID to response headers only if not already set
         const headers = new Headers(response.headers);
-        if (!headers.has('X-Correlation-ID')) {
-          headers.set('X-Correlation-ID', context.correlationId);
+        if (!headers.has("X-Correlation-ID")) {
+          headers.set("X-Correlation-ID", context.correlationId);
         }
 
         return new Response(response.body, {
           status: response.status,
           statusText: response.statusText,
-          headers
+          headers,
         });
       } catch (error) {
         AuditLogger.logDataAccess(userId, resourceType, operation, false);
@@ -73,10 +78,17 @@ export function compose(...middlewares: Middleware[]): Middleware {
  * Convert a traditional handler to a middleware-compatible handler
  */
 export function adaptHandler(
-  handler: (env: MiddlewareEnv, origin: string | null, request?: Request) => Promise<Response>
+  handler: (
+    env: MiddlewareEnv,
+    origin: string | null,
+    request?: Request
+  ) => Promise<Response>
 ): MiddlewareHandler {
-  return async (env: MiddlewareEnv, context: RequestContext): Promise<Response> => {
-    const origin = context.request.headers.get('Origin');
+  return async (
+    env: MiddlewareEnv,
+    context: RequestContext
+  ): Promise<Response> => {
+    const origin = context.request.headers.get("Origin");
     // Pass the context-enriched request to the handler
     const enrichedRequest = context.propagate();
     return handler(env, origin, enrichedRequest);
@@ -87,11 +99,19 @@ export function adaptHandler(
  * Convert a callback handler to a middleware-compatible handler
  */
 export function adaptCallbackHandler(
-  handler: (url: URL, env: MiddlewareEnv, origin: string | null, request?: Request) => Promise<Response>
+  handler: (
+    url: URL,
+    env: MiddlewareEnv,
+    origin: string | null,
+    request?: Request
+  ) => Promise<Response>
 ): MiddlewareHandler {
-  return async (env: MiddlewareEnv, context: RequestContext): Promise<Response> => {
+  return async (
+    env: MiddlewareEnv,
+    context: RequestContext
+  ): Promise<Response> => {
     const url = new URL(context.request.url);
-    const origin = context.request.headers.get('Origin');
+    const origin = context.request.headers.get("Origin");
     // Pass the context-enriched request to the handler
     const enrichedRequest = context.propagate();
     return handler(url, env, origin, enrichedRequest);

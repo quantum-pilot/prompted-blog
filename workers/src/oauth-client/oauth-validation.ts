@@ -17,13 +17,16 @@ export function isValidStateParameter(state: string): boolean {
 /**
  * Validates PKCE code verifier against stored challenge
  */
-export async function validatePKCE(verifier: string, challenge: string): Promise<boolean> {
+export async function validatePKCE(
+  verifier: string,
+  challenge: string
+): Promise<boolean> {
   const encoder = new TextEncoder();
   const data = encoder.encode(verifier);
-  const hash = await crypto.subtle.digest('SHA-256', data);
+  const hash = await crypto.subtle.digest("SHA-256", data);
   const base64 = btoa(String.fromCharCode(...new Uint8Array(hash)))
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=/g, '');
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=/g, "");
   return base64 === challenge;
 }

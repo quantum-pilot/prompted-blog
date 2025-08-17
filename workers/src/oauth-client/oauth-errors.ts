@@ -3,8 +3,8 @@
  * OAuth error handling utilities
  */
 
-import type { RequestContext } from '../utils/request-context';
-import { AuditEventType } from '../utils/audit-logger';
+import type { RequestContext } from "../utils/request-context";
+import { AuditEventType } from "../utils/audit-logger";
 
 export function jsonResponse(
   error: { error: string; error_description: string },
@@ -14,7 +14,7 @@ export function jsonResponse(
 ): Response {
   return new Response(JSON.stringify(error), {
     status,
-    headers: { 'Content-Type': 'application/json' }
+    headers: { "Content-Type": "application/json" },
   });
 }
 
@@ -28,13 +28,18 @@ export function logAndReturnError(
 ): Response {
   const metadata: any = { reason };
   if (error) {
-    metadata.error = error instanceof Error ? error.message : 'Unknown error';
+    metadata.error = error instanceof Error ? error.message : "Unknown error";
   }
-  
-  context.log(eventType, 'failure', metadata);
-  
-  return jsonResponse({
-    error: errorCode,
-    error_description: 'Authentication failed'
-  }, status, undefined, context);
+
+  context.log(eventType, "failure", metadata);
+
+  return jsonResponse(
+    {
+      error: errorCode,
+      error_description: "Authentication failed",
+    },
+    status,
+    undefined,
+    context
+  );
 }

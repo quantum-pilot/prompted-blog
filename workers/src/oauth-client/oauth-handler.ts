@@ -3,20 +3,20 @@
  * OAuth callback handler using oauth4webapi for PKCE flow
  */
 
-import * as oauth from 'oauth4webapi';
-import type { Env } from './types';
-import type { RequestContext } from '../utils/request-context';
-import { AuditEventType } from '../utils/audit-logger';
-import { isValidStateParameter } from './oauth-validation';
-import { exchangeCodeForTokens, validateGoogleIdToken } from './token-handler';
-import { extractUserInfo } from './user-info-handler';
-import { jsonResponse, logAndReturnError } from './oauth-errors';
-import { HTTP_STATUS } from '../../../shared';
-import { validateStoredChallenge, parseRequestParams } from './pkce-validation';
-import { getGoogleProvider } from './oauth-provider';
+import * as oauth from "oauth4webapi";
+import type { Env } from "./types";
+import type { RequestContext } from "../utils/request-context";
+import { AuditEventType } from "../utils/audit-logger";
+import { isValidStateParameter } from "./oauth-validation";
+import { exchangeCodeForTokens, validateGoogleIdToken } from "./token-handler";
+import { extractUserInfo } from "./user-info-handler";
+import { jsonResponse, logAndReturnError } from "./oauth-errors";
+import { HTTP_STATUS } from "../../../shared";
+import { validateStoredChallenge, parseRequestParams } from "./pkce-validation";
+import { getGoogleProvider } from "./oauth-provider";
 
-export type { OAuthProviderConfig } from './oauth-provider';
-export { getGoogleProvider } from './oauth-provider';
+export type { OAuthProviderConfig } from "./oauth-provider";
+export { getGoogleProvider } from "./oauth-provider";
 
 export async function handleOAuthCallback(
   request: Request,
@@ -25,22 +25,31 @@ export async function handleOAuthCallback(
 ): Promise<Response> {
   const params = await parseRequestParams(request, context);
   if (!params) {
-    return jsonResponse({
-      error: 'invalid_request',
-      error_description: 'Authentication failed'
-    }, HTTP_STATUS.BAD_REQUEST, undefined, context);
+    return jsonResponse(
+      {
+        error: "invalid_request",
+        error_description: "Authentication failed",
+      },
+      HTTP_STATUS.BAD_REQUEST,
+      undefined,
+      context
+    );
   }
 
   const { code, state, codeVerifier } = params;
   if (!code || !state || !codeVerifier) {
-    const reason = !code ? 'Missing authorization code' : 
-                  !state ? 'Missing state parameter - possible CSRF attack' :
-                  'Missing PKCE code verifier';
+    const reason = !code
+      ? "Missing authorization code"
+      : !state
+      ? "Missing state parameter - possible CSRF attack"
+      : "Missing PKCE code verifier";
     return logAndReturnError(
       context,
-      !codeVerifier ? AuditEventType.PKCE_VERIFICATION_FAILURE : AuditEventType.AUTH_LOGIN_FAILURE,
+      !codeVerifier
+        ? AuditEventType.PKCE_VERIFICATION_FAILURE
+        : AuditEventType.AUTH_LOGIN_FAILURE,
       reason,
-      'invalid_request',
+      "invalid_request",
       HTTP_STATUS.BAD_REQUEST
     );
   }
@@ -49,32 +58,49 @@ export async function handleOAuthCallback(
     return logAndReturnError(
       context,
       AuditEventType.AUTH_LOGIN_FAILURE,
-      'Invalid state parameter format',
-      'invalid_request',
+      "Invalid state parameter format",
+      "invalid_request",
       HTTP_STATUS.BAD_REQUEST
     );
   }
 
-  const challengeInfo = await validateStoredChallenge(env, state, codeVerifier, context);
+  const challengeInfo = await validateStoredChallenge(
+    env,
+    state,
+    codeVerifier,
+    context
+  );
   if (!challengeInfo) {
-    return jsonResponse({
-      error: 'invalid_grant',
-      error_description: 'Authentication failed'
-    }, HTTP_STATUS.BAD_REQUEST, undefined, context);
+    return jsonResponse(
+      {
+        error: "invalid_grant",
+        error_description: "Authentication failed",
+      },
+      HTTP_STATUS.BAD_REQUEST,
+      undefined,
+      context
+    );
   }
 
   const provider = getGoogleProvider(env);
   try {
-    const as = await oauth.discoveryRequest(provider.authorizationServer)
-      .then(res => oauth.processDiscoveryResponse(provider.authorizationServer, res));
+    const as = await oauth
+      .discoveryRequest(provider.authorizationServer)
+      .then((res) =>
+        oauth.processDiscoveryResponse(provider.authorizationServer, res)
+      );
 
-    const tokens = await exchangeCodeForTokens({
-      code,
-      codeVerifier,
-      clientId: provider.clientId,
-      redirectUri: provider.redirectUri,
-      tokenEndpoint: as.token_endpoint!
-    }, as, context);
+    const tokens = await exchangeCodeForTokens(
+      {
+        code,
+        codeVerifier,
+        clientId: provider.clientId,
+        redirectUri: provider.redirectUri,
+        tokenEndpoint: as.token_endpoint!,
+      },
+      as,
+      context
+    );
 
     let claims;
     try {
@@ -83,29 +109,37 @@ export async function handleOAuthCallback(
       return logAndReturnError(
         context,
         AuditEventType.AUTH_LOGIN_FAILURE,
-        'ID token validation failed',
-        'invalid_grant',
+        "ID token validation failed",
+        "invalid_grant",
         HTTP_STATUS.BAD_REQUEST,
         error
       );
     }
 
-    const sessionData = extractUserInfo(claims, provider.name, state, tokens.expires_in);
-    context.log(AuditEventType.PKCE_FLOW_COMPLETED, 'success', {
+    const sessionData = extractUserInfo(
+      claims,
+      provider.name,
+      state,
+      tokens.expires_in
+    );
+    context.log(AuditEventType.PKCE_FLOW_COMPLETED, "success", {
       provider: provider.name,
-      userId: sessionData.userId
+      userId: sessionData.userId,
     });
 
-    return new Response(JSON.stringify({ success: true, session: sessionData }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return new Response(
+      JSON.stringify({ success: true, session: sessionData }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   } catch (error) {
     return logAndReturnError(
       context,
       AuditEventType.AUTH_LOGIN_FAILURE,
-      'OAuth flow failed',
-      'server_error',
+      "OAuth flow failed",
+      "server_error",
       HTTP_STATUS.INTERNAL_SERVER_ERROR,
       error
     );

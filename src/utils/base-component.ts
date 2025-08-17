@@ -1,5 +1,5 @@
-import { ErrorHandler } from './error-handler.js';
-import { EventManager } from './event-manager.js';
+import { ErrorHandler } from "./error-handler.js";
+import { EventManager } from "./event-manager.js";
 
 export abstract class BaseComponent extends HTMLElement {
   protected errorHandler: ErrorHandler;
@@ -41,13 +41,17 @@ export abstract class BaseComponent extends HTMLElement {
     operation: string,
     config?: { fallback?: any }
   ): any {
-    return this.errorHandler.handle(error, {
-      message: `${this.constructor.name}: ${operation}`,
-      code: 'COMPONENT_ERROR',
-      context: { component: this.constructor.name }
-    }, {
-      logToConsole: true,
-      fallbackValue: config?.fallback ?? null
-    });
+    return this.errorHandler.handle(
+      error,
+      {
+        message: `${this.constructor.name}: ${operation}`,
+        code: "COMPONENT_ERROR",
+        context: { component: this.constructor.name },
+      },
+      {
+        logToConsole: true,
+        fallbackValue: config?.fallback ?? null,
+      }
+    );
   }
 }
