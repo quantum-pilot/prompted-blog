@@ -32,8 +32,8 @@ describe("Security Headers", () => {
         statusText: "OK",
         headers: {
           "Content-Type": "application/json",
-          "Custom-Header": "custom-value",
-        },
+          "Custom-Header": "custom-value"
+        }
       });
 
       const securedResponse = applySecurityHeaders(originalResponse);
@@ -75,8 +75,8 @@ describe("Security Headers", () => {
         status: 200,
         headers: {
           "X-Frame-Options": "SAMEORIGIN",
-          "Content-Type": "text/html",
-        },
+          "Content-Type": "text/html"
+        }
       });
 
       const securedResponse = applySecurityHeaders(originalResponse);

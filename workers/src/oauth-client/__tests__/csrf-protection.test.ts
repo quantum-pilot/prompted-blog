@@ -25,8 +25,7 @@ describe('CSRF Protection Tests', () => {
         delete: vi.fn(async (key: string) => {
           kvStore.delete(key);
         })
-      } as any,
-      OAUTH_KV: {} as any
+      } as any
     };
   });
 
@@ -44,8 +43,8 @@ describe('CSRF Protection Tests', () => {
           `http://localhost/oauth/authorize?code_challenge=test-challenge&state=${state}&provider=google`,
           {
             headers: {
-              "CF-Connecting-IP": "192.168.1.100",
-            },
+              "CF-Connecting-IP": "192.168.1.100"
+            }
           }
         );
         promises.push(worker.fetch(request, env, {}));
@@ -83,8 +82,8 @@ describe('CSRF Protection Tests', () => {
         `http://localhost/oauth/authorize?code_challenge=challenge1&state=${duplicateState}&provider=google`,
         {
           headers: {
-            "CF-Connecting-IP": "192.168.1.100",
-          },
+            "CF-Connecting-IP": "192.168.1.100"
+          }
         }
       );
       const firstResponse = await worker.fetch(firstRequest, env, {});
@@ -95,8 +94,8 @@ describe('CSRF Protection Tests', () => {
         `http://localhost/oauth/authorize?code_challenge=challenge2&state=${duplicateState}&provider=google`,
         {
           headers: {
-            "CF-Connecting-IP": "192.168.1.100",
-          },
+            "CF-Connecting-IP": "192.168.1.100"
+          }
         }
       );
       const secondResponse = await worker.fetch(secondRequest, env, {});
@@ -132,7 +131,7 @@ describe('CSRF Protection Tests', () => {
       });
       
       // Check for randomness distribution
-      const firstChars = states.map(s => s.charAt(13)); // After 'secure-state-'
+      const firstChars = states.map(s => s.charAt(13)); // After 'secure-state-',
       const uniqueFirstChars = new Set(firstChars);
       expect(uniqueFirstChars.size).toBeGreaterThan(10);
     });
@@ -148,7 +147,7 @@ describe('CSRF Protection Tests', () => {
           'Origin': 'http://localhost:3000',
           'CF-Connecting-IP': '192.168.1.100'
         },
-        body: JSON.stringify({
+  body: JSON.stringify({
           code: 'test-code',
           state: 'test-state',
           code_verifier: 'test-verifier'
@@ -167,7 +166,7 @@ describe('CSRF Protection Tests', () => {
           'Origin': 'http://evil.com',
           'CF-Connecting-IP': '192.168.1.100'
         },
-        body: JSON.stringify({
+  body: JSON.stringify({
           code: 'test-code',
           state: 'test-state',
           code_verifier: 'test-verifier'
@@ -187,7 +186,7 @@ describe('CSRF Protection Tests', () => {
           'Content-Type': 'application/json',
           'CF-Connecting-IP': '192.168.1.100'
         },
-        body: JSON.stringify({
+  body: JSON.stringify({
           code: 'test-code',
           state: 'test-state',
           code_verifier: 'test-verifier'
@@ -247,7 +246,7 @@ describe('CSRF Protection Tests', () => {
           'Referer': 'http://evil.com/attack',
           'CF-Connecting-IP': '192.168.1.100'
         },
-        body: JSON.stringify({
+  body: JSON.stringify({
           code: 'test-code',
           state: state,
           code_verifier: 'test-verifier'
@@ -303,7 +302,7 @@ describe('CSRF Protection Tests', () => {
           'X-CSRF-Token': csrfToken,
           'CF-Connecting-IP': '192.168.1.100'
         },
-        body: JSON.stringify({
+  body: JSON.stringify({
           code: 'test-code',
           state: state,
           code_verifier: 'test-verifier'
@@ -343,7 +342,7 @@ describe('CSRF Protection Tests', () => {
           'CF-Connecting-IP': '192.168.1.200', // Different IP
           'User-Agent': 'Different-Browser/2.0' // Different UA
         },
-        body: JSON.stringify({
+  body: JSON.stringify({
           code: 'test-code',
           state: state,
           code_verifier: 'test-verifier'
@@ -378,7 +377,7 @@ describe('CSRF Protection Tests', () => {
           'Content-Type': 'application/json',
           'CF-Connecting-IP': '192.168.1.100'
         },
-        body: JSON.stringify({
+  body: JSON.stringify({
           code: 'test-code',
           state: state,
           code_verifier: 'test-verifier'
@@ -398,7 +397,7 @@ describe('CSRF Protection Tests', () => {
           'Content-Type': 'application/json',
           'CF-Connecting-IP': '192.168.1.100'
         },
-        body: JSON.stringify({
+  body: JSON.stringify({
           code: 'test-code-2',
           state: state,
           code_verifier: 'test-verifier'
@@ -427,7 +426,7 @@ describe('CSRF Protection Tests', () => {
           'CF-Connecting-IP': '192.168.1.100',
           'Referer': 'http://evil.com/attack.html'
         },
-        body: formData.toString()
+  body: formData.toString()
       });
       
       const response = await worker.fetch(crossSiteRequest, env, {});
@@ -469,7 +468,7 @@ describe('CSRF Protection Tests', () => {
           headers: {
             'Content-Type': contentType
           },
-          body: '{"code":"test","state":"test","code_verifier":"test"}'
+  body: '{"code":"test","state":"test","code_verifier":"test"}'
         });
         
         const response = await worker.fetch(request, env, {});
@@ -492,7 +491,7 @@ describe('CSRF Protection Tests', () => {
           'Authorization': `Bearer ${fixedToken}`, // Try to inject session
           'Cookie': `sessionid=${fixedToken}` // Try via cookie too
         },
-        body: JSON.stringify({
+  body: JSON.stringify({
           code: 'test-code',
           state: 'test-state',
           code_verifier: 'test-verifier'
@@ -534,7 +533,7 @@ describe('CSRF Protection Tests', () => {
           'Content-Type': 'application/json',
           'CF-Connecting-IP': '192.168.1.100'
         },
-        body: JSON.stringify({
+  body: JSON.stringify({
           code: 'test-code',
           state: oldState,
           code_verifier: 'test-verifier'

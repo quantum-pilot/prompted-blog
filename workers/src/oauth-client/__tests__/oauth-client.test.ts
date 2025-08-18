@@ -16,14 +16,9 @@ describe("OAuth Client Worker", () => {
       ALLOWED_ORIGINS: "http://localhost:3000,http://localhost:5173",
       OAUTH_SESSIONS: {
         put: async () => {},
-        get: async () => null,
-        delete: async () => {},
-      },
-      OAUTH_KV: {
-        put: async () => {},
-        get: async () => null,
-        delete: async () => {},
-      },
+  get: async () => null,
+        delete: async () => {}
+      }
     };
   });
 
@@ -83,7 +78,7 @@ describe("OAuth Client Worker", () => {
       };
 
       const request = new Request(
-        "http://localhost/oauth/authorize?code_challenge=test-challenge&state=test-state"
+        "http://localhost/oauth/authorize?code_challenge=test-challenge&state=test-state&provider=google"
       );
       const response = await worker.fetch(request, env, {});
 
@@ -102,6 +97,7 @@ describe("OAuth Client Worker", () => {
       const storedData = JSON.parse(storedValue!);
       expect(storedData.challenge).toBe("test-challenge");
       expect(storedData.state).toBe("test-state"); // Verify state is stored
+      expect(storedData.provider).toBe("google"); // Verify provider is stored
     });
   });
 
@@ -113,8 +109,8 @@ describe("OAuth Client Worker", () => {
         {
           method: "GET",
           headers: {
-            "CF-Connecting-IP": "192.168.1.100",
-          },
+            "CF-Connecting-IP": "192.168.1.100"
+          }
         }
       );
       const response = await worker.fetch(request, env, {});
@@ -133,13 +129,13 @@ describe("OAuth Client Worker", () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "CF-Connecting-IP": "192.168.1.100",
+          "CF-Connecting-IP": "192.168.1.100"
         },
-        body: JSON.stringify({
+  body: JSON.stringify({
           code: "test-code",
-          code_verifier: "test-verifier",
+          code_verifier: "test-verifier"
           // state is missing
-        }),
+        })
       });
       const response = await worker.fetch(request, env, {});
 
@@ -154,13 +150,13 @@ describe("OAuth Client Worker", () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "CF-Connecting-IP": "192.168.1.100",
+          "CF-Connecting-IP": "192.168.1.100"
         },
-        body: JSON.stringify({
+  body: JSON.stringify({
           code: "test-code",
-          state: "test-state",
+          state: "test-state"
           // code_verifier is missing
-        }),
+        })
       });
       const response = await worker.fetch(request, env, {});
 
@@ -177,13 +173,13 @@ describe("OAuth Client Worker", () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "CF-Connecting-IP": "192.168.1.100",
+          "CF-Connecting-IP": "192.168.1.100"
         },
-        body: JSON.stringify({
+  body: JSON.stringify({
           code: "test-code",
           state: "test-state",
-          code_verifier: "test-verifier",
-        }),
+          code_verifier: "test-verifier"
+        })
       });
       const response = await worker.fetch(request, env, {});
 
@@ -201,7 +197,7 @@ describe("OAuth Client Worker", () => {
             state: "original-state", // Different from the state in the callback
             provider: "google",
             createdAt: Date.now(),
-            expiresAt: Date.now() + 600000,
+            expiresAt: Date.now() + 600000
           });
         }
         return null;
@@ -211,13 +207,13 @@ describe("OAuth Client Worker", () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "CF-Connecting-IP": "192.168.1.100",
+          "CF-Connecting-IP": "192.168.1.100"
         },
-        body: JSON.stringify({
+  body: JSON.stringify({
           code: "test-code",
           state: "test-state",
-          code_verifier: "test-verifier",
-        }),
+          code_verifier: "test-verifier"
+        })
       });
       const response = await worker.fetch(request, env, {});
 
@@ -249,13 +245,13 @@ describe("OAuth Client Worker", () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "CF-Connecting-IP": "192.168.1.100",
+          "CF-Connecting-IP": "192.168.1.100"
         },
-        body: JSON.stringify({
+  body: JSON.stringify({
           code: "test-code",
           state: "test-state",
-          code_verifier: "test-verifier",
-        }),
+          code_verifier: "test-verifier"
+        })
       });
       const response = await worker.fetch(request, env, {});
 
@@ -274,7 +270,7 @@ describe("OAuth Client Worker", () => {
             // state is missing
             provider: "google",
             createdAt: Date.now(),
-            expiresAt: Date.now() + 600000,
+            expiresAt: Date.now() + 600000
           });
         }
         return null;
@@ -284,13 +280,13 @@ describe("OAuth Client Worker", () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "CF-Connecting-IP": "192.168.1.100",
+          "CF-Connecting-IP": "192.168.1.100"
         },
-        body: JSON.stringify({
+  body: JSON.stringify({
           code: "test-code",
           state: "test-state",
-          code_verifier: "test-verifier",
-        }),
+          code_verifier: "test-verifier"
+        })
       });
       const response = await worker.fetch(request, env, {});
 
@@ -317,7 +313,7 @@ describe("OAuth Client Worker", () => {
             state: "test-state",
             provider: "google",
             createdAt: Date.now(),
-            expiresAt: Date.now() + 600000,
+            expiresAt: Date.now() + 600000
           });
         }
         return null;
@@ -327,13 +323,13 @@ describe("OAuth Client Worker", () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "CF-Connecting-IP": "192.168.1.100",
+          "CF-Connecting-IP": "192.168.1.100"
         },
-        body: JSON.stringify({
+  body: JSON.stringify({
           code: "test-code",
           state: "test-state",
-          code_verifier: "wrong-verifier",
-        }),
+          code_verifier: "wrong-verifier"
+        })
       });
       const response = await worker.fetch(request, env, {});
 
@@ -362,7 +358,7 @@ describe("OAuth Client Worker", () => {
             state: "test-state",
             provider: "google",
             createdAt: Date.now(),
-            expiresAt: Date.now() + 600000,
+            expiresAt: Date.now() + 600000
           });
         }
         return null;
@@ -385,11 +381,11 @@ describe("OAuth Client Worker", () => {
                   sub: "user-123",
                   email: "test@example.com",
                   name: "Test User",
-                  picture: "https://example.com/pic.jpg",
+                  picture: "https://example.com/pic.jpg"
                 })
               ) +
               ".signature",
-            expires_in: 3600,
+            expires_in: 3600
           }),
           { status: 200 }
         );
@@ -399,17 +395,17 @@ describe("OAuth Client Worker", () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "CF-Connecting-IP": "192.168.1.100",
+          "CF-Connecting-IP": "192.168.1.100"
         },
-        body: JSON.stringify({
+  body: JSON.stringify({
           code: "test-code",
           state: "test-state",
-          code_verifier: "test-verifier",
-        }),
+          code_verifier: "test-verifier"
+        })
       });
       const response = await worker.fetch(request, env, {});
 
-      // The response might fail due to Google OAuth not being mocked properly,
+      // The response might fail due to Google OAuth not being mocked properly
       // but we should still see that the PKCE challenge was deleted
       expect(deletedKey).toBe("pkce:test-state");
     });
@@ -428,8 +424,8 @@ describe("OAuth Client Worker", () => {
     it("should return 400 for invalid session ID format", async () => {
       const request = new Request("http://localhost/oauth/session", {
         headers: {
-          Authorization: "Bearer invalid-id",
-        },
+          Authorization: "Bearer invalid-id"
+        }
       });
       const response = await worker.fetch(request, env, {});
 
@@ -455,7 +451,7 @@ describe("OAuth Client Worker", () => {
         userId: "user-123",
         email: "test@example.com",
         name: "Test User",
-        expiresAt: Date.now() + 3600000,
+        expiresAt: Date.now() + 3600000
       };
 
       // Store encrypted session data in mock KV
@@ -475,8 +471,8 @@ describe("OAuth Client Worker", () => {
 
       const request = new Request("http://localhost/oauth/session", {
         headers: {
-          Authorization: `Bearer ${sessionId}`,
-        },
+          Authorization: `Bearer ${sessionId}`
+        }
       });
       const response = await worker.fetch(request, env, {});
 
@@ -491,7 +487,7 @@ describe("OAuth Client Worker", () => {
     it("should handle OPTIONS requests", async () => {
       const request = new Request("http://localhost/health", {
         method: "OPTIONS",
-        headers: { Origin: "http://localhost:3000" },
+        headers: { Origin: "http://localhost:3000" }
       });
       const response = await worker.fetch(request, env, {});
 
@@ -506,7 +502,7 @@ describe("OAuth Client Worker", () => {
 
     it("should add CORS headers to responses", async () => {
       const request = new Request("http://localhost/health", {
-        headers: { Origin: "http://localhost:3000" },
+        headers: { Origin: "http://localhost:3000" }
       });
       const response = await worker.fetch(request, env, {});
 

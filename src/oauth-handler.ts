@@ -3,15 +3,14 @@
  * Always uses real OAuth flow without mock authentication
  */
 import { OAuthClient } from "./api/oauth-client";
-import { OAuthProvider } from "./api/oauth-types";
-import { OAUTH_CLIENT_IDS } from "@app/shared";
+import { OAuthProvider, OAUTH_PROVIDERS } from "@app/shared";
 
 // Create OAuth client instance
 // Worker is on same origin, so we can use relative paths
 export const oauthClient = new OAuthClient({
   workerUrl: window.location.origin,
-  clientId: OAUTH_CLIENT_IDS.GOOGLE,
-  redirectUri: `${window.location.origin}/oauth/callback`,
+  clientId: OAUTH_PROVIDERS.google.clientId,
+  redirectUri: `${window.location.origin}/oauth-callback`,
   provider: OAuthProvider.Google,
 });
 

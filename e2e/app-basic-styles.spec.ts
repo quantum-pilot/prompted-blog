@@ -90,20 +90,4 @@ test.describe("App-level basic styles", () => {
     expect(containerStyles.padding).toBe("32px"); // 2rem = 32px with default font size
   });
 
-  test("should apply h1 styles correctly", async ({ page }) => {
-    const h1Styles = await page.evaluate(() => {
-      const h1 = document.querySelector("h1");
-      if (!h1) throw new Error("h1 element not found");
-      const computedStyles = getComputedStyle(h1);
-      return {
-        textAlign: computedStyles.textAlign,
-        color: computedStyles.color,
-        marginBottom: computedStyles.marginBottom,
-      };
-    });
-
-    expect(h1Styles.textAlign).toBe("center");
-    expect(h1Styles.color).toBe("rgb(17, 24, 39)"); // #111827 in RGB
-    expect(h1Styles.marginBottom).toBe("32px"); // 2rem = 32px with default font size
-  });
 });

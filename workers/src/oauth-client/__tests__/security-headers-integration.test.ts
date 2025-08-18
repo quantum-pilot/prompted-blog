@@ -1,34 +1,27 @@
 // @agent: cloudflare-backend
 import { describe, it, expect } from "vitest";
-import { errorResponse } from "../cors";
 import { applySecurityHeaders } from "../../utils/security-headers";
 import { Router } from "../../utils/router";
 import type { Env } from "../types";
 import { RequestContext } from "../../utils/request-context";
 
 describe("Security Headers Integration", () => {
-  describe("errorResponse", () => {
+  describe("RequestContext.errorResponse", () => {
     it("should include security headers in error responses", () => {
       const mockEnv: Env = {
         ALLOWED_ORIGINS: "http://localhost:3000,http://localhost:5173",
         OAUTH_SESSIONS: {} as any,
-        OAUTH_KV: {} as any,
-        GOOGLE_CLIENT_ID: "test",
-        CLIENT_ID: "test",
-        REDIRECT_URI: "test",
-        FRONTEND_URL: "test",
         SESSION_ENCRYPTION_KEY: "test",
-        SESSION_ENCRYPTION_SALT: "test-salt-for-security-headers-test",
+        SESSION_ENCRYPTION_SALT: "test-salt-for-security-headers-test"
       };
       const mockRequest = new Request("https://test.com", {
-        headers: { Origin: "http://localhost:3000" },
+        headers: { Origin: "http://localhost:3000" }
       });
       const mockContext = new RequestContext(mockRequest);
-      const response = errorResponse(
+      const response = mockContext.errorResponse(
+        400,
         "test_error",
         "Test error message",
-        400,
-        mockContext,
         mockEnv
       );
 
@@ -49,13 +42,12 @@ describe("Security Headers Integration", () => {
       const router = new Router();
       const mockEnv: Env = {
         OAUTH_SESSIONS: {} as any,
-        OAUTH_KV: {} as any,
         GOOGLE_CLIENT_ID: "test-client-id",
         CLIENT_ID: "test-client-id",
         REDIRECT_URI: "http://localhost:3000/callback",
         FRONTEND_URL: "http://localhost:3000",
         SESSION_ENCRYPTION_KEY: "test-key",
-        SESSION_ENCRYPTION_SALT: "test-salt-for-security-headers-test",
+        SESSION_ENCRYPTION_SALT: "test-salt-for-security-headers-test"
       };
 
       const mockContext = {
@@ -65,15 +57,15 @@ describe("Security Headers Integration", () => {
         requestId: "req-id",
         userId: null,
         sessionId: null,
-        log: () => {},
+        log: () => {}
       } as RequestContext;
 
       router.get("/test", (_env, _context) => {
         return new Response(JSON.stringify({ message: "test" }), {
           status: 200,
           headers: {
-            "Content-Type": "application/json",
-          },
+            "Content-Type": "application/json"
+          }
         });
       });
 
@@ -96,13 +88,12 @@ describe("Security Headers Integration", () => {
       const router = new Router();
       const mockEnv: Env = {
         OAUTH_SESSIONS: {} as any,
-        OAUTH_KV: {} as any,
         GOOGLE_CLIENT_ID: "test-client-id",
         CLIENT_ID: "test-client-id",
         REDIRECT_URI: "http://localhost:3000/callback",
         FRONTEND_URL: "http://localhost:3000",
         SESSION_ENCRYPTION_KEY: "test-key",
-        SESSION_ENCRYPTION_SALT: "test-salt-for-security-headers-test",
+        SESSION_ENCRYPTION_SALT: "test-salt-for-security-headers-test"
       };
 
       const mockContext = {
@@ -112,7 +103,7 @@ describe("Security Headers Integration", () => {
         requestId: "req-id",
         userId: null,
         sessionId: null,
-        log: () => {},
+        log: () => {}
       } as RequestContext;
 
       router.get("/test-async", async (_env, _context) => {
@@ -122,13 +113,13 @@ describe("Security Headers Integration", () => {
           status: 200,
           headers: {
             "Content-Type": "application/json",
-            "X-Custom-Header": "custom-value",
-          },
+            "X-Custom-Header": "custom-value"
+          }
         });
       });
 
       const request = new Request("http://localhost/test-async", {
-        method: "GET",
+        method: "GET"
       });
       const response = await router.handle(request, mockEnv, mockContext);
 

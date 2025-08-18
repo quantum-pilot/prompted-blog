@@ -16,14 +16,9 @@ describe("OAuth Callback POST endpoint", () => {
       ALLOWED_ORIGINS: "http://localhost:3000,http://localhost:5173",
       OAUTH_SESSIONS: {
         put: async () => {},
-        get: async () => null,
-        delete: async () => {},
-      },
-      OAUTH_KV: {
-        put: async () => {},
-        get: async () => null,
-        delete: async () => {},
-      },
+  get: async () => null,
+        delete: async () => {}
+      }
     };
   });
 
@@ -33,14 +28,14 @@ describe("OAuth Callback POST endpoint", () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "CF-Connecting-IP": "192.168.1.100",
+          "CF-Connecting-IP": "192.168.1.100"
         },
-        body: JSON.stringify({
+  body: JSON.stringify({
           code: "test-code",
           state: "test-state",
           code_verifier: "test-verifier",
-          provider: "google",
-        }),
+          provider: "google"
+        })
       });
 
       const response = await worker.fetch(request, env, {});
@@ -56,12 +51,12 @@ describe("OAuth Callback POST endpoint", () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "CF-Connecting-IP": "192.168.1.100",
+          "CF-Connecting-IP": "192.168.1.100"
         },
-        body: JSON.stringify({
+  body: JSON.stringify({
           state: "test-state",
-          code_verifier: "test-verifier",
-        }),
+          code_verifier: "test-verifier"
+        })
       });
 
       const response = await worker.fetch(request, env, {});
@@ -77,12 +72,12 @@ describe("OAuth Callback POST endpoint", () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "CF-Connecting-IP": "192.168.1.100",
+          "CF-Connecting-IP": "192.168.1.100"
         },
-        body: JSON.stringify({
+  body: JSON.stringify({
           code: "test-code",
-          code_verifier: "test-verifier",
-        }),
+          code_verifier: "test-verifier"
+        })
       });
 
       const response = await worker.fetch(request, env, {});
@@ -98,12 +93,12 @@ describe("OAuth Callback POST endpoint", () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "CF-Connecting-IP": "192.168.1.100",
+          "CF-Connecting-IP": "192.168.1.100"
         },
-        body: JSON.stringify({
+  body: JSON.stringify({
           code: "test-code",
-          state: "test-state",
-        }),
+          state: "test-state"
+        })
       });
 
       const response = await worker.fetch(request, env, {});
@@ -119,9 +114,9 @@ describe("OAuth Callback POST endpoint", () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "CF-Connecting-IP": "192.168.1.100",
+          "CF-Connecting-IP": "192.168.1.100"
         },
-        body: "invalid json {",
+  body: "invalid json {"
       });
 
       const response = await worker.fetch(request, env, {});
@@ -142,7 +137,7 @@ describe("OAuth Callback POST endpoint", () => {
             state: "test-state",
             provider: "google",
             createdAt: Date.now(),
-            expiresAt: Date.now() + 600000,
+            expiresAt: Date.now() + 600000
           });
         }
         return null;
@@ -156,14 +151,14 @@ describe("OAuth Callback POST endpoint", () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "CF-Connecting-IP": "192.168.1.100",
+          "CF-Connecting-IP": "192.168.1.100"
         },
-        body: JSON.stringify({
+  body: JSON.stringify({
           code: "test-code",
           state: "test-state",
           code_verifier: "test-verifier",
-          provider: "google",
-        }),
+          provider: "google"
+        })
       });
 
       const response = await worker.fetch(request, env, {});
@@ -183,13 +178,13 @@ describe("OAuth Callback POST endpoint", () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "CF-Connecting-IP": "192.168.1.100",
+          "CF-Connecting-IP": "192.168.1.100"
         },
-        body: JSON.stringify({
+  body: JSON.stringify({
           code: "test-code",
           state: "test-state",
-          code_verifier: "test-verifier",
-        }),
+          code_verifier: "test-verifier"
+        })
       });
 
       const response = await worker.fetch(request, env, {});
@@ -204,8 +199,8 @@ describe("OAuth Callback POST endpoint", () => {
         "http://localhost/oauth/callback?code=test-code&state=test-state&code_verifier=test-verifier",
         {
           headers: {
-            "CF-Connecting-IP": "192.168.1.100",
-          },
+            "CF-Connecting-IP": "192.168.1.100"
+          }
         }
       );
       const response = await worker.fetch(request, env, {});

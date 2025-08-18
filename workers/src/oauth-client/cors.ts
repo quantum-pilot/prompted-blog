@@ -52,25 +52,3 @@ export function getCorsHeaders(
   return headers;
 }
 
-export function errorResponse(
-  error: string,
-  message: string,
-  status: number,
-  context?: RequestContext,
-  env?: Env
-): Response {
-  const response = new Response(
-    JSON.stringify({
-      error,
-      error_description: message,
-    }),
-    {
-      status,
-      headers: {
-        "Content-Type": "application/json",
-        ...getCorsHeaders(context, env),
-      },
-    }
-  );
-  return applySecurityHeaders(response);
-}

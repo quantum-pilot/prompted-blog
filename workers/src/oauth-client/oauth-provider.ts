@@ -4,22 +4,31 @@
  */
 
 import type { Env } from "./types";
-import { OAUTH_SCOPES, OAUTH_PROVIDERS } from "../../../shared";
+import { OAUTH_PROVIDERS, getRedirectUri } from "../../../shared";
 
 export interface OAuthProviderConfig {
   name: string;
   authorizationServer: URL;
+  authPath: string;
   clientId: string;
   redirectUri: string;
-  scopes: string[];
+  scopes: readonly string[];
 }
 
-export function getGoogleProvider(env: Env): OAuthProviderConfig {
+export function getProvider(provider: string, env: Env): OAuthProviderConfig {
+  const providerKey = provider as 'google' | 'github';
+  const config = OAUTH_PROVIDERS[providerKey];
+  
+  if (!config) {
+    throw new Error(`Unsupported provider: ${provider}`);
+  }
+
   return {
-    name: OAUTH_PROVIDERS.google.name,
-    authorizationServer: new URL("https://accounts.google.com"),
-    clientId: env.GOOGLE_CLIENT_ID,
-    redirectUri: env.REDIRECT_URI,
-    scopes: [...OAUTH_SCOPES.GOOGLE],
+    name: config.name,
+    authorizationServer: new URL(config.authServer),
+    authPath: config.authPath,
+    clientId: config.clientId,
+    redirectUri: getRedirectUri(),
+    scopes: config.scopes,
   };
 }

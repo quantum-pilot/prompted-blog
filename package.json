@@ -6,6 +6,7 @@
   "scripts": {
     "build": "node scripts/build.mjs && node scripts/bundle-css.mjs",
     "dev": "npm run build && cd workers && wrangler dev",
+    "serve": "npm run build && npx http-server dist -p 8000",
     "test": "npm run test:frontend && npm run test:workers && npm run test:e2e",
     "test:frontend": "vitest --config vitest.config.ts",
     "test:workers": "cd workers && vitest",

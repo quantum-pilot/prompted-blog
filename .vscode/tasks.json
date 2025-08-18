@@ -18,7 +18,7 @@
     {
       "label": "Project Main",
       "type": "shell",
-      "command": "happy",
+      "command": "claude",
       "isBackground": false,
       "presentation": {
         "reveal": "always",
@@ -32,7 +32,7 @@
     {
       "label": "Project Sidekick",
       "type": "shell",
-      "command": "happy",
+      "command": "claude",
       "isBackground": false,
       "presentation": {
         "reveal": "always",

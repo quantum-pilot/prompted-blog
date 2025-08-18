@@ -5,10 +5,14 @@
  */
 
 import * as oauth from "oauth4webapi";
-// Using local types for now, but these could be imported from shared module:
-// import { OAuthConfig, OAuthSession, OAuthCallbackResult, OAuthProvider } from '../../shared';
-import { OAuthConfig, OAuthSession, OAuthCallbackResult } from "./oauth-types";
-import { getProviderConfig } from "./oauth-providers";
+import { 
+  OAuthProvider, 
+  OAuthSession, 
+  OAuthCallbackResult, 
+  OAuthConfig,
+  OAUTH_PROVIDERS,
+  getAuthorizationUrl
+} from "@app/shared";
 import {
   getSessionId,
   validateSessionWithWorker,
@@ -48,12 +52,13 @@ export class OAuthClient {
       .replace(/\//g, "_")
       .replace(/=/g, "");
 
-    // Get provider configuration
-    const providerConfig = getProviderConfig(this.config.provider);
-    const scopes = this.config.scopes || providerConfig.scopes;
+    // Get provider configuration directly from shared constants
+    const providerKey = this.config.provider.toLowerCase() as 'google' | 'github';
+    const provider = OAUTH_PROVIDERS[providerKey];
+    const scopes = provider.scopes;
 
     // Build authorization URL
-    const authUrl = new URL(providerConfig.authorizationEndpoint);
+    const authUrl = new URL(getAuthorizationUrl(providerKey));
     authUrl.searchParams.set("client_id", this.config.clientId);
     authUrl.searchParams.set("redirect_uri", this.config.redirectUri);
     authUrl.searchParams.set("response_type", "code");
@@ -63,8 +68,8 @@ export class OAuthClient {
     authUrl.searchParams.set("code_challenge_method", "S256");
 
     // Add provider-specific parameters
-    if (providerConfig.additionalParams) {
-      Object.entries(providerConfig.additionalParams).forEach(
+    if (provider.additionalParams) {
+      Object.entries(provider.additionalParams).forEach(
         ([key, value]) => {
           authUrl.searchParams.set(key, value);
         }
@@ -160,8 +165,6 @@ export class OAuthClient {
 
   /**
    * Handle OAuth callback - for popup mode with in-memory PKCE params
-   * This method is provided for backward compatibility but should not be used
-   * as the popup handler manages the callback internally
    */
   async handleCallback(
     callbackUrl: URL,

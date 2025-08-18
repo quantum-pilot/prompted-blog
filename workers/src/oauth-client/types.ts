@@ -3,32 +3,18 @@
  * OAuth client type definitions for worker
  */
 
+import { OAuthCallbackResult } from "../../../shared";
+
 // Extend WorkerEnv to properly type KVNamespace
 export interface Env {
   ALLOWED_ORIGINS: string;
   OAUTH_SESSIONS: KVNamespace;
   SESSION_ENCRYPTION_KEY: string;
   SESSION_ENCRYPTION_SALT: string;
-  GOOGLE_CLIENT_ID: string;
-  CLIENT_ID: string;
-  REDIRECT_URI: string;
-  FRONTEND_URL: string;
-  OAUTH_KV?: KVNamespace; // Optional, for legacy support
 }
 
-// Worker-specific types not in shared module
-export interface OAuthCallbackResult {
-  success: boolean;
-  error?: string;
-  sessionId?: string;
-}
-
-export interface ProviderConfig {
-  authorizationEndpoint: string;
-  tokenEndpoint: string;
-  userInfoEndpoint: string;
-  scopes: readonly string[];
-}
+// Re-export shared types for convenience
+export type { OAuthCallbackResult };
 
 export interface OAuthTokenResponse {
   access_token: string;

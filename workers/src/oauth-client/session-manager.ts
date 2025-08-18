@@ -11,13 +11,12 @@ import { isValidSessionId } from "./session-validation";
 import type { OAuthSession } from "../../../shared";
 
 // Extend OAuthSession with worker-specific fields
-export interface SessionData extends Omit<OAuthSession, "codeChallenge"> {
+export interface SessionData extends OAuthSession {
   id: string;
   userId: string; // Unique user identifier
   provider: string;
   createdAt: number;
   state?: string;
-  codeChallenge?: string; // Keep for backward compatibility
 }
 
 export class SessionManager {

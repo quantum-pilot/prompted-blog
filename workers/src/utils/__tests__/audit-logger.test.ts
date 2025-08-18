@@ -15,7 +15,7 @@ describe("AuditLogger", () => {
   it("creates properly structured audit entries", () => {
     AuditLogger.log(AuditEventType.AUTH_LOGIN_SUCCESS, "success", {
       userId: "user-123",
-      sessionId: "sess-789",
+      sessionId: "sess-789"
     });
 
     const logEntry = JSON.parse(consoleLogSpy.mock.calls[0][0] as string);
@@ -27,7 +27,7 @@ describe("AuditLogger", () => {
       userId: "user-123",
       sessionId: "sess-789",
       correlationId: expect.stringMatching(/^\d+-[a-z0-9]+$/),
-      timestamp: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T/),
+      timestamp: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T/)
     });
   });
 
@@ -47,8 +47,8 @@ describe("AuditLogger", () => {
         authorization: "Bearer secret-token",
         password: "supersecret",
         apiKey: "key-123",
-        normalData: "visible",
-      },
+        normalData: "visible"
+      }
     });
 
     const logEntry = JSON.parse(consoleLogSpy.mock.calls[0][0] as string);
@@ -57,7 +57,7 @@ describe("AuditLogger", () => {
       authorization: "[REDACTED]",
       password: "[REDACTED]",
       apiKey: "[REDACTED]",
-      normalData: "visible",
+      normalData: "visible"
     });
   });
 
@@ -82,8 +82,8 @@ describe("AuditLogger", () => {
     const mockRequest = new Request("https://example.com", {
       headers: {
         "CF-Connecting-IP": "192.168.1.1",
-        "User-Agent": "TestBrowser/1.0",
-      },
+        "User-Agent": "TestBrowser/1.0"
+      }
     });
 
     AuditLogger.logAuthSuccess("user-123", "session-456", mockRequest);
@@ -94,7 +94,7 @@ describe("AuditLogger", () => {
       userId: "user-123",
       sessionId: "session-456",
       ipAddress: "192.168.1.1",
-      userAgent: "TestBrowser/1.0",
+      userAgent: "TestBrowser/1.0"
     });
   });
 });

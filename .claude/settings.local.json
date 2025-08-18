@@ -44,7 +44,12 @@
       "Bash(npx wrangler:*)",
       "Bash(/dev/null)",
       "Bash(cp:*)",
-      "Bash(npx vitest run:*)"
+      "Bash(npx vitest run:*)",
+      "Bash(for file in:*)",
+      "Bash(do)",
+      "Bash(sed:*)",
+      "Bash(done)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",

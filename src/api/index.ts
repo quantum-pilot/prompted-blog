@@ -6,21 +6,17 @@
 // Main OAuth client with popup support
 export { OAuthClient } from "./oauth-client";
 
-// OAuth types
+// OAuth types - re-export from shared for convenience
 export {
   OAuthProvider,
   type OAuthConfig,
   type OAuthSession,
   type OAuthCallbackResult,
-  type ProviderConfig,
-} from "./oauth-types";
+} from "@app/shared";
 
 // OAuth popup handler for secure in-memory PKCE
 export { OAuthPopupHandler } from "./oauth-popup-handler";
 export type { PopupCallbackData } from "./oauth-popup-handler";
-
-// Provider configuration
-export { getProviderConfig } from "./oauth-providers";
 
 // Session management (in-memory only, no sessionStorage)
 export {

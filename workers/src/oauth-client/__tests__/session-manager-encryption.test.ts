@@ -27,12 +27,11 @@ describe("SessionManager Encryption", () => {
         put: async (key: string, value: string, options?: any) => {
           kvStore.set(key, value);
         },
-        get: async (key: string) => kvStore.get(key) || null,
+  get: async (key: string) => kvStore.get(key) || null,
         delete: async (key: string) => {
           kvStore.delete(key);
-        },
-      } as any,
-      OAUTH_KV: {} as any,
+        }
+      } as any
     };
 
     sessionManager = new SessionManager(mockEnv);
@@ -50,7 +49,7 @@ describe("SessionManager Encryption", () => {
         userId: "user-123",
         email: "test@example.com",
         name: "Test User",
-        expiresAt: Date.now() + 3600000,
+        expiresAt: Date.now() + 3600000
       };
 
       const sessionId = await sessionManager.createSession(
@@ -76,7 +75,7 @@ describe("SessionManager Encryption", () => {
         email: "encrypted@example.com",
         name: "Encrypted User",
         picture: "https://example.com/pic.jpg",
-        expiresAt: Date.now() + 3600000,
+        expiresAt: Date.now() + 3600000
       };
 
       const sessionId = await sessionManager.createSession(
@@ -105,7 +104,7 @@ describe("SessionManager Encryption", () => {
         provider: "google" as const,
         userId: "user-789",
         email: "unique@example.com",
-        expiresAt: Date.now() + 3600000,
+        expiresAt: Date.now() + 3600000
       };
 
       const sessionId1 = await sessionManager.createSession(
@@ -127,7 +126,7 @@ describe("SessionManager Encryption", () => {
     it("should encrypt OAuth state data", async () => {
       const stateData = {
         returnUrl: "/dashboard",
-        timestamp: Date.now(),
+        timestamp: Date.now()
       };
 
       await sessionManager.storeOAuthState("test-state", stateData, context);
@@ -147,7 +146,7 @@ describe("SessionManager Encryption", () => {
       const stateData = {
         returnUrl: "/profile",
         timestamp: Date.now(),
-        provider: "google",
+        provider: "google"
       };
 
       await sessionManager.storeOAuthState("state_123", stateData, context);
@@ -187,7 +186,7 @@ describe("SessionManager Encryption", () => {
         name: "User with lots of data",
         // Add a large custom field
         state: "x".repeat(10000),
-        expiresAt: Date.now() + 3600000,
+        expiresAt: Date.now() + 3600000
       };
 
       const sessionId = await sessionManager.createSession(largeData, context);
@@ -204,7 +203,7 @@ describe("SessionManager Encryption", () => {
         email: "special@example.com",
         name: "测试用户 🎉", // Unicode and emoji
         state: JSON.stringify({ nested: { data: 'with "quotes"' } }),
-        expiresAt: Date.now() + 3600000,
+        expiresAt: Date.now() + 3600000
       };
 
       const sessionId = await sessionManager.createSession(
@@ -225,7 +224,7 @@ describe("SessionManager Encryption", () => {
         provider: "google" as const,
         userId: "consistent-user",
         email: "consistent@example.com",
-        expiresAt: Date.now() + 3600000,
+        expiresAt: Date.now() + 3600000
       };
 
       // Create two managers with the same key
@@ -268,7 +267,7 @@ describe("SessionManager Encryption", () => {
               provider: "google" as const,
               userId: `concurrent-user-${i}`,
               email: `user${i}@example.com`,
-              expiresAt: Date.now() + 3600000,
+              expiresAt: Date.now() + 3600000
             },
             context
           )
@@ -303,7 +302,7 @@ describe("SessionManager Encryption", () => {
             provider: "google" as const,
             userId: "test-user",
             email: "test@example.com",
-            expiresAt: Date.now() + 3600000,
+            expiresAt: Date.now() + 3600000
           },
           context
         )
@@ -313,7 +312,7 @@ describe("SessionManager Encryption", () => {
     it("should handle different encryption keys", async () => {
       const envWithDifferentKey = {
         ...mockEnv,
-        SESSION_ENCRYPTION_KEY: "different-key",
+        SESSION_ENCRYPTION_KEY: "different-key"
       };
       const managerWithDifferentKey = new SessionManager(envWithDifferentKey);
 
@@ -323,7 +322,7 @@ describe("SessionManager Encryption", () => {
           provider: "google" as const,
           userId: "test-user",
           email: "test@example.com",
-          expiresAt: Date.now() + 3600000,
+          expiresAt: Date.now() + 3600000
         },
         context
       );

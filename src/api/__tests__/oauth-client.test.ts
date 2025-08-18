@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { OAuthClient } from '../oauth-client';
-import { OAuthProvider, OAuthConfig } from '../oauth-types';
-import { getProviderConfig } from '../oauth-providers';
+import { OAuthProvider, OAuthConfig } from '@app/shared';
 import { getSessionId, clearOAuthData } from '../oauth-session';
 
 // Mock oauth4webapi
@@ -113,37 +112,6 @@ describe('OAuthClient', () => {
       expect(getSessionId()).toBe('session-123');
     });
 
-    it('should support custom scopes', async () => {
-      const customClient = new OAuthClient({
-        ...mockConfig,
-        scopes: ['custom', 'scope']
-      });
-      
-      let capturedState: string | null = null;
-      mockPopupHandler.openPopup.mockImplementation((url: string) => {
-        const urlObj = new URL(url);
-        capturedState = urlObj.searchParams.get('state');
-      });
-      
-      mockPopupHandler.waitForCallback.mockImplementation(async () => ({
-        code: 'auth-code',
-        state: capturedState // Use the actual state from the URL
-      }));
-      
-      (global.fetch as any).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          success: true,
-          sessionId: 'session-123'
-        })
-      });
-      
-      await customClient.startAuthFlow();
-      
-      const authUrl = mockPopupHandler.openPopup.mock.calls[0][0];
-      const url = new URL(authUrl);
-      expect(url.searchParams.get('scope')).toBe('custom scope');
-    });
 
     it('should handle popup blocked error', async () => {
       mockPopupHandler.openPopup.mockImplementation(() => {
@@ -353,19 +321,6 @@ describe('OAuthClient', () => {
     });
   });
 
-  describe('getProviderConfig', () => {
-    it('should return Google provider config', () => {
-      const config = getProviderConfig(OAuthProvider.Google);
-      
-      expect(config.authorizationEndpoint).toBe('https://accounts.google.com/o/oauth2/v2/auth');
-      expect(config.scopes).toEqual(['openid', 'email', 'profile']);
-    });
-
-    it('should throw for unsupported providers', () => {
-      expect(() => getProviderConfig('github' as OAuthProvider))
-        .toThrow('Provider github not yet supported');
-    });
-  });
 
   describe('security considerations', () => {
     it('should not expose PKCE verifier in any logs or errors', async () => {

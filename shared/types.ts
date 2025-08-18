@@ -16,3 +16,18 @@ export interface OAuthSession {
   picture?: string;
   expiresAt: number;
 }
+
+// OAuth Callback Result (used by both frontend and worker)
+export interface OAuthCallbackResult {
+  success: boolean;
+  error?: string;
+  sessionId?: string;
+}
+
+// OAuth Client Configuration (used by frontend)
+export interface OAuthConfig {
+  workerUrl: string;
+  clientId: string;
+  redirectUri: string;
+  provider: OAuthProvider;
+}

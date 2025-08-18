@@ -21,13 +21,12 @@ describe("CORS Configuration", () => {
         ALLOWED_ORIGINS:
           "https://example.com,https://app.example.com,https://staging.example.com",
         OAUTH_SESSIONS: {} as any,
-        OAUTH_KV: {} as any,
         GOOGLE_CLIENT_ID: "test",
         CLIENT_ID: "test",
         REDIRECT_URI: "test",
         FRONTEND_URL: "test",
         SESSION_ENCRYPTION_KEY: "test",
-        SESSION_ENCRYPTION_SALT: "test-salt-for-cors-tests",
+        SESSION_ENCRYPTION_SALT: "test-salt-for-cors-tests"
       };
 
       expect(isAllowedOrigin("https://example.com", mockEnv)).toBe(true);
@@ -42,13 +41,12 @@ describe("CORS Configuration", () => {
       const mockEnv: Env = {
         ALLOWED_ORIGINS: " https://example.com , https://app.example.com ",
         OAUTH_SESSIONS: {} as any,
-        OAUTH_KV: {} as any,
         GOOGLE_CLIENT_ID: "test",
         CLIENT_ID: "test",
         REDIRECT_URI: "test",
         FRONTEND_URL: "test",
         SESSION_ENCRYPTION_KEY: "test",
-        SESSION_ENCRYPTION_SALT: "test-salt-for-cors-tests",
+        SESSION_ENCRYPTION_SALT: "test-salt-for-cors-tests"
       };
 
       expect(isAllowedOrigin("https://example.com", mockEnv)).toBe(true);
@@ -59,13 +57,12 @@ describe("CORS Configuration", () => {
       const mockEnv: Env = {
         ALLOWED_ORIGINS: "https://example.com",
         OAUTH_SESSIONS: {} as any,
-        OAUTH_KV: {} as any,
         GOOGLE_CLIENT_ID: "test",
         CLIENT_ID: "test",
         REDIRECT_URI: "test",
         FRONTEND_URL: "test",
         SESSION_ENCRYPTION_KEY: "test",
-        SESSION_ENCRYPTION_SALT: "test-salt-for-cors-tests",
+        SESSION_ENCRYPTION_SALT: "test-salt-for-cors-tests"
       };
 
       expect(isAllowedOrigin("https://example.com", mockEnv)).toBe(true);
@@ -78,17 +75,16 @@ describe("CORS Configuration", () => {
       const mockEnv: Env = {
         ALLOWED_ORIGINS: "https://example.com",
         OAUTH_SESSIONS: {} as any,
-        OAUTH_KV: {} as any,
         GOOGLE_CLIENT_ID: "test",
         CLIENT_ID: "test",
         REDIRECT_URI: "test",
         FRONTEND_URL: "test",
         SESSION_ENCRYPTION_KEY: "test",
-        SESSION_ENCRYPTION_SALT: "test-salt-for-cors-tests",
+        SESSION_ENCRYPTION_SALT: "test-salt-for-cors-tests"
       };
 
       const mockRequest = new Request("https://test.com", {
-        headers: { Origin: "https://malicious.com" },
+        headers: { Origin: "https://malicious.com" }
       });
       const mockContext = new RequestContext(mockRequest);
       const headers = getCorsHeaders(mockContext, mockEnv);
@@ -103,17 +99,16 @@ describe("CORS Configuration", () => {
       const mockEnv: Env = {
         ALLOWED_ORIGINS: "https://example.com,https://app.example.com",
         OAUTH_SESSIONS: {} as any,
-        OAUTH_KV: {} as any,
         GOOGLE_CLIENT_ID: "test",
         CLIENT_ID: "test",
         REDIRECT_URI: "test",
         FRONTEND_URL: "test",
         SESSION_ENCRYPTION_KEY: "test",
-        SESSION_ENCRYPTION_SALT: "test-salt-for-cors-tests",
+        SESSION_ENCRYPTION_SALT: "test-salt-for-cors-tests"
       };
 
       const mockRequest = new Request("https://test.com", {
-        headers: { Origin: "https://example.com" },
+        headers: { Origin: "https://example.com" }
       });
       const mockContext = new RequestContext(mockRequest);
       const headers = getCorsHeaders(mockContext, mockEnv);
@@ -127,13 +122,12 @@ describe("CORS Configuration", () => {
       const mockEnv: Env = {
         ALLOWED_ORIGINS: "https://example.com",
         OAUTH_SESSIONS: {} as any,
-        OAUTH_KV: {} as any,
         GOOGLE_CLIENT_ID: "test",
         CLIENT_ID: "test",
         REDIRECT_URI: "test",
         FRONTEND_URL: "test",
         SESSION_ENCRYPTION_KEY: "test",
-        SESSION_ENCRYPTION_SALT: "test-salt-for-cors-tests",
+        SESSION_ENCRYPTION_SALT: "test-salt-for-cors-tests"
       };
 
       const mockRequest = new Request("https://test.com", {});

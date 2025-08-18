@@ -36,8 +36,7 @@ describe('PKCE Security Edge Cases', () => {
         delete: vi.fn(async (key: string) => {
           kvStore.delete(key);
         })
-      } as any,
-      OAUTH_KV: {} as any
+      } as any
     };
   });
 
@@ -66,7 +65,7 @@ describe('PKCE Security Edge Cases', () => {
           'Content-Type': 'application/json',
           'CF-Connecting-IP': '192.168.1.100'
         },
-        body: JSON.stringify({
+  body: JSON.stringify({
           code: 'test-code',
           state: state,
           code_verifier: 'test-verifier'
@@ -82,7 +81,7 @@ describe('PKCE Security Edge Cases', () => {
           'Content-Type': 'application/json',
           'CF-Connecting-IP': '192.168.1.100'
         },
-        body: JSON.stringify({
+  body: JSON.stringify({
           code: 'test-code-2',
           state: state,
           code_verifier: 'test-verifier'
@@ -118,7 +117,7 @@ describe('PKCE Security Edge Cases', () => {
           'Content-Type': 'application/json',
           'CF-Connecting-IP': '192.168.1.100'
         },
-          body: JSON.stringify({
+  body: JSON.stringify({
             code: `code-${i}`,
             state: state,
             code_verifier: 'test-verifier'
@@ -161,7 +160,7 @@ describe('PKCE Security Edge Cases', () => {
           'Content-Type': 'application/json',
           'CF-Connecting-IP': '192.168.1.100'
         },
-        body: JSON.stringify({
+  body: JSON.stringify({
           code: 'test-code',
           state: state,
           code_verifier: 'dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk'
@@ -195,7 +194,7 @@ describe('PKCE Security Edge Cases', () => {
           'Content-Type': 'application/json',
           'CF-Connecting-IP': '192.168.1.100'
         },
-        body: JSON.stringify({
+  body: JSON.stringify({
           code: 'test-code',
           state: state,
           code_verifier: wrongVerifier
@@ -228,7 +227,7 @@ describe('PKCE Security Edge Cases', () => {
           'Content-Type': 'application/json',
           'CF-Connecting-IP': '192.168.1.100'
         },
-        body: JSON.stringify({
+  body: JSON.stringify({
           code: 'test-code',
           state: state,
           code_verifier: ''
@@ -246,7 +245,7 @@ describe('PKCE Security Edge Cases', () => {
           'Content-Type': 'application/json',
           'CF-Connecting-IP': '192.168.1.100'
         },
-        body: JSON.stringify({
+  body: JSON.stringify({
           code: 'test-code',
           state: state,
           code_verifier: null
@@ -289,7 +288,7 @@ describe('PKCE Security Edge Cases', () => {
           'Content-Type': 'application/json',
           'CF-Connecting-IP': '192.168.1.100'
         },
-        body: JSON.stringify({
+  body: JSON.stringify({
           code: 'test-code',
           state: state,
           code_verifier: 'test-verifier'
@@ -326,7 +325,7 @@ describe('PKCE Security Edge Cases', () => {
           'Content-Type': 'application/json',
           'CF-Connecting-IP': '192.168.1.100'
         },
-          body: JSON.stringify({
+  body: JSON.stringify({
             code: `code-${i}`,
             state: state,
             code_verifier: `verifier-${i}`
@@ -368,7 +367,7 @@ describe('PKCE Security Edge Cases', () => {
           'Content-Type': 'application/json',
           'CF-Connecting-IP': '192.168.1.100'
         },
-          body: JSON.stringify({
+  body: JSON.stringify({
             code: 'test-code',
             state: state,
             code_verifier: 'wrong-verifier'
@@ -381,7 +380,7 @@ describe('PKCE Security Edge Cases', () => {
           'Content-Type': 'application/json',
           'CF-Connecting-IP': '192.168.1.100'
         },
-          body: JSON.stringify({
+  body: JSON.stringify({
             code: 'test-code',
             state: state
           })
@@ -393,7 +392,7 @@ describe('PKCE Security Edge Cases', () => {
           'Content-Type': 'application/json',
           'CF-Connecting-IP': '192.168.1.100'
         },
-          body: JSON.stringify({
+  body: JSON.stringify({
             code: 'test-code',
             state: 'wrong-state',
             code_verifier: 'test-verifier'

@@ -1,11 +1,11 @@
 // @agent: cloudflare-backend
 // Request context management for user info, correlation, and session tracking
-import type { AuditEventType } from "./audit-logger";
+import { AuditLogger, AuditEventType } from "./audit-logger";
 import * as HeaderUtils from "./header-utils";
-import { ContextLogger, LogEntry } from "./context-logger";
-import { ContextMetadata } from "./context-metadata";
-
-export type { LogEntry } from "./context-logger";
+import { applySecurityHeaders } from "./security-headers";
+import { getCorsHeaders } from "../oauth-client/cors";
+import type { Env } from "../oauth-client/types";
+import { HTTP_STATUS } from "../../../shared";
 
 export class RequestContext {
   readonly request: Request;
@@ -16,8 +16,6 @@ export class RequestContext {
   ipAddress?: string;
   userAgent?: string;
   timestamp: Date;
-  private logger = new ContextLogger();
-  private metadataManager = new ContextMetadata();
   private _url?: URL;
 
   constructor(request: Request) {
@@ -70,17 +68,6 @@ export class RequestContext {
     return context;
   }
 
-  toAuditDetails(metadata?: Record<string, any>) {
-    return {
-      correlationId: this.correlationId,
-      userId: this.userId,
-      sessionId: this.sessionId,
-      ipAddress: this.ipAddress,
-      userAgent: this.userAgent,
-      ...(metadata && { metadata }),
-    };
-  }
-
   propagate(request?: Request): Request {
     return HeaderUtils.setPropagationHeaders(request || this.request, {
       correlationId: this.correlationId,
@@ -94,55 +81,81 @@ export class RequestContext {
     if (sessionData?.email) this.userEmail = sessionData.email;
   }
 
-  setMetadata(key: string, value: any): void {
-    this.metadataManager.set(key, value);
-  }
-
-  getMetadata(key: string): any {
-    return this.metadataManager.get(key);
-  }
-
   log(
     eventType: AuditEventType,
     result: "success" | "failure",
     metadata?: Record<string, any>
   ): void {
-    this.logger.log(
-      eventType,
-      result,
-      {
-        correlationId: this.correlationId,
-        userId: this.userId,
-        sessionId: this.sessionId,
-        ipAddress: this.ipAddress,
-        userAgent: this.userAgent,
-      },
-      metadata,
-      this.metadataManager.getAll()
-    );
+    AuditLogger.log(eventType, result, {
+      userId: this.userId,
+      sessionId: this.sessionId,
+      correlationId: this.correlationId,
+      ipAddress: this.ipAddress,
+      userAgent: this.userAgent,
+      metadata: metadata,
+    });
   }
 
-  getLogs(): LogEntry[] {
-    return this.logger.getLogs();
+  /**
+   * Create an error response with consistent formatting, logging, and headers
+   */
+  errorResponse(
+    status: number,
+    errorCode: string,
+    errorDescription: string = "Request failed",
+    env?: Env,
+    auditEvent?: AuditEventType,
+    auditMetadata?: Record<string, any>
+  ): Response {
+    // Log the error if audit event is provided
+    if (auditEvent) {
+      this.log(auditEvent, "failure", {
+        errorCode,
+        reason: errorDescription,
+        ...auditMetadata
+      });
+    }
+
+    // Build the error response body
+    const responseBody = {
+      error: errorCode,
+      error_description: errorDescription
+    };
+
+    // Build response headers
+    const headers: HeadersInit = {
+      "Content-Type": "application/json",
+      ...getCorsHeaders(this, env)
+    };
+
+    // Create the response
+    const response = new Response(JSON.stringify(responseBody), {
+      status,
+      headers
+    });
+
+    // Apply security headers and return
+    return applySecurityHeaders(response);
   }
 
-  clearLogs(): void {
-    this.logger.clearLogs();
-  }
+  /**
+   * Create a success response with consistent formatting and headers
+   */
+  successResponse(
+    data: any,
+    env?: Env,
+    status: number = HTTP_STATUS.OK
+  ): Response {
+    const headers: HeadersInit = {
+      "Content-Type": "application/json",
+      ...getCorsHeaders(this, env)
+    };
 
-  createChild(): RequestContext {
-    const child = new RequestContext(this.request);
-    child.correlationId = this.correlationId;
-    child.userId = this.userId;
-    child.userEmail = this.userEmail;
-    child.sessionId = this.sessionId;
-    child.ipAddress = this.ipAddress;
-    child.userAgent = this.userAgent;
-    this.metadataManager.copyTo(child.metadataManager);
-    return child;
-  }
+    const response = new Response(JSON.stringify(data), {
+      status,
+      headers
+    });
 
-  updateCorrelationId(newId: string): void {
-    this.correlationId = newId;
+    return applySecurityHeaders(response);
   }
 }

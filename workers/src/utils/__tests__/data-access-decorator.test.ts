@@ -5,7 +5,7 @@ import { AuditLogger } from "../audit-logger";
 import { RequestContext } from "../request-context";
 
 vi.mock("../audit-logger", () => ({
-  AuditLogger: { logDataAccess: vi.fn() },
+  AuditLogger: { logDataAccess: vi.fn() }
 }));
 
 describe("Data Access Decorator", () => {
@@ -30,7 +30,7 @@ describe("Data Access Decorator", () => {
     requestContext.userId = "user123";
     const originalMethod = vi.fn((context: DataAccessContext) => ({
       id: context.requestContext.userId,
-      name: "Test User",
+      name: "Test User"
     }));
     const modifiedDescriptor = applyDecorator(
       originalMethod,
@@ -40,7 +40,7 @@ describe("Data Access Decorator", () => {
     const context: DataAccessContext = {
       requestContext,
       resource: "user-profile",
-      operation: "read",
+      operation: "read"
     };
 
     const result = await modifiedDescriptor.value(context);
@@ -62,7 +62,7 @@ describe("Data Access Decorator", () => {
     const originalMethod = vi.fn(
       async (context: DataAccessContext, data: any) => ({
         success: true,
-        userId: context.requestContext.userId,
+        userId: context.requestContext.userId
       })
     );
     const modifiedDescriptor = applyDecorator(
@@ -73,7 +73,7 @@ describe("Data Access Decorator", () => {
     const context: DataAccessContext = {
       requestContext,
       resource: "user-profile",
-      operation: "write",
+      operation: "write"
     };
 
     const result = await modifiedDescriptor.value(context, { name: "Updated" });
@@ -102,7 +102,7 @@ describe("Data Access Decorator", () => {
     const context: DataAccessContext = {
       requestContext,
       resource: "secure-item",
-      operation: "delete",
+      operation: "delete"
     };
 
     await expect(modifiedDescriptor.value(context)).rejects.toThrow(

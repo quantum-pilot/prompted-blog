@@ -4,7 +4,7 @@ import { test, expect } from '@playwright/test';
 test.describe('OAuth Callback Security', () => {
   test('should not use wildcard origin in postMessage', async ({ page }) => {
     // Navigate to the callback page
-    await page.goto('/src/oauth-callback.html?code=test123&state=test');
+    await page.goto('/oauth-callback/?code=test123&state=test');
     
     // Inject a script to intercept postMessage calls
     const postMessageCalls = await page.evaluate(() => {
@@ -46,7 +46,7 @@ test.describe('OAuth Callback Security', () => {
 
   test('should validate URL parameters', async ({ page }) => {
     // Test with malicious parameters
-    await page.goto('/src/oauth-callback.html?code=test&evil=<script>alert(1)</script>');
+    await page.goto('/oauth-callback/?code=test&evil=<script>alert(1)</script>');
     
     // Check that only whitelisted parameters are processed
     const processedParams = await page.evaluate(() => {
@@ -70,7 +70,7 @@ test.describe('OAuth Callback Security', () => {
   });
 
   test('should have Content Security Policy meta tag', async ({ page }) => {
-    await page.goto('/src/oauth-callback.html');
+    await page.goto('/oauth-callback/');
     
     const cspMeta = await page.$('meta[http-equiv="Content-Security-Policy"]');
     expect(cspMeta).not.toBeNull();
@@ -82,7 +82,7 @@ test.describe('OAuth Callback Security', () => {
 
   test('should enforce HTTPS in production', async ({ page }) => {
     // Test HTTPS enforcement (skip for localhost)
-    const response = await page.goto('/src/oauth-callback.html');
+    const response = await page.goto('/oauth-callback/');
     
     const isLocalhost = await page.evaluate(() => {
       return window.location.hostname === 'localhost' || 

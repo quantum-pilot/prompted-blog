@@ -48,8 +48,7 @@ describe('Rate Limiter Edge Cases', () => {
       FRONTEND_URL: 'http://localhost:3000',
       SESSION_ENCRYPTION_KEY: 'test-encryption-key-32-bytes-long-for-testing!',
       SESSION_ENCRYPTION_SALT: 'test-salt-for-rate-limiter',
-      OAUTH_SESSIONS: mockKV,
-      OAUTH_KV: {} as any
+      OAUTH_SESSIONS: mockKV
     };
   });
 
@@ -276,7 +275,7 @@ describe('Rate Limiter Edge Cases', () => {
             'X-Forwarded-For': `10.0.0.${i}, ${realIp}`, // Try to spoof
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({
+  body: JSON.stringify({
             code: 'test',
             state: 'test',
             code_verifier: 'test'
@@ -295,7 +294,7 @@ describe('Rate Limiter Edge Cases', () => {
           'X-Forwarded-For': '10.0.0.99', // Different spoofed IP
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
+  body: JSON.stringify({
           code: 'test',
           state: 'test',
           code_verifier: 'test'
@@ -316,7 +315,7 @@ describe('Rate Limiter Edge Cases', () => {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({
+  body: JSON.stringify({
             code: 'test',
             state: 'test',
             code_verifier: 'test'
@@ -356,7 +355,7 @@ describe('Rate Limiter Edge Cases', () => {
             'CF-Connecting-IP': malformedIP,
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({
+  body: JSON.stringify({
             code: 'test',
             state: 'test',
             code_verifier: 'test'
@@ -381,7 +380,7 @@ describe('Rate Limiter Edge Cases', () => {
           'X-Real-IP': '192.0.2.1', // Could be spoofed
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
+  body: JSON.stringify({
           code: 'test',
           state: 'test',
           code_verifier: 'test'

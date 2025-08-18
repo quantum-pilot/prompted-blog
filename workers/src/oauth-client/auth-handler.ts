@@ -3,12 +3,11 @@
  * OAuth authorization initiation handler
  */
 
-import { getCorsHeaders, errorResponse } from "./cors";
 import { HTTP_STATUS } from "../../../shared";
 import { RequestContext } from "../utils/request-context";
 import { AuditEventType } from "../utils/audit-logger";
 import { AuditedKVStore } from "../utils/audit-kvstore";
-import { getGoogleProvider } from "./oauth-provider";
+import { getProvider } from "./oauth-provider";
 import type { Env } from "./types";
 import { isValidStateParameter } from "./session-validation";
 
@@ -27,44 +26,19 @@ export async function handleInitiateOAuth(
   env: Env,
   context: RequestContext
 ): Promise<Response> {
-  const origin = context.origin;
   const url = context.url;
   const codeChallenge = url.searchParams.get("code_challenge");
   const state = url.searchParams.get("state");
-  const provider = url.searchParams.get("provider") || "google";
+  const provider = url.searchParams.get("provider");
 
-  if (!codeChallenge) {
-    return errorResponse(
+  if (!codeChallenge || !state || !provider || !isValidStateParameter(state)) {
+    return context.errorResponse(
+      HTTP_STATUS.BAD_REQUEST,
       "invalid_request",
       "Authentication failed",
-      HTTP_STATUS.BAD_REQUEST,
-      context,
-      env
-    );
-  }
-
-  if (!state) {
-    return errorResponse(
-      "invalid_request",
-      "Authentication failed",
-      HTTP_STATUS.BAD_REQUEST,
-      context,
-      env
-    );
-  }
-
-  // SECURITY: Validate state parameter format to prevent injection attacks
-  if (!isValidStateParameter(state)) {
-    context.log(AuditEventType.PKCE_CHALLENGE_STORE_FAILURE, "failure", {
-      reason: "Invalid state parameter format",
-      stateLength: state.length,
-    });
-    return errorResponse(
-      "invalid_request",
-      "Authentication failed",
-      HTTP_STATUS.BAD_REQUEST,
-      context,
-      env
+      env,
+      AuditEventType.PKCE_CHALLENGE_STORE_FAILURE,
+      { reason: "Missing or invalid parameters" }
     );
   }
 
@@ -91,11 +65,11 @@ export async function handleInitiateOAuth(
   });
 
   // Get provider configuration
-  const providerConfig = getGoogleProvider(env);
+  const providerConfig = getProvider(provider, env);
 
   // Build authorization URL
   const authUrl = new URL(
-    "/o/oauth2/v2/auth",
+    providerConfig.authPath,
     providerConfig.authorizationServer
   );
   authUrl.searchParams.set("client_id", providerConfig.clientId);
@@ -108,17 +82,11 @@ export async function handleInitiateOAuth(
   authUrl.searchParams.set("access_type", "offline");
   authUrl.searchParams.set("prompt", "consent");
 
-  return new Response(
-    JSON.stringify({
+  return context.successResponse(
+    {
       success: true,
       authorizationUrl: authUrl.toString(),
-    }),
-    {
-      status: 200,
-      headers: {
-        "Content-Type": "application/json",
-        ...getCorsHeaders(context, env),
-      },
-    }
+    },
+    env
   );
 }

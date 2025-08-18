@@ -3,7 +3,6 @@
  * Session management handler
  */
 
-import { getCorsHeaders, errorResponse } from "./cors";
 import { HTTP_STATUS } from "../../../shared";
 import { RequestContext } from "../utils/request-context";
 import { AuditEventType } from "../utils/audit-logger";
@@ -23,11 +22,10 @@ export async function handleSessionGet(
     context.log(AuditEventType.AUTH_SESSION_INVALID, "failure", {
       reason: "Missing session ID in Authorization header",
     });
-    return errorResponse(
+    return context.errorResponse(
+      HTTP_STATUS.BAD_REQUEST,
       "invalid_request",
       "Authentication failed",
-      HTTP_STATUS.BAD_REQUEST,
-      context,
       env
     );
   }
@@ -40,11 +38,10 @@ export async function handleSessionGet(
       reason: "Invalid session ID format",
       sessionIdLength: sessionId.length,
     });
-    return errorResponse(
+    return context.errorResponse(
+      HTTP_STATUS.BAD_REQUEST,
       "invalid_request",
       "Authentication failed",
-      HTTP_STATUS.BAD_REQUEST,
-      context,
       env
     );
   }
@@ -53,32 +50,25 @@ export async function handleSessionGet(
   const session = await sessionManager.validateSession(sessionId, context);
 
   if (!session) {
-    return errorResponse(
+    return context.errorResponse(
+      HTTP_STATUS.NOT_FOUND,
       "invalid_grant",
       "Authentication failed",
-      HTTP_STATUS.NOT_FOUND,
-      context,
       env
     );
   }
 
   // Return session data (excluding sensitive fields)
-  return new Response(
-    JSON.stringify({
+  return context.successResponse(
+    {
       userId: session.userId,
       email: session.email,
       name: session.name,
       picture: session.picture,
       provider: session.provider,
       expiresAt: session.expiresAt,
-    }),
-    {
-      status: 200,
-      headers: {
-        "Content-Type": "application/json",
-        ...getCorsHeaders(context, env),
-      },
-    }
+    },
+    env
   );
 }
 
@@ -88,11 +78,8 @@ export async function handleHealthCheck(
 ): Promise<Response> {
   const origin = context.origin;
 
-  return new Response(JSON.stringify({ status: "ok", timestamp: Date.now() }), {
-    status: 200,
-    headers: {
-      "Content-Type": "application/json",
-      ...getCorsHeaders(context, env),
-    },
-  });
+  return context.successResponse(
+    { status: "ok", timestamp: Date.now() },
+    env
+  );
 }

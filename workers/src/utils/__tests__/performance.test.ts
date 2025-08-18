@@ -11,14 +11,14 @@ describe("Performance Tests", () => {
       const mockKV = {
         get: vi.fn(async () => null),
         put: vi.fn(async () => {}),
-        delete: vi.fn(async () => {}),
+        delete: vi.fn(async () => {})
       };
 
       const rateLimiter = new RateLimiter({
         kv: mockKV,
         limit: 5,
         windowMs: 60000,
-        keyPrefix: "test",
+        keyPrefix: "test"
       });
 
       const start = performance.now();
@@ -44,12 +44,11 @@ describe("Performance Tests", () => {
           put: async (key: string, value: string) => {
             kvStore.set(key, value);
           },
-          get: async (key: string) => kvStore.get(key) || null,
+  get: async (key: string) => kvStore.get(key) || null,
           delete: async (key: string) => {
             kvStore.delete(key);
-          },
-        } as any,
-        OAUTH_KV: {} as any,
+          }
+        } as any
       };
 
       const sessionManager = new SessionManager(mockEnv);
@@ -63,7 +62,7 @@ describe("Performance Tests", () => {
         email: "perf@test.com",
         name: "Performance Test User",
         picture: "https://example.com/large-url-path.jpg",
-        expiresAt: Date.now() + 3600000,
+        expiresAt: Date.now() + 3600000
       };
 
       const startTime = Date.now();
@@ -92,12 +91,11 @@ describe("Performance Tests", () => {
           put: async (key: string, value: string) => {
             kvStore.set(key, value);
           },
-          get: async (key: string) => kvStore.get(key) || null,
+  get: async (key: string) => kvStore.get(key) || null,
           delete: async (key: string) => {
             kvStore.delete(key);
-          },
-        } as any,
-        OAUTH_KV: {} as any,
+          }
+        } as any
       };
 
       const sessionManager = new SessionManager(mockEnv);
@@ -111,7 +109,7 @@ describe("Performance Tests", () => {
         email: "large@test.com",
         name: "User with lots of data",
         state: "x".repeat(1000),
-        expiresAt: Date.now() + 3600000,
+        expiresAt: Date.now() + 3600000
       };
 
       const startTime = Date.now();

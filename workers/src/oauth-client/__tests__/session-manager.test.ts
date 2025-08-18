@@ -20,7 +20,7 @@ describe("SessionManager", () => {
             value,
             expiry: options?.expirationTtl
               ? Date.now() + options.expirationTtl * 1000
-              : undefined,
+              : undefined
           });
         }),
         get: vi.fn(async (key: string) => {
@@ -34,8 +34,8 @@ describe("SessionManager", () => {
         }),
         delete: vi.fn(async (key: string) => {
           kvStore.delete(key);
-        }),
-      },
+        })
+      }
     };
 
     sessionManager = new SessionManager(mockEnv);
@@ -52,7 +52,7 @@ describe("SessionManager", () => {
         userId: "user-123",
         email: "test@example.com",
         name: "Test User",
-        expiresAt: Date.now() + 3600000,
+        expiresAt: Date.now() + 3600000
       };
 
       const sessionId = await sessionManager.createSession(
@@ -99,7 +99,7 @@ describe("SessionManager", () => {
         provider: "google",
         userId: "user-123",
         email: "test@example.com",
-        expiresAt: Date.now() + 3600000,
+        expiresAt: Date.now() + 3600000
       };
 
       const sessionId = await sessionManager.createSession(
@@ -167,7 +167,7 @@ describe("SessionManager", () => {
         provider: "google",
         userId: "user-123",
         email: "test@example.com",
-        expiresAt: Date.now() + 3600000,
+        expiresAt: Date.now() + 3600000
       };
 
       const sessionId = await sessionManager.createSession(
@@ -206,7 +206,7 @@ describe("SessionManager", () => {
         "failure",
         expect.objectContaining({
           reason: "Invalid session ID format",
-          sessionIdLength: invalidSessionId.length,
+          sessionIdLength: invalidSessionId.length
         })
       );
     });

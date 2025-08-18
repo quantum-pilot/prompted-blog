@@ -11,19 +11,19 @@ describe("Input Validation Security Tests", () => {
       OAUTH_SESSIONS: {
         get: vi.fn().mockResolvedValue(null),
         put: vi.fn().mockResolvedValue(undefined),
-        delete: vi.fn().mockResolvedValue(undefined),
+        delete: vi.fn().mockResolvedValue(undefined)
       },
-      RATE_LIMITER: {
+  RATE_LIMITER: {
         get: vi.fn().mockResolvedValue(null),
         put: vi.fn().mockResolvedValue(undefined),
-        delete: vi.fn().mockResolvedValue(undefined),
+        delete: vi.fn().mockResolvedValue(undefined)
       },
-      GOOGLE_CLIENT_ID: "test-client-id",
+  GOOGLE_CLIENT_ID: "test-client-id",
       CLIENT_ID: "test-client-id",
       REDIRECT_URI: "http://localhost/callback",
       FRONTEND_URL: "http://localhost",
       SESSION_ENCRYPTION_KEY: "test-encryption-key-for-input-validation-test!",
-      SESSION_ENCRYPTION_SALT: "test-salt-for-input-validation-test",
+      SESSION_ENCRYPTION_SALT: "test-salt-for-input-validation-test"
     } as unknown as Env;
   });
 
@@ -50,7 +50,7 @@ describe("Input Validation Security Tests", () => {
         }
 
         const request = new Request("http://localhost/oauth/session", {
-          headers,
+          headers
         });
 
         const response = await worker.fetch(request, env, {});
@@ -92,7 +92,7 @@ describe("Input Validation Security Tests", () => {
         userId: "user-123",
         email: "test@example.com",
         name: "Test User",
-        expiresAt: Date.now() + 3600000,
+        expiresAt: Date.now() + 3600000
       };
 
       const sessionId = await sessionManager.createSession(
@@ -102,8 +102,8 @@ describe("Input Validation Security Tests", () => {
 
       const request = new Request("http://localhost/oauth/session", {
         headers: {
-          Authorization: `Bearer ${sessionId}`,
-        },
+          Authorization: `Bearer ${sessionId}`
+        }
       });
 
       const response = await worker.fetch(request, env, {});
@@ -133,7 +133,7 @@ describe("Input Validation Security Tests", () => {
         "", // Empty
         "state with spaces",
         "state/with/slashes",
-        "state\\with\\backslashes",
+        "state\\with\\backslashes"
       ];
 
       for (const maliciousState of maliciousStates) {
@@ -168,12 +168,12 @@ describe("Input Validation Security Tests", () => {
         "TEST_STATE_456",
         "a".repeat(128), // Max length
         "1234567890",
-        "state_with-mixed_123",
+        "state_with-mixed_123"
       ];
 
       for (const validState of validStates) {
         const request = new Request(
-          `http://localhost/oauth/authorize?code_challenge=test-challenge&state=${validState}`
+          `http://localhost/oauth/authorize?code_challenge=test-challenge&state=${validState}&provider=google`
         );
 
         const response = await worker.fetch(request, env, {});
@@ -197,7 +197,7 @@ describe("Input Validation Security Tests", () => {
       const maliciousStates = [
         "../../../etc/passwd",
         "<script>alert(1)</script>",
-        "state with spaces",
+        "state with spaces"
       ];
 
       for (const maliciousState of maliciousStates) {
@@ -211,8 +211,8 @@ describe("Input Validation Security Tests", () => {
           )}&code_verifier=test-verifier`,
           {
             headers: {
-              "CF-Connecting-IP": "192.168.1.100",
-            },
+              "CF-Connecting-IP": "192.168.1.100"
+            }
           }
         );
 
@@ -238,14 +238,14 @@ describe("Input Validation Security Tests", () => {
       // Test multiple validation scenarios
       const requests = [
         new Request("http://localhost/oauth/session", {
-          headers: { Authorization: "Bearer invalid" },
+          headers: { Authorization: "Bearer invalid" }
         }),
         new Request(
-          "http://localhost/oauth/authorize?code_challenge=test&state=<script>"
+          "http://localhost/oauth/authorize?code_challenge=test&state=<script>",
         ),
         new Request(
-          "http://localhost/oauth/callback?code=test&state=../../../&code_verifier=test"
-        ),
+          "http://localhost/oauth/callback?code=test&state=../../../&code_verifier=test",
+        )
       ];
 
       for (const request of requests) {

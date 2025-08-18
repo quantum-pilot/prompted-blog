@@ -35,8 +35,8 @@ describe("OAuth Rate Limiting Integration", () => {
         }),
         delete: vi.fn(async (key: string) => {
           kvStore.delete(key);
-        }),
-      } as any,
+        })
+      } as any
     };
   });
 
@@ -50,13 +50,13 @@ describe("OAuth Rate Limiting Integration", () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "CF-Connecting-IP": clientIp,
+            "CF-Connecting-IP": clientIp
           },
-          body: JSON.stringify({
+  body: JSON.stringify({
             code: "test",
             state: "test",
-            code_verifier: "test",
-          }),
+            code_verifier: "test"
+          })
         });
 
         const response = await worker.fetch(request, env, {});
@@ -69,13 +69,13 @@ describe("OAuth Rate Limiting Integration", () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "CF-Connecting-IP": clientIp,
+          "CF-Connecting-IP": clientIp
         },
-        body: JSON.stringify({
+  body: JSON.stringify({
           code: "test",
           state: "test",
-          code_verifier: "test",
-        }),
+          code_verifier: "test"
+        })
       });
 
       const blockedResponse = await worker.fetch(blockedRequest, env, {});
@@ -99,13 +99,13 @@ describe("OAuth Rate Limiting Integration", () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "CF-Connecting-IP": ip1,
+            "CF-Connecting-IP": ip1
           },
-          body: JSON.stringify({
+  body: JSON.stringify({
             code: "test",
             state: "test",
-            code_verifier: "test",
-          }),
+            code_verifier: "test"
+          })
         });
         const response = await worker.fetch(request, env, {});
         expect(response.status).not.toBe(429);
@@ -116,13 +116,13 @@ describe("OAuth Rate Limiting Integration", () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "CF-Connecting-IP": ip2,
+          "CF-Connecting-IP": ip2
         },
-        body: JSON.stringify({
+  body: JSON.stringify({
           code: "test",
           state: "test",
-          code_verifier: "test",
-        }),
+          code_verifier: "test"
+        })
       });
       const response = await worker.fetch(request, env, {});
       expect(response.status).not.toBe(429);
@@ -132,13 +132,13 @@ describe("OAuth Rate Limiting Integration", () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "CF-Connecting-IP": ip1,
+          "CF-Connecting-IP": ip1
         },
-        body: JSON.stringify({
+  body: JSON.stringify({
           code: "test",
           state: "test",
-          code_verifier: "test",
-        }),
+          code_verifier: "test"
+        })
       });
       const blockedResponse = await worker.fetch(blockedRequest, env, {});
       expect(blockedResponse.status).toBe(429);
@@ -151,8 +151,8 @@ describe("OAuth Rate Limiting Integration", () => {
       for (let i = 0; i < 20; i++) {
         const request = new Request("http://localhost/health", {
           headers: {
-            "CF-Connecting-IP": clientIp,
-          },
+            "CF-Connecting-IP": clientIp
+          }
         });
         const response = await worker.fetch(request, env, {});
         expect(response.status).toBe(200);
@@ -170,13 +170,13 @@ describe("OAuth Rate Limiting Integration", () => {
           headers: {
             "Content-Type": "application/json",
             "CF-Connecting-IP": clientIp,
-            Origin: origin,
+            Origin: origin
           },
-          body: JSON.stringify({
+  body: JSON.stringify({
             code: "test",
             state: "test",
-            code_verifier: "test",
-          }),
+            code_verifier: "test"
+          })
         });
         await worker.fetch(request, env, {});
       }
@@ -187,13 +187,13 @@ describe("OAuth Rate Limiting Integration", () => {
         headers: {
           "Content-Type": "application/json",
           "CF-Connecting-IP": clientIp,
-          Origin: origin,
+          Origin: origin
         },
-        body: JSON.stringify({
+  body: JSON.stringify({
           code: "test",
           state: "test",
-          code_verifier: "test",
-        }),
+          code_verifier: "test"
+        })
       });
 
       const blockedResponse = await worker.fetch(blockedRequest, env, {});

@@ -4,7 +4,7 @@
  * No sessionStorage is used for security reasons
  */
 
-import { OAuthSession } from './oauth-types';
+import { OAuthSession } from '@app/shared';
 
 // In-memory storage for session ID (popup mode only)
 let currentSessionId: string | null = null;

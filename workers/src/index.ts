@@ -4,7 +4,7 @@
  * Handles OAuth flow and session management
  */
 
-import { getCorsHeaders, errorResponse } from "./oauth-client/cors";
+import { getCorsHeaders } from "./oauth-client/cors";
 import { HTTP_STATUS } from "../../shared";
 import { RequestContext } from "./utils/request-context";
 import { AuditEventType } from "./utils/audit-logger";
@@ -26,7 +26,6 @@ const router = new Router();
 router.get("/oauth/authorize", handleInitiateOAuth);
 
 // OAuth callback endpoint - handles authorization code exchange with PKCE validation
-// Only POST method supported for security (prevents CSRF via GET requests)
 // Apply rate limiting: 10 requests per minute per IP to prevent brute force attacks
 router.post("/oauth/callback", handleCallback, {
   limit: 10,
@@ -66,11 +65,10 @@ export default {
         method: request.method,
       });
 
-      return errorResponse(
+      return context.errorResponse(
+        HTTP_STATUS.NOT_FOUND,
         "not_found",
         "Route not found",
-        HTTP_STATUS.NOT_FOUND,
-        context,
         env
       );
     } catch (error) {
@@ -80,11 +78,10 @@ export default {
         path: url.pathname,
       });
 
-      return errorResponse(
+      return context.errorResponse(
+        HTTP_STATUS.INTERNAL_SERVER_ERROR,
         "internal_error",
         "An unexpected error occurred",
-        HTTP_STATUS.INTERNAL_SERVER_ERROR,
-        context,
         env
       );
     }

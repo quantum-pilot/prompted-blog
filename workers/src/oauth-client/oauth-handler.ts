@@ -10,13 +10,12 @@ import { AuditEventType } from "../utils/audit-logger";
 import { isValidStateParameter } from "./oauth-validation";
 import { exchangeCodeForTokens, validateGoogleIdToken } from "./token-handler";
 import { extractUserInfo } from "./user-info-handler";
-import { jsonResponse, logAndReturnError } from "./oauth-errors";
 import { HTTP_STATUS } from "../../../shared";
 import { validateStoredChallenge, parseRequestParams } from "./pkce-validation";
-import { getGoogleProvider } from "./oauth-provider";
+import { getProvider } from "./oauth-provider";
 
 export type { OAuthProviderConfig } from "./oauth-provider";
-export { getGoogleProvider } from "./oauth-provider";
+export { getProvider } from "./oauth-provider";
 
 export async function handleOAuthCallback(
   request: Request,
@@ -25,14 +24,11 @@ export async function handleOAuthCallback(
 ): Promise<Response> {
   const params = await parseRequestParams(request, context);
   if (!params) {
-    return jsonResponse(
-      {
-        error: "invalid_request",
-        error_description: "Authentication failed",
-      },
+    return context.errorResponse(
       HTTP_STATUS.BAD_REQUEST,
-      undefined,
-      context
+      "invalid_request",
+      "Authentication failed",
+      env
     );
   }
 
@@ -43,24 +39,26 @@ export async function handleOAuthCallback(
       : !state
       ? "Missing state parameter - possible CSRF attack"
       : "Missing PKCE code verifier";
-    return logAndReturnError(
-      context,
+    return context.errorResponse(
+      HTTP_STATUS.BAD_REQUEST,
+      "invalid_request",
+      "Authentication failed",
+      env,
       !codeVerifier
         ? AuditEventType.PKCE_VERIFICATION_FAILURE
         : AuditEventType.AUTH_LOGIN_FAILURE,
-      reason,
-      "invalid_request",
-      HTTP_STATUS.BAD_REQUEST
+      { reason }
     );
   }
 
   if (!isValidStateParameter(state)) {
-    return logAndReturnError(
-      context,
-      AuditEventType.AUTH_LOGIN_FAILURE,
-      "Invalid state parameter format",
+    return context.errorResponse(
+      HTTP_STATUS.BAD_REQUEST,
       "invalid_request",
-      HTTP_STATUS.BAD_REQUEST
+      "Authentication failed",
+      env,
+      AuditEventType.AUTH_LOGIN_FAILURE,
+      { reason: "Invalid state parameter format" }
     );
   }
 
@@ -71,18 +69,26 @@ export async function handleOAuthCallback(
     context
   );
   if (!challengeInfo) {
-    return jsonResponse(
-      {
-        error: "invalid_grant",
-        error_description: "Authentication failed",
-      },
+    return context.errorResponse(
       HTTP_STATUS.BAD_REQUEST,
-      undefined,
-      context
+      "invalid_grant",
+      "Authentication failed",
+      env
     );
   }
 
-  const provider = getGoogleProvider(env);
+  if (!challengeInfo.provider) {
+    return context.errorResponse(
+      HTTP_STATUS.BAD_REQUEST,
+      "invalid_request",
+      "Authentication failed",
+      env,
+      AuditEventType.AUTH_LOGIN_FAILURE,
+      { reason: "Missing provider in stored challenge" }
+    );
+  }
+
+  const provider = getProvider(challengeInfo.provider, env);
   try {
     const as = await oauth
       .discoveryRequest(provider.authorizationServer)
@@ -106,13 +112,13 @@ export async function handleOAuthCallback(
     try {
       claims = validateGoogleIdToken(tokens, provider.clientId, context);
     } catch (error) {
-      return logAndReturnError(
-        context,
-        AuditEventType.AUTH_LOGIN_FAILURE,
-        "ID token validation failed",
-        "invalid_grant",
+      return context.errorResponse(
         HTTP_STATUS.BAD_REQUEST,
-        error
+        "invalid_grant",
+        "Authentication failed",
+        env,
+        AuditEventType.AUTH_LOGIN_FAILURE,
+        { reason: "ID token validation failed", error: error instanceof Error ? error.message : "Unknown error" }
       );
     }
 
@@ -127,21 +133,18 @@ export async function handleOAuthCallback(
       userId: sessionData.userId,
     });
 
-    return new Response(
-      JSON.stringify({ success: true, session: sessionData }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      }
+    return context.successResponse(
+      { success: true, session: sessionData },
+      env
     );
   } catch (error) {
-    return logAndReturnError(
-      context,
-      AuditEventType.AUTH_LOGIN_FAILURE,
-      "OAuth flow failed",
-      "server_error",
+    return context.errorResponse(
       HTTP_STATUS.INTERNAL_SERVER_ERROR,
-      error
+      "server_error",
+      "Authentication failed",
+      env,
+      AuditEventType.AUTH_LOGIN_FAILURE,
+      { reason: "OAuth flow failed", error: error instanceof Error ? error.message : "Unknown error" }
     );
   }
 }

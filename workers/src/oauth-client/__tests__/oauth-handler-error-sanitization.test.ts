@@ -2,7 +2,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { handleOAuthCallback } from "../oauth-handler";
 import type { Env } from "../types";
-import type { RequestContext } from "../../utils/request-context";
+import { RequestContext } from "../../utils/request-context";
 
 describe("OAuth Handler Error Sanitization", () => {
   let mockEnv: Env;
@@ -10,36 +10,33 @@ describe("OAuth Handler Error Sanitization", () => {
 
   beforeEach(() => {
     mockEnv = {
-      GOOGLE_CLIENT_ID: "test-client-id",
-      CLIENT_ID: "test-client-id",
-      REDIRECT_URI: "https://example.com/callback",
-      FRONTEND_URL: "https://example.com",
       OAUTH_SESSIONS: {
         get: vi.fn(),
         put: vi.fn(),
         delete: vi.fn(),
         list: vi.fn(),
-        getWithMetadata: vi.fn(),
+        getWithMetadata: vi.fn()
       },
-    };
+      SESSION_ENCRYPTION_KEY: "test-key",
+      SESSION_ENCRYPTION_SALT: "test-salt",
+      ALLOWED_ORIGINS: "https://example.com"
+    } as any;
 
-    mockContext = {
-      requestId: "test-request-id",
-      userId: null,
-      startTime: Date.now(),
-      log: vi.fn(),
-    };
+    // Create a proper RequestContext instance
+    const mockRequest = new Request("https://example.com/callback");
+    mockContext = new RequestContext(mockRequest);
+    mockContext.log = vi.fn();
   });
 
   it("should return generic error message when code is missing", async () => {
     const request = new Request("https://example.com/callback", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+  body: JSON.stringify({
         state: "test-state",
         code_verifier: "test-verifier",
         // code is missing
-      }),
+      })
     });
     const response = await handleOAuthCallback(request, mockEnv, mockContext);
 
@@ -56,11 +53,11 @@ describe("OAuth Handler Error Sanitization", () => {
     const request = new Request("https://example.com/callback", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+  body: JSON.stringify({
         code: "test-code",
         code_verifier: "test-verifier",
         // state is missing
-      }),
+      })
     });
     const response = await handleOAuthCallback(request, mockEnv, mockContext);
 
@@ -77,11 +74,11 @@ describe("OAuth Handler Error Sanitization", () => {
     const request = new Request("https://example.com/callback", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+  body: JSON.stringify({
         code: "test-code",
         state: "test-state",
         // code_verifier is missing
-      }),
+      })
     });
     const response = await handleOAuthCallback(request, mockEnv, mockContext);
 
@@ -99,11 +96,11 @@ describe("OAuth Handler Error Sanitization", () => {
     const request = new Request("https://example.com/callback", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+  body: JSON.stringify({
         code: "test-code",
         state: "invalid!@#$%^&*()state",
-        code_verifier: "test-verifier",
-      }),
+        code_verifier: "test-verifier"
+      })
     });
     const response = await handleOAuthCallback(request, mockEnv, mockContext);
 
@@ -123,11 +120,11 @@ describe("OAuth Handler Error Sanitization", () => {
     const request = new Request("https://example.com/callback", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+  body: JSON.stringify({
         code: "test-code",
         state: "test-state",
-        code_verifier: "test-verifier",
-      }),
+        code_verifier: "test-verifier"
+      })
     });
     const response = await handleOAuthCallback(request, mockEnv, mockContext);
 
@@ -145,11 +142,11 @@ describe("OAuth Handler Error Sanitization", () => {
     const request = new Request("https://example.com/callback", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+  body: JSON.stringify({
         state: "test-state",
         code_verifier: "test-verifier",
         // code is missing
-      }),
+      })
     });
     const response = await handleOAuthCallback(request, mockEnv, mockContext);
 
@@ -158,7 +155,7 @@ describe("OAuth Handler Error Sanitization", () => {
       expect.any(String),
       "failure",
       expect.objectContaining({
-        reason: "Missing authorization code",
+        reason: "Missing authorization code"
       })
     );
 

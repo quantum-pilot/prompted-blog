@@ -13,15 +13,15 @@ describe("RequestContext", () => {
       REDIRECT_URI: "https://example.com/callback",
       SESSION_ENCRYPTION_KEY: btoa("test-encryption-key-32-bytes-ok"),
       SESSION_ENCRYPTION_SALT: "test-salt-for-request-context-test",
-      OAUTH_SESSIONS: {} as any,
+      OAUTH_SESSIONS: {} as any
     };
 
     mockRequest = new Request("https://example.com/api/test", {
       headers: {
         "CF-Connecting-IP": "192.168.1.1",
         "User-Agent": "Mozilla/5.0",
-        "X-Correlation-ID": "existing-correlation-123",
-      },
+        "X-Correlation-ID": "existing-correlation-123"
+      }
     });
   });
 
@@ -45,8 +45,8 @@ describe("RequestContext", () => {
     it("should extract session ID from cookie", async () => {
       const req = new Request("https://example.com/api/test", {
         headers: {
-          Cookie: "session=session-uuid-123; other=value",
-        },
+          Cookie: "session=session-uuid-123; other=value"
+        }
       });
 
       const context = await RequestContext.create(req, mockEnv);
@@ -62,8 +62,8 @@ describe("RequestContext", () => {
 
       const req = new Request("https://example.com/api/test", {
         headers: {
-          Authorization: `Bearer ${mockJWT}`,
-        },
+          Authorization: `Bearer ${mockJWT}`
+        }
       });
 
       const context = await RequestContext.create(req, mockEnv);
@@ -72,33 +72,6 @@ describe("RequestContext", () => {
     });
   });
 
-  describe("RequestContext.toAuditDetails", () => {
-    it("should convert context to audit log details", async () => {
-      const context = await RequestContext.create(mockRequest, mockEnv);
-      const details = context.toAuditDetails();
-
-      expect(details).toEqual({
-        correlationId: "existing-correlation-123",
-        userId: undefined,
-        sessionId: undefined,
-        ipAddress: "192.168.1.1",
-        userAgent: "Mozilla/5.0",
-      });
-    });
-
-    it("should include metadata if provided", async () => {
-      const context = await RequestContext.create(mockRequest, mockEnv);
-      const details = context.toAuditDetails({
-        action: "login",
-        provider: "google",
-      });
-
-      expect(details.metadata).toEqual({
-        action: "login",
-        provider: "google",
-      });
-    });
-  });
 
   describe("RequestContext.propagate", () => {
     it("should add context headers to outgoing request", async () => {

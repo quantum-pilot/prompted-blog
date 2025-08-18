@@ -21,12 +21,11 @@ describe('Advanced XSS Security Tests', () => {
         put: async (key: string, value: string) => {
           kvStore.set(key, value);
         },
-        get: async (key: string) => kvStore.get(key) || null,
+  get: async (key: string) => kvStore.get(key) || null,
         delete: async (key: string) => {
           kvStore.delete(key);
         }
-      } as any,
-      OAUTH_KV: {} as any
+      } as any
     };
   });
 
@@ -76,7 +75,7 @@ describe('Advanced XSS Security Tests', () => {
             'Content-Type': 'application/json',
             'CF-Connecting-IP': '192.168.1.100'
           },
-          body: JSON.stringify({
+  body: JSON.stringify({
             code: 'test-code',
             state: vector,
             code_verifier: 'test-verifier'
@@ -160,7 +159,7 @@ describe('Advanced XSS Security Tests', () => {
             'Content-Type': 'application/json',
             'CF-Connecting-IP': '192.168.1.100'
           },
-          body: JSON.stringify({
+  body: JSON.stringify({
             code: vector,
             state: 'valid-state',
             code_verifier: 'test-verifier'

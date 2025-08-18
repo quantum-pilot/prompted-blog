@@ -27,8 +27,7 @@ describe('Session Fixation Prevention Tests', () => {
         delete: vi.fn(async (key: string) => {
           kvStore.delete(key);
         })
-      } as any,
-      OAUTH_KV: {} as any
+      } as any
     };
     
     sessionManager = new SessionManager(env);
