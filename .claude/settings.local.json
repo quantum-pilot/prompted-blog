@@ -36,7 +36,6 @@
       "Bash(npx wrangler deploy:*)",
       "Bash(npx wrangler build:*)",
       "Bash(grep:*)",
-      "WebFetch(domain:github.com)",
       "Bash(npm view:*)",
       "Bash(tsc:*)",
       "Bash(wrangler build:*)",
@@ -49,7 +48,9 @@
       "Bash(do)",
       "Bash(sed:*)",
       "Bash(done)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(touch:*)",
+      "Bash(npx ts-node:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",

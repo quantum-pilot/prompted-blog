@@ -9,10 +9,13 @@ import {
   OAuthProvider, 
   OAuthSession, 
   OAuthCallbackResult, 
+  OAuthCallbackRequest,
+  OAuthCallbackResponse,
   OAuthConfig,
   OAUTH_PROVIDERS,
   getAuthorizationUrl
 } from "@app/shared";
+import { createHonoClient } from "./hono-client";
 import {
   getSessionId,
   validateSessionWithWorker,
@@ -23,6 +26,7 @@ import { OAuthPopupHandler } from "./oauth-popup-handler";
 
 export class OAuthClient {
   private readonly config: OAuthConfig;
+  private readonly honoClient: ReturnType<typeof createHonoClient>;
   // Store PKCE parameters in memory for security
   private codeVerifier: string | null = null;
   private codeChallenge: string | null = null;
@@ -32,6 +36,8 @@ export class OAuthClient {
     this.config = {
       ...config,
     };
+    // Create Hono client with the configured worker URL
+    this.honoClient = createHonoClient(config.workerUrl);
   }
 
   /**
@@ -123,34 +129,32 @@ export class OAuthClient {
       throw new Error("Missing code verifier");
     }
 
-    // Call worker to exchange code for tokens and create session
-    const url = new URL("/oauth/callback", this.config.workerUrl);
+    // Create typed request body
+    const requestBody: OAuthCallbackRequest = {
+      code,
+      state,
+      code_verifier: this.codeVerifier,
+      provider: this.config.provider as "google" | "github",
+    };
 
-    const response = await fetch(url.toString(), {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        code,
-        state,
-        code_verifier: this.codeVerifier,
-        provider: this.config.provider!,
-      }),
+    // Use Hono client for type-safe API call
+    const response = await this.honoClient.oauth.callback.$post({
+      json: requestBody,
     });
 
     if (!response.ok) {
       throw new Error(`Worker error: ${response.status}`);
     }
 
-    const result = (await response.json()) as OAuthCallbackResult;
+    const result = (await response.json()) as OAuthCallbackResponse;
 
-    // Store session ID if successful
-    if (result.success && result.sessionId) {
+    // Use discriminated union to handle response
+    if (result.success) {
+      // TypeScript knows this is OAuthCallbackSuccess
       storeSessionId(result.sessionId);
-    } else if (result.error) {
-      throw new Error(`OAuth error: ${result.error}`);
+    } else {
+      // TypeScript knows this is OAuthCallbackError
+      throw new Error(`OAuth error: ${result.error}: ${result.error_description}`);
     }
   }
 

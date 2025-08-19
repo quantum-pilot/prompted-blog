@@ -1,6 +1,6 @@
 // @agent: cloudflare-backend
 import { describe, it, expect } from "vitest";
-import { isAllowedOrigin, getCorsHeaders } from "../cors";
+import { isAllowedOrigin, getCorsHeaders } from "../../utils/cors-utils";
 import type { Env } from "../types";
 import { RequestContext } from "../../utils/request-context";
 

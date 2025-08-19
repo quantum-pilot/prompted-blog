@@ -43,8 +43,15 @@ describe('PKCE Security Edge Cases', () => {
   describe('PKCE Challenge Reuse Prevention', () => {
     it('should not allow PKCE challenge reuse', async () => {
       // Store a PKCE challenge
-      const state = 'test-state-' + Math.random().toString(36).substring(2);
-      const codeChallenge = 'test-challenge-' + Math.random().toString(36).substring(2);
+      const randomBytes = new Uint8Array(32);
+      crypto.getRandomValues(randomBytes);
+      const state = btoa(String.fromCharCode(...randomBytes))
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=/g, '');
+      
+      const verifier = crypto.randomUUID().replace(/-/g, '') + crypto.randomUUID().replace(/-/g, '');
+      const codeChallenge = btoa(verifier).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
       
       const authorizeRequest = new Request(
         `http://localhost/oauth/authorize?code_challenge=${codeChallenge}&state=${state}&provider=google`,
@@ -68,7 +75,7 @@ describe('PKCE Security Edge Cases', () => {
   body: JSON.stringify({
           code: 'test-code',
           state: state,
-          code_verifier: 'test-verifier'
+          code_verifier: btoa(verifier).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')
         })
       });
       
@@ -84,7 +91,7 @@ describe('PKCE Security Edge Cases', () => {
   body: JSON.stringify({
           code: 'test-code-2',
           state: state,
-          code_verifier: 'test-verifier'
+          code_verifier: btoa(verifier).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')
         })
       });
       

@@ -1,7 +1,7 @@
 // @agent: cloudflare-backend
 import { describe, it, expect } from "vitest";
 import { applySecurityHeaders } from "../../utils/security-headers";
-import { Router } from "../../utils/router";
+// Router removed - using Hono framework now
 import type { Env } from "../types";
 import { RequestContext } from "../../utils/request-context";
 
@@ -37,104 +37,39 @@ describe("Security Headers Integration", () => {
     });
   });
 
-  describe("Router responses", () => {
-    it("should apply security headers to handler responses", async () => {
-      const router = new Router();
-      const mockEnv: Env = {
-        OAUTH_SESSIONS: {} as any,
-        GOOGLE_CLIENT_ID: "test-client-id",
-        CLIENT_ID: "test-client-id",
-        REDIRECT_URI: "http://localhost:3000/callback",
-        FRONTEND_URL: "http://localhost:3000",
-        SESSION_ENCRYPTION_KEY: "test-key",
-        SESSION_ENCRYPTION_SALT: "test-salt-for-security-headers-test"
-      };
-
-      const mockContext = {
-        correlationId: "test-id",
-        ipAddress: "127.0.0.1",
-        userAgent: "test-agent",
-        requestId: "req-id",
-        userId: null,
-        sessionId: null,
-        log: () => {}
-      } as RequestContext;
-
-      router.get("/test", (_env, _context) => {
-        return new Response(JSON.stringify({ message: "test" }), {
-          status: 200,
-          headers: {
-            "Content-Type": "application/json"
-          }
-        });
+  // Router tests removed - now using Hono middleware which handles this
+  describe("applySecurityHeaders function", () => {
+    it("should apply security headers to responses", () => {
+      const originalResponse = new Response("test body", {
+        status: 200,
+        headers: {
+          "Content-Type": "text/plain"
+        }
       });
 
-      const request = new Request("http://localhost/test", { method: "GET" });
-      const response = await router.handle(request, mockEnv, mockContext);
+      const securedResponse = applySecurityHeaders(originalResponse);
 
-      expect(response).not.toBeNull();
-      if (response) {
-        // Verify security headers are present (actual values tested in unit tests)
-        expect(response.headers.get("X-Frame-Options")).toBeDefined();
-        expect(response.headers.get("X-Content-Type-Options")).toBeDefined();
-        expect(response.headers.get("Strict-Transport-Security")).toBeDefined();
+      // Verify security headers are present
+      expect(securedResponse.headers.get("X-Frame-Options")).toBeDefined();
+      expect(securedResponse.headers.get("X-Content-Type-Options")).toBeDefined();
+      expect(securedResponse.headers.get("Strict-Transport-Security")).toBeDefined();
 
-        // Check original headers are preserved
-        expect(response.headers.get("Content-Type")).toBe("application/json");
-      }
+      // Check original headers are preserved
+      expect(securedResponse.headers.get("Content-Type")).toBe("text/plain");
     });
 
-    it("should apply security headers to async handler responses", async () => {
-      const router = new Router();
-      const mockEnv: Env = {
-        OAUTH_SESSIONS: {} as any,
-        GOOGLE_CLIENT_ID: "test-client-id",
-        CLIENT_ID: "test-client-id",
-        REDIRECT_URI: "http://localhost:3000/callback",
-        FRONTEND_URL: "http://localhost:3000",
-        SESSION_ENCRYPTION_KEY: "test-key",
-        SESSION_ENCRYPTION_SALT: "test-salt-for-security-headers-test"
-      };
-
-      const mockContext = {
-        correlationId: "test-id",
-        ipAddress: "127.0.0.1",
-        userAgent: "test-agent",
-        requestId: "req-id",
-        userId: null,
-        sessionId: null,
-        log: () => {}
-      } as RequestContext;
-
-      router.get("/test-async", async (_env, _context) => {
-        // Simulate async operation
-        await new Promise((resolve) => setTimeout(resolve, 1));
-        return new Response(JSON.stringify({ async: true }), {
-          status: 200,
-          headers: {
-            "Content-Type": "application/json",
-            "X-Custom-Header": "custom-value"
-          }
-        });
+    it("should preserve response body and status", async () => {
+      const body = JSON.stringify({ message: "test" });
+      const originalResponse = new Response(body, {
+        status: 201,
+        statusText: "Created"
       });
 
-      const request = new Request("http://localhost/test-async", {
-        method: "GET"
-      });
-      const response = await router.handle(request, mockEnv, mockContext);
+      const securedResponse = applySecurityHeaders(originalResponse);
 
-      expect(response).not.toBeNull();
-      if (response) {
-        expect(response.status).toBe(200);
-
-        // Verify security headers are present
-        expect(response.headers.get("X-Frame-Options")).toBeDefined();
-        expect(response.headers.get("Strict-Transport-Security")).toBeDefined();
-
-        // Check original headers are preserved
-        expect(response.headers.get("Content-Type")).toBe("application/json");
-        expect(response.headers.get("X-Custom-Header")).toBe("custom-value");
-      }
+      expect(securedResponse.status).toBe(201);
+      expect(securedResponse.statusText).toBe("Created");
+      expect(await securedResponse.text()).toBe(body);
     });
   });
 });

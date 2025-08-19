@@ -1,5 +1,5 @@
 import { BaseComponent } from "../../utils/base-component.js";
-import { OAuthProvider, OAUTH_PROVIDERS } from "@app/shared";
+import { OAuthProvider } from "@app/shared";
 
 export interface OAuthStartEvent extends CustomEvent {
   detail: {

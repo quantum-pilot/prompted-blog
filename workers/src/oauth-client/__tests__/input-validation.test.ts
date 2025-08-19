@@ -162,18 +162,26 @@ describe("Input Validation Security Tests", () => {
     });
 
     it("should accept valid state parameters", async () => {
-      const validStates = [
-        "abc123",
-        "test-state-123",
-        "TEST_STATE_456",
-        "a".repeat(128), // Max length
-        "1234567890",
-        "state_with-mixed_123"
-      ];
+      // Generate valid base64URL states (min 32 chars, max 128)
+      const validStates = [];
+      for (let i = 0; i < 5; i++) {
+        const size = i === 4 ? 96 : 32; // Test max length on last one
+        const randomBytes = new Uint8Array(size);
+        crypto.getRandomValues(randomBytes);
+        const state = btoa(String.fromCharCode(...randomBytes))
+          .replace(/\+/g, '-')
+          .replace(/\//g, '_')
+          .replace(/=/g, '');
+        validStates.push(state);
+      }
 
       for (const validState of validStates) {
+        // Generate valid PKCE challenge
+        const verifier = crypto.randomUUID().replace(/-/g, '') + crypto.randomUUID().replace(/-/g, '');
+        const challenge = btoa(verifier).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+        
         const request = new Request(
-          `http://localhost/oauth/authorize?code_challenge=test-challenge&state=${validState}&provider=google`
+          `http://localhost/oauth/authorize?code_challenge=${challenge}&state=${validState}&provider=google`
         );
 
         const response = await worker.fetch(request, env, {});

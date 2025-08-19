@@ -10,28 +10,26 @@ import { AuditEventType } from "../utils/audit-logger";
 import { isValidStateParameter } from "./oauth-validation";
 import { exchangeCodeForTokens, validateGoogleIdToken } from "./token-handler";
 import { extractUserInfo } from "./user-info-handler";
-import { HTTP_STATUS } from "../../../shared";
+import { 
+  HttpStatus,
+  OAuthCallbackRequest,
+  OAuthCallbackResponse,
+  OAuthCallbackSuccess,
+  OAuthCallbackError,
+  OAuthSession 
+} from "../../../shared";
 import { validateStoredChallenge, parseRequestParams } from "./pkce-validation";
 import { getProvider } from "./oauth-provider";
 
 export type { OAuthProviderConfig } from "./oauth-provider";
 export { getProvider } from "./oauth-provider";
 
-export async function handleOAuthCallback(
-  request: Request,
+// New function that accepts pre-parsed parameters
+export async function handleOAuthCallbackWithParams(
+  params: { code: string | null; state: string | null; codeVerifier: string | null; provider?: string | null },
   env: Env,
   context: RequestContext
 ): Promise<Response> {
-  const params = await parseRequestParams(request, context);
-  if (!params) {
-    return context.errorResponse(
-      HTTP_STATUS.BAD_REQUEST,
-      "invalid_request",
-      "Authentication failed",
-      env
-    );
-  }
-
   const { code, state, codeVerifier } = params;
   if (!code || !state || !codeVerifier) {
     const reason = !code
@@ -40,7 +38,7 @@ export async function handleOAuthCallback(
       ? "Missing state parameter - possible CSRF attack"
       : "Missing PKCE code verifier";
     return context.errorResponse(
-      HTTP_STATUS.BAD_REQUEST,
+      HttpStatus.BAD_REQUEST,
       "invalid_request",
       "Authentication failed",
       env,
@@ -53,7 +51,7 @@ export async function handleOAuthCallback(
 
   if (!isValidStateParameter(state)) {
     return context.errorResponse(
-      HTTP_STATUS.BAD_REQUEST,
+      HttpStatus.BAD_REQUEST,
       "invalid_request",
       "Authentication failed",
       env,
@@ -70,7 +68,7 @@ export async function handleOAuthCallback(
   );
   if (!challengeInfo) {
     return context.errorResponse(
-      HTTP_STATUS.BAD_REQUEST,
+      HttpStatus.BAD_REQUEST,
       "invalid_grant",
       "Authentication failed",
       env
@@ -79,7 +77,7 @@ export async function handleOAuthCallback(
 
   if (!challengeInfo.provider) {
     return context.errorResponse(
-      HTTP_STATUS.BAD_REQUEST,
+      HttpStatus.BAD_REQUEST,
       "invalid_request",
       "Authentication failed",
       env,
@@ -113,7 +111,7 @@ export async function handleOAuthCallback(
       claims = validateGoogleIdToken(tokens, provider.clientId, context);
     } catch (error) {
       return context.errorResponse(
-        HTTP_STATUS.BAD_REQUEST,
+        HttpStatus.BAD_REQUEST,
         "invalid_grant",
         "Authentication failed",
         env,
@@ -139,7 +137,7 @@ export async function handleOAuthCallback(
     );
   } catch (error) {
     return context.errorResponse(
-      HTTP_STATUS.INTERNAL_SERVER_ERROR,
+      HttpStatus.INTERNAL_SERVER_ERROR,
       "server_error",
       "Authentication failed",
       env,
@@ -147,4 +145,23 @@ export async function handleOAuthCallback(
       { reason: "OAuth flow failed", error: error instanceof Error ? error.message : "Unknown error" }
     );
   }
+}
+
+// Original function that parses request
+export async function handleOAuthCallback(
+  request: Request,
+  env: Env,
+  context: RequestContext
+): Promise<Response> {
+  const params = await parseRequestParams(request, context);
+  if (!params) {
+    return context.errorResponse(
+      HttpStatus.BAD_REQUEST,
+      "invalid_request",
+      "Authentication failed",
+      env
+    );
+  }
+
+  return handleOAuthCallbackWithParams(params, env, context);
 }

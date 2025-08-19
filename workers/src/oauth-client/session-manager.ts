@@ -14,9 +14,9 @@ import type { OAuthSession } from "../../../shared";
 export interface SessionData extends OAuthSession {
   id: string;
   userId: string; // Unique user identifier
-  provider: string;
+  provider: 'google' | 'github';
   createdAt: number;
-  state?: string;
+  state: string;
 }
 
 export class SessionManager {

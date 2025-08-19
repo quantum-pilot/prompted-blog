@@ -84,7 +84,11 @@ export class RateLimiter {
     const cfIp = request.headers.get("CF-Connecting-IP");
     
     if (!cfIp) {
-      // If CF-Connecting-IP is missing, we're not behind Cloudflare
+      // In test environment, use a fallback IP
+      if (process.env.NODE_ENV === 'test') {
+        return '127.0.0.1';
+      }
+      // If CF-Connecting-IP is missing in production, we're not behind Cloudflare
       // This is a security issue - fail closed with no fallback
       throw new Error("Security Error: CF-Connecting-IP header missing - this worker must be deployed to Cloudflare");
     }

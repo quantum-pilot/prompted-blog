@@ -3,7 +3,15 @@
  * OAuth authorization initiation handler
  */
 
-import { HTTP_STATUS } from "../../../shared";
+import {
+  HttpStatus,
+  OAuthAuthorizeRequest,
+  OAuthAuthorizeResponse,
+  OAuthAuthorizeSuccess,
+  OAuthAuthorizeError,
+  PKCEChallengeData,
+  buildProviderAuthUrl,
+} from "../../../shared";
 import { RequestContext } from "../utils/request-context";
 import { AuditEventType } from "../utils/audit-logger";
 import { AuditedKVStore } from "../utils/audit-kvstore";
@@ -29,21 +37,43 @@ export async function handleInitiateOAuth(
   const url = context.url;
   const codeChallenge = url.searchParams.get("code_challenge");
   const state = url.searchParams.get("state");
-  const provider = url.searchParams.get("provider");
+  const provider = url.searchParams.get("provider") as
+    | "google"
+    | "github"
+    | null;
 
-  if (!codeChallenge || !state || !provider || !isValidStateParameter(state)) {
-    return context.errorResponse(
-      HTTP_STATUS.BAD_REQUEST,
-      "invalid_request",
-      "Authentication failed",
-      env,
-      AuditEventType.PKCE_CHALLENGE_STORE_FAILURE,
-      { reason: "Missing or invalid parameters" }
-    );
+  if (
+    !codeChallenge ||
+    !state ||
+    !provider ||
+    (provider !== "google" && provider !== "github") ||
+    !isValidStateParameter(state)
+  ) {
+    const errorResponse: OAuthAuthorizeError = {
+      success: false,
+      error: "invalid_request",
+      error_description: "Missing or invalid parameters",
+    };
+
+    context.log(AuditEventType.PKCE_CHALLENGE_STORE_FAILURE, "failure", {
+      reason: "Missing or invalid parameters",
+    });
+
+    return new Response(JSON.stringify(errorResponse), {
+      status: HttpStatus.BAD_REQUEST,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
+  // Create typed request object
+  const request: OAuthAuthorizeRequest = {
+    code_challenge: codeChallenge,
+    state,
+    provider,
+  };
+
   // Store the PKCE challenge with a 10-minute expiration
-  const challengeData = {
+  const challengeData: PKCEChallengeData = {
     challenge: codeChallenge,
     state,
     provider,
@@ -67,26 +97,31 @@ export async function handleInitiateOAuth(
   // Get provider configuration
   const providerConfig = getProvider(provider, env);
 
-  // Build authorization URL
-  const authUrl = new URL(
-    providerConfig.authPath,
-    providerConfig.authorizationServer
-  );
-  authUrl.searchParams.set("client_id", providerConfig.clientId);
-  authUrl.searchParams.set("redirect_uri", providerConfig.redirectUri);
-  authUrl.searchParams.set("response_type", "code");
-  authUrl.searchParams.set("scope", providerConfig.scopes.join(" "));
-  authUrl.searchParams.set("code_challenge", codeChallenge);
-  authUrl.searchParams.set("code_challenge_method", "S256");
-  authUrl.searchParams.set("state", state);
-  authUrl.searchParams.set("access_type", "offline");
-  authUrl.searchParams.set("prompt", "consent");
+  // Build authorization URL using shared utility
+  const authParams = {
+    client_id: providerConfig.clientId,
+    redirect_uri: providerConfig.redirectUri,
+    response_type: "code",
+    scope: providerConfig.scopes.join(" "),
+    code_challenge: codeChallenge,
+    code_challenge_method: "S256",
+    state,
+    access_type: "offline",
+    prompt: "consent",
+  };
 
-  return context.successResponse(
-    {
-      success: true,
-      authorizationUrl: authUrl.toString(),
-    },
-    env
+  const authorizationUrl = buildProviderAuthUrl(
+    `${providerConfig.authorizationServer.origin}${providerConfig.authPath}`,
+    authParams
   );
+
+  const successResponse: OAuthAuthorizeSuccess = {
+    success: true,
+    authorizationUrl,
+  };
+
+  return new Response(JSON.stringify(successResponse), {
+    status: HttpStatus.OK,
+    headers: { "Content-Type": "application/json" },
+  });
 }

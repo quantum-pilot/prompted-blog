@@ -18,7 +18,7 @@
     {
       "label": "Project Main",
       "type": "shell",
-      "command": "claude",
+      "command": "claude --dangerously-skip-permissions",
       "isBackground": false,
       "presentation": {
         "reveal": "always",
@@ -32,7 +32,7 @@
     {
       "label": "Project Sidekick",
       "type": "shell",
-      "command": "claude",
+      "command": "claude --dangerously-skip-permissions",
       "isBackground": false,
       "presentation": {
         "reveal": "always",

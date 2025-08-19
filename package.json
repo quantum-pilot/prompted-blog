@@ -28,6 +28,8 @@
     "wrangler": "^4.28.0"
   },
   "dependencies": {
-    "oauth4webapi": "^3.7.0"
+    "hono": "^4.9.2",
+    "oauth4webapi": "^3.7.0",
+    "zod": "^4.0.17"
   }
 }

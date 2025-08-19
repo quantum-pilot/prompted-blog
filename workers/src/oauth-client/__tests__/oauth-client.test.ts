@@ -2,6 +2,28 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import worker from "../../index";
 
+// Helper to generate valid base64URL state
+const generateValidState = (): string => {
+  const randomBytes = new Uint8Array(32);
+  crypto.getRandomValues(randomBytes);
+  return btoa(String.fromCharCode(...randomBytes))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=/g, '');
+};
+
+// Helper to generate valid PKCE challenge
+const generateValidChallenge = (): string => {
+  const verifier = crypto.randomUUID().replace(/-/g, '') + crypto.randomUUID().replace(/-/g, '');
+  return btoa(verifier).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+};
+
+// Helper to generate valid PKCE verifier  
+const generateValidVerifier = (): string => {
+  const verifier = crypto.randomUUID().replace(/-/g, '') + crypto.randomUUID().replace(/-/g, '');
+  return btoa(verifier).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+};
+
 describe("OAuth Client Worker", () => {
   let env: any;
 
@@ -46,8 +68,9 @@ describe("OAuth Client Worker", () => {
 
   describe("GET /oauth/authorize", () => {
     it("should reject without code challenge", async () => {
+      const validState = generateValidState();
       const request = new Request(
-        "http://localhost/oauth/authorize?state=test-state"
+        `http://localhost/oauth/authorize?state=${validState}`
       );
       const response = await worker.fetch(request, env, {});
 
@@ -57,8 +80,9 @@ describe("OAuth Client Worker", () => {
     });
 
     it("should reject without state", async () => {
+      const validChallenge = generateValidChallenge();
       const request = new Request(
-        "http://localhost/oauth/authorize?code_challenge=test-challenge"
+        `http://localhost/oauth/authorize?code_challenge=${validChallenge}`
       );
       const response = await worker.fetch(request, env, {});
 
@@ -71,6 +95,8 @@ describe("OAuth Client Worker", () => {
     it("should store PKCE challenge and return auth URL", async () => {
       let storedKey: string | undefined;
       let storedValue: string | undefined;
+      const validChallenge = generateValidChallenge();
+      const validState = generateValidState();
 
       env.OAUTH_SESSIONS.put = async (key: string, value: string) => {
         storedKey = key;
@@ -78,7 +104,7 @@ describe("OAuth Client Worker", () => {
       };
 
       const request = new Request(
-        "http://localhost/oauth/authorize?code_challenge=test-challenge&state=test-state&provider=google"
+        `http://localhost/oauth/authorize?code_challenge=${validChallenge}&state=${validState}&provider=google`
       );
       const response = await worker.fetch(request, env, {});
 
@@ -88,15 +114,15 @@ describe("OAuth Client Worker", () => {
       expect(data.authorizationUrl).toContain(
         "https://accounts.google.com/o/oauth2/v2/auth"
       );
-      expect(data.authorizationUrl).toContain("code_challenge=test-challenge");
+      expect(data.authorizationUrl).toContain(`code_challenge=${validChallenge}`);
       expect(data.authorizationUrl).toContain("code_challenge_method=S256");
 
       // Verify PKCE challenge was stored
-      expect(storedKey).toBe("pkce:test-state");
+      expect(storedKey).toBe(`pkce:${validState}`);
       expect(storedValue).toBeDefined();
       const storedData = JSON.parse(storedValue!);
-      expect(storedData.challenge).toBe("test-challenge");
-      expect(storedData.state).toBe("test-state"); // Verify state is stored
+      expect(storedData.challenge).toBe(validChallenge);
+      expect(storedData.state).toBe(validState); // Verify state is stored
       expect(storedData.provider).toBe("google"); // Verify provider is stored
     });
   });
@@ -133,7 +159,7 @@ describe("OAuth Client Worker", () => {
         },
   body: JSON.stringify({
           code: "test-code",
-          code_verifier: "test-verifier"
+          code_verifier: generateValidVerifier()
           // state is missing
         })
       });
@@ -154,7 +180,7 @@ describe("OAuth Client Worker", () => {
         },
   body: JSON.stringify({
           code: "test-code",
-          state: "test-state"
+          state: generateValidState()
           // code_verifier is missing
         })
       });
@@ -177,8 +203,8 @@ describe("OAuth Client Worker", () => {
         },
   body: JSON.stringify({
           code: "test-code",
-          state: "test-state",
-          code_verifier: "test-verifier"
+          state: generateValidState(),
+          code_verifier: generateValidVerifier()
         })
       });
       const response = await worker.fetch(request, env, {});
@@ -190,11 +216,14 @@ describe("OAuth Client Worker", () => {
     });
 
     it("should reject callback with mismatched state parameter", async () => {
+      const callbackState = generateValidState();
+      const originalState = generateValidState(); // Different state
+      
       env.OAUTH_SESSIONS.get = async (key: string) => {
-        if (key === "pkce:test-state") {
+        if (key === `pkce:${callbackState}`) {
           return JSON.stringify({
-            challenge: "test-challenge",
-            state: "original-state", // Different from the state in the callback
+            challenge: generateValidChallenge(),
+            state: originalState, // Different from the state in the callback
             provider: "google",
             createdAt: Date.now(),
             expiresAt: Date.now() + 600000
@@ -211,8 +240,8 @@ describe("OAuth Client Worker", () => {
         },
   body: JSON.stringify({
           code: "test-code",
-          state: "test-state",
-          code_verifier: "test-verifier"
+          state: callbackState,
+          code_verifier: generateValidVerifier()
         })
       });
       const response = await worker.fetch(request, env, {});
@@ -225,11 +254,13 @@ describe("OAuth Client Worker", () => {
 
     it("should reject callback with expired PKCE session", async () => {
       let deletedKey: string | undefined;
+      const validState = generateValidState();
+      
       env.OAUTH_SESSIONS.get = async (key: string) => {
-        if (key === "pkce:test-state") {
+        if (key === `pkce:${validState}`) {
           return JSON.stringify({
-            challenge: "test-challenge",
-            state: "test-state",
+            challenge: generateValidChallenge(),
+            state: validState,
             provider: "google",
             createdAt: Date.now() - 700000, // Created 11+ minutes ago
             expiresAt: Date.now() - 100000, // Expired 100 seconds ago
@@ -249,8 +280,8 @@ describe("OAuth Client Worker", () => {
         },
   body: JSON.stringify({
           code: "test-code",
-          state: "test-state",
-          code_verifier: "test-verifier"
+          state: validState,
+          code_verifier: generateValidVerifier()
         })
       });
       const response = await worker.fetch(request, env, {});
@@ -259,14 +290,14 @@ describe("OAuth Client Worker", () => {
       const data = (await response.json()) as any;
       expect(data.error).toBe("invalid_grant");
       expect(data.error_description).toBe("Authentication failed");
-      expect(deletedKey).toBe("pkce:test-state"); // Verify cleanup happened
+      expect(deletedKey).toBe(`pkce:${validState}`); // Verify cleanup happened
     });
 
     it("should reject callback with missing stored state", async () => {
       env.OAUTH_SESSIONS.get = async (key: string) => {
         if (key === "pkce:test-state") {
           return JSON.stringify({
-            challenge: "test-challenge",
+            challenge: generateValidChallenge(),
             // state is missing
             provider: "google",
             createdAt: Date.now(),
@@ -284,8 +315,8 @@ describe("OAuth Client Worker", () => {
         },
   body: JSON.stringify({
           code: "test-code",
-          state: "test-state",
-          code_verifier: "test-verifier"
+          state: generateValidState(),
+          code_verifier: generateValidVerifier()
         })
       });
       const response = await worker.fetch(request, env, {});
@@ -306,11 +337,13 @@ describe("OAuth Client Worker", () => {
         .replace(/\//g, "_")
         .replace(/=/g, "");
 
+      const testState = generateValidState();
+
       env.OAUTH_SESSIONS.get = async (key: string) => {
-        if (key === "pkce:test-state") {
+        if (key === `pkce:${testState}`) {
           return JSON.stringify({
             challenge: base64,
-            state: "test-state",
+            state: testState,
             provider: "google",
             createdAt: Date.now(),
             expiresAt: Date.now() + 600000
@@ -327,8 +360,8 @@ describe("OAuth Client Worker", () => {
         },
   body: JSON.stringify({
           code: "test-code",
-          state: "test-state",
-          code_verifier: "wrong-verifier"
+          state: testState,
+          code_verifier: generateValidVerifier() // Valid format but wrong value
         })
       });
       const response = await worker.fetch(request, env, {});
@@ -340,22 +373,26 @@ describe("OAuth Client Worker", () => {
     });
 
     it("should clean up PKCE challenge after successful validation", async () => {
-      // Generate a real PKCE challenge for testing
+      // Generate a valid verifier first
+      const testVerifier = generateValidVerifier();
+      
+      // Generate the challenge from the verifier
       const encoder = new TextEncoder();
-      const verifierData = encoder.encode("test-verifier");
+      const verifierData = encoder.encode(testVerifier);
       const hash = await crypto.subtle.digest("SHA-256", verifierData);
       const base64 = btoa(String.fromCharCode(...new Uint8Array(hash)))
         .replace(/\+/g, "-")
         .replace(/\//g, "_")
         .replace(/=/g, "");
 
+      const testState = generateValidState();
       let deletedKey: string | undefined;
 
       env.OAUTH_SESSIONS.get = async (key: string) => {
-        if (key === "pkce:test-state") {
+        if (key === `pkce:${testState}`) {
           return JSON.stringify({
             challenge: base64,
-            state: "test-state",
+            state: testState,
             provider: "google",
             createdAt: Date.now(),
             expiresAt: Date.now() + 600000
@@ -399,15 +436,15 @@ describe("OAuth Client Worker", () => {
         },
   body: JSON.stringify({
           code: "test-code",
-          state: "test-state",
-          code_verifier: "test-verifier"
+          state: testState,
+          code_verifier: testVerifier // Use the same verifier we generated the challenge from
         })
       });
       const response = await worker.fetch(request, env, {});
 
       // The response might fail due to Google OAuth not being mocked properly
       // but we should still see that the PKCE challenge was deleted
-      expect(deletedKey).toBe("pkce:test-state");
+      expect(deletedKey).toBe(`pkce:${testState}`);
     });
   });
 

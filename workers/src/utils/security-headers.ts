@@ -4,27 +4,19 @@
  * Provides defense-in-depth security headers for all responses
  */
 
+import { buildSecurityHeaders } from "../../../shared";
+
 export function getSecurityHeaders(): Record<string, string> {
+  // Use shared security header builder with custom CSP
+  const baseHeaders = buildSecurityHeaders({
+    csp: "default-src 'self'; script-src 'self' https://accounts.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self';",
+    frameOptions: "DENY"
+  });
+  
+  // Add additional headers specific to this service
   return {
-    // Prevent clickjacking
-    "X-Frame-Options": "DENY",
-
-    // Prevent MIME type sniffing
-    "X-Content-Type-Options": "nosniff",
-
-    // Enable XSS protection (for older browsers)
-    "X-XSS-Protection": "1; mode=block",
-
-    // Referrer policy for privacy
+    ...baseHeaders,
     "Referrer-Policy": "strict-origin-when-cross-origin",
-
-    // Enhanced Content Security Policy
-    "Content-Security-Policy": "default-src 'self'; script-src 'self' https://accounts.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self';",
-
-    // HSTS (if using HTTPS)
-    "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
-
-    // Permissions Policy (replace Feature-Policy)
     "Permissions-Policy": "geolocation=(), microphone=(), camera=()",
   };
 }

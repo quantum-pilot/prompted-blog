@@ -4,7 +4,11 @@
  * No sessionStorage is used for security reasons
  */
 
-import { OAuthSession } from '@app/shared';
+import { 
+  OAuthSession, 
+  SessionValidationResponse
+} from '@app/shared';
+import { createHonoClient, getAuthHeaders } from './hono-client';
 
 // In-memory storage for session ID (popup mode only)
 let currentSessionId: string | null = null;
@@ -37,17 +41,19 @@ export async function validateSessionWithWorker(
   workerUrl: string,
   sessionId: string
 ): Promise<OAuthSession | null> {
-  const url = new URL('/oauth/session', workerUrl);
   // SECURITY: Never pass session ID in URL parameters
   // Send it in the Authorization header instead
   
-  const response = await fetch(url.toString(), {
-    method: 'GET',
-    headers: {
-      'Accept': 'application/json',
-      'Authorization': `Bearer ${sessionId}`
+  // Create Hono client with the specific worker URL
+  const client = createHonoClient(workerUrl);
+  
+  // Use Hono client with typed headers
+  const response = await client.oauth.session.$get(
+    {},
+    {
+      headers: getAuthHeaders(sessionId),
     }
-  });
+  );
   
   if (!response.ok) {
     // Session invalid or expired
@@ -55,7 +61,23 @@ export async function validateSessionWithWorker(
     return null;
   }
   
-  return response.json() as Promise<OAuthSession>;
+  const data = (await response.json()) as SessionValidationResponse;
+  
+  // Check if it's an error response using discriminated union
+  if ('error' in data) {
+    // This is SessionValidationError
+    clearSessionId();
+    return null;
+  }
+  
+  // This is SessionValidationSuccess, convert to OAuthSession
+  return {
+    provider: data.provider,
+    email: data.email,
+    name: data.name,
+    picture: data.picture,
+    expiresAt: data.expiresAt
+  } as OAuthSession;
 }
 
 /**

@@ -3,9 +3,9 @@
 import { AuditLogger, AuditEventType } from "./audit-logger";
 import * as HeaderUtils from "./header-utils";
 import { applySecurityHeaders } from "./security-headers";
-import { getCorsHeaders } from "../oauth-client/cors";
+import { getCorsHeaders } from "./cors-utils";
 import type { Env } from "../oauth-client/types";
-import { HTTP_STATUS } from "../../../shared";
+import { HttpStatus } from "../../../shared";
 
 export class RequestContext {
   readonly request: Request;
@@ -144,7 +144,7 @@ export class RequestContext {
   successResponse(
     data: any,
     env?: Env,
-    status: number = HTTP_STATUS.OK
+    status: number = HttpStatus.OK
   ): Response {
     const headers: HeadersInit = {
       "Content-Type": "application/json",

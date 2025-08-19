@@ -3,7 +3,13 @@
  * Session management handler
  */
 
-import { HTTP_STATUS } from "../../../shared";
+import { 
+  HttpStatus,
+  SessionValidationSuccess,
+  SessionValidationError,
+  SessionValidationHeaders,
+  HealthCheckResponse
+} from "../../../shared";
 import { RequestContext } from "../utils/request-context";
 import { AuditEventType } from "../utils/audit-logger";
 import { SessionManager } from "./session-manager";
@@ -22,12 +28,16 @@ export async function handleSessionGet(
     context.log(AuditEventType.AUTH_SESSION_INVALID, "failure", {
       reason: "Missing session ID in Authorization header",
     });
-    return context.errorResponse(
-      HTTP_STATUS.BAD_REQUEST,
-      "invalid_request",
-      "Authentication failed",
-      env
-    );
+    
+    const errorResponse: SessionValidationError = {
+      error: "invalid_request",
+      error_description: "Missing or invalid Authorization header"
+    };
+    
+    return new Response(JSON.stringify(errorResponse), {
+      status: HttpStatus.BAD_REQUEST,
+      headers: { "Content-Type": "application/json" }
+    });
   }
 
   const sessionId = authHeader.substring(7); // Remove 'Bearer ' prefix
@@ -38,38 +48,47 @@ export async function handleSessionGet(
       reason: "Invalid session ID format",
       sessionIdLength: sessionId.length,
     });
-    return context.errorResponse(
-      HTTP_STATUS.BAD_REQUEST,
-      "invalid_request",
-      "Authentication failed",
-      env
-    );
+    
+    const errorResponse: SessionValidationError = {
+      error: "invalid_request",
+      error_description: "Authentication failed"
+    };
+    
+    return new Response(JSON.stringify(errorResponse), {
+      status: HttpStatus.BAD_REQUEST,
+      headers: { "Content-Type": "application/json" }
+    });
   }
 
   const sessionManager = new SessionManager(env);
   const session = await sessionManager.validateSession(sessionId, context);
 
   if (!session) {
-    return context.errorResponse(
-      HTTP_STATUS.NOT_FOUND,
-      "invalid_grant",
-      "Authentication failed",
-      env
-    );
+    const errorResponse: SessionValidationError = {
+      error: "session_not_found",
+      error_description: "Authentication failed"
+    };
+    
+    return new Response(JSON.stringify(errorResponse), {
+      status: HttpStatus.NOT_FOUND,
+      headers: { "Content-Type": "application/json" }
+    });
   }
 
-  // Return session data (excluding sensitive fields)
-  return context.successResponse(
-    {
-      userId: session.userId,
-      email: session.email,
-      name: session.name,
-      picture: session.picture,
-      provider: session.provider,
-      expiresAt: session.expiresAt,
-    },
-    env
-  );
+  // Return typed session data (excluding sensitive fields)
+  const successResponse: SessionValidationSuccess = {
+    userId: session.userId,
+    email: session.email,
+    name: session.name,
+    picture: session.picture,
+    provider: session.provider as "google" | "github",
+    expiresAt: session.expiresAt,
+  };
+  
+  return new Response(JSON.stringify(successResponse), {
+    status: HttpStatus.OK,
+    headers: { "Content-Type": "application/json" }
+  });
 }
 
 export async function handleHealthCheck(
@@ -78,8 +97,13 @@ export async function handleHealthCheck(
 ): Promise<Response> {
   const origin = context.origin;
 
-  return context.successResponse(
-    { status: "ok", timestamp: Date.now() },
-    env
-  );
+  const healthResponse: HealthCheckResponse = {
+    status: "ok",
+    timestamp: Date.now()
+  };
+  
+  return new Response(JSON.stringify(healthResponse), {
+    status: HttpStatus.OK,
+    headers: { "Content-Type": "application/json" }
+  });
 }

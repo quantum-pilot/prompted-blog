@@ -3,6 +3,22 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import worker from '../../index';
 import type { Env } from '../types';
 
+// Helper to generate valid base64URL state
+const generateValidState = (): string => {
+  const randomBytes = new Uint8Array(32);
+  crypto.getRandomValues(randomBytes);
+  return btoa(String.fromCharCode(...randomBytes))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=/g, '');
+};
+
+// Helper to generate valid PKCE challenge
+const generateValidChallenge = (): string => {
+  const verifier = crypto.randomUUID().replace(/-/g, '') + crypto.randomUUID().replace(/-/g, '');
+  return btoa(verifier).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+};
+
 describe('CSRF Protection Tests', () => {
   let env: Env;
 
@@ -36,11 +52,21 @@ describe('CSRF Protection Tests', () => {
       
       // Initiate multiple OAuth flows
       for (let i = 0; i < 20; i++) {
-        const state = `unique-state-${i}-${Math.random().toString(36).substring(2)}`;
+        // Generate valid base64URL state (min 32 chars)
+        const randomBytes = new Uint8Array(32);
+        crypto.getRandomValues(randomBytes);
+        const state = btoa(String.fromCharCode(...randomBytes))
+          .replace(/\+/g, '-')
+          .replace(/\//g, '_')
+          .replace(/=/g, '');
         states.add(state);
         
+        // Generate valid PKCE challenge
+        const verifier = crypto.randomUUID().replace(/-/g, '') + crypto.randomUUID().replace(/-/g, '');
+        const challenge = btoa(verifier).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+        
         const request = new Request(
-          `http://localhost/oauth/authorize?code_challenge=test-challenge&state=${state}&provider=google`,
+          `http://localhost/oauth/authorize?code_challenge=${challenge}&state=${state}&provider=google`,
           {
             headers: {
               "CF-Connecting-IP": "192.168.1.100"
@@ -57,12 +83,17 @@ describe('CSRF Protection Tests', () => {
         expect(response.status).toBe(200);
       });
       
-      // Verify all states were stored
-      expect(env.OAUTH_SESSIONS.put).toHaveBeenCalledTimes(states.size);
+      // Verify all states were stored  
+      const putCalls = (env.OAUTH_SESSIONS.put as any).mock.calls;
+      
+      // Filter out rate-limit calls, we only care about PKCE storage
+      const pkceCalls = putCalls.filter((call: any[]) => call[0].startsWith('pkce:'));
+      
+      // Each authorize request stores one PKCE challenge
+      expect(pkceCalls.length).toBe(states.size);
       
       // Each state should be unique
-      const putCalls = (env.OAUTH_SESSIONS.put as any).mock.calls;
-      const storedStates = putCalls.map((call: any[]) => {
+      const storedStates = pkceCalls.map((call: any[]) => {
         const key = call[0];
         if (key.startsWith('pkce:')) {
           return key.replace('pkce:', '');
@@ -75,11 +106,23 @@ describe('CSRF Protection Tests', () => {
     });
 
     it('should reject duplicate state parameters', async () => {
-      const duplicateState = 'duplicate-state-' + Math.random().toString(36).substring(2);
+      // Generate valid base64URL state
+      const randomBytes = new Uint8Array(32);
+      crypto.getRandomValues(randomBytes);
+      const duplicateState = btoa(String.fromCharCode(...randomBytes))
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=/g, '');
+      
+      // Generate valid PKCE challenges
+      const verifier1 = crypto.randomUUID().replace(/-/g, '') + crypto.randomUUID().replace(/-/g, '');
+      const challenge1 = btoa(verifier1).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+      const verifier2 = crypto.randomUUID().replace(/-/g, '') + crypto.randomUUID().replace(/-/g, '');
+      const challenge2 = btoa(verifier2).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
       
       // First request with state
       const firstRequest = new Request(
-        `http://localhost/oauth/authorize?code_challenge=challenge1&state=${duplicateState}&provider=google`,
+        `http://localhost/oauth/authorize?code_challenge=${challenge1}&state=${duplicateState}&provider=google`,
         {
           headers: {
             "CF-Connecting-IP": "192.168.1.100"
@@ -91,7 +134,7 @@ describe('CSRF Protection Tests', () => {
       
       // Second request with same state (should overwrite or reject)
       const secondRequest = new Request(
-        `http://localhost/oauth/authorize?code_challenge=challenge2&state=${duplicateState}&provider=google`,
+        `http://localhost/oauth/authorize?code_challenge=${challenge2}&state=${duplicateState}&provider=google`,
         {
           headers: {
             "CF-Connecting-IP": "192.168.1.100"
@@ -108,7 +151,7 @@ describe('CSRF Protection Tests', () => {
       if (storedData) {
         const parsed = JSON.parse(storedData);
         // Should have the second challenge
-        expect(parsed.challenge).toBe('challenge2');
+        expect(parsed.challenge).toBe(challenge2);
       }
     });
 
@@ -117,7 +160,7 @@ describe('CSRF Protection Tests', () => {
       
       // Generate multiple states
       for (let i = 0; i < 100; i++) {
-        const state = `secure-state-${Math.random().toString(36).substring(2)}`;
+        const state = generateValidState();
         states.push(state);
       }
       
@@ -222,11 +265,11 @@ describe('CSRF Protection Tests', () => {
 
   describe('Referer Header Validation', () => {
     it('should validate Referer header consistency', async () => {
-      const state = 'referer-test-' + Math.random().toString(36).substring(2);
+      const state = generateValidState();
       
       // Initial request with referer
       const initRequest = new Request(
-        `http://localhost/oauth/authorize?code_challenge=test&state=${state}&provider=google`,
+        `http://localhost/oauth/authorize?code_challenge=${generateValidChallenge()}&state=${state}&provider=google`,
         {
           headers: {
             'Referer': 'http://localhost:3000/login',
@@ -249,7 +292,7 @@ describe('CSRF Protection Tests', () => {
   body: JSON.stringify({
           code: 'test-code',
           state: state,
-          code_verifier: 'test-verifier'
+          code_verifier: generateValidChallenge()
         })
       });
       
@@ -262,7 +305,7 @@ describe('CSRF Protection Tests', () => {
     it('should handle missing Referer header gracefully', async () => {
       // Some browsers don't send Referer in certain conditions
       const request = new Request(
-        'http://localhost/oauth/authorize?code_challenge=test&state=test-state&provider=google',
+        `http://localhost/oauth/authorize?code_challenge=${generateValidChallenge()}&state=${generateValidState()}&provider=google`,
         {
           // No Referer header
         }
@@ -277,12 +320,12 @@ describe('CSRF Protection Tests', () => {
 
   describe('Double Submit Cookie Pattern', () => {
     it('should implement double submit cookie pattern', async () => {
-      const state = 'double-submit-' + Math.random().toString(36).substring(2);
-      const csrfToken = 'csrf-token-' + Math.random().toString(36).substring(2);
+      const state = generateValidState();
+      const csrfToken = generateValidState(); // Use same generator for CSRF token
       
       // Initial request sets CSRF token
       const initRequest = new Request(
-        `http://localhost/oauth/authorize?code_challenge=test&state=${state}&provider=google`,
+        `http://localhost/oauth/authorize?code_challenge=${generateValidChallenge()}&state=${state}&provider=google`,
         {
           headers: {
             'Cookie': `csrf=${csrfToken}`
@@ -305,7 +348,7 @@ describe('CSRF Protection Tests', () => {
   body: JSON.stringify({
           code: 'test-code',
           state: state,
-          code_verifier: 'test-verifier'
+          code_verifier: generateValidChallenge()
         })
       });
       
@@ -319,11 +362,11 @@ describe('CSRF Protection Tests', () => {
 
   describe('State Parameter Binding', () => {
     it('should bind state to session/user context', async () => {
-      const state = 'bound-state-' + Math.random().toString(36).substring(2);
+      const state = generateValidState();
       
       // Create state with specific context
       const initRequest = new Request(
-        `http://localhost/oauth/authorize?code_challenge=test&state=${state}&provider=google`,
+        `http://localhost/oauth/authorize?code_challenge=${generateValidChallenge()}&state=${state}&provider=google`,
         {
           headers: {
             'CF-Connecting-IP': '192.168.1.100',
@@ -345,7 +388,7 @@ describe('CSRF Protection Tests', () => {
   body: JSON.stringify({
           code: 'test-code',
           state: state,
-          code_verifier: 'test-verifier'
+          code_verifier: generateValidChallenge()
         })
       });
       
@@ -357,11 +400,11 @@ describe('CSRF Protection Tests', () => {
     });
 
     it('should expire state parameters after use', async () => {
-      const state = 'expire-state-' + Math.random().toString(36).substring(2);
+      const state = generateValidState();
       
       // Store state
       const initRequest = new Request(
-        `http://localhost/oauth/authorize?code_challenge=test&state=${state}&provider=google`,
+        `http://localhost/oauth/authorize?code_challenge=${generateValidChallenge()}&state=${state}&provider=google`,
         {
           headers: {
             'CF-Connecting-IP': '192.168.1.100'
@@ -380,7 +423,7 @@ describe('CSRF Protection Tests', () => {
   body: JSON.stringify({
           code: 'test-code',
           state: state,
-          code_verifier: 'test-verifier'
+          code_verifier: generateValidChallenge()
         })
       });
       

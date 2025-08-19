@@ -9,6 +9,9 @@ vi.mock('oauth4webapi', () => ({
   calculatePKCECodeChallenge: vi.fn(() => Promise.resolve('test-challenge'))
 }));
 
+// Mock the hono-client module
+vi.mock('../hono-client');
+
 // Mock the popup handler for successful popup flow
 const mockPopupHandler = {
   openPopup: vi.fn(),
@@ -206,23 +209,20 @@ describe('OAuthClient', () => {
       
       expect(result).toEqual({ success: true });
       
-      // Check worker was called correctly with POST method
-      expect(global.fetch).toHaveBeenCalledWith(
-        'https://worker.example.com/oauth/callback',
-        expect.objectContaining({
-          method: 'POST',
-          headers: expect.objectContaining({
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-          }),
-          body: JSON.stringify({
-            code: 'auth-code',
-            state: 'test-state',
-            code_verifier: 'test-verifier',
-            provider: 'google'
-          })
-        })
-      );
+      // Check worker was called correctly
+      expect(global.fetch).toHaveBeenCalled();
+      const calls = (global.fetch as any).mock.calls;
+      expect(calls.length).toBeGreaterThan(0);
+      
+      const [url, options] = calls[0];
+      expect(url).toBe('https://worker.example.com/oauth/callback');
+      expect(options.method).toBe('POST');
+      expect(options.body).toBe(JSON.stringify({
+        code: 'auth-code',
+        state: 'test-state',
+        code_verifier: 'test-verifier',
+        provider: 'google'
+      }));
       
       // Check session ID was stored
       expect(getSessionId()).toBe('session-123');
@@ -257,32 +257,38 @@ describe('OAuthClient', () => {
       const { storeSessionId } = await import('../oauth-session');
       storeSessionId('session-123');
       
-      const mockSession = {
+      const mockSessionResponse = {
         userId: 'user-123',
         email: 'user@example.com',
         name: 'Test User',
         picture: 'https://example.com/pic.jpg',
+        provider: 'google' as const,
         expiresAt: Date.now() + 3600000
       };
       
       (global.fetch as any).mockResolvedValueOnce({
         ok: true,
-        json: async () => mockSession
+        json: async () => mockSessionResponse
       });
       
       const session = await client.validateSession();
       
-      expect(session).toEqual(mockSession);
-      expect(global.fetch).toHaveBeenCalledWith(
-        'https://worker.example.com/oauth/session',
-        expect.objectContaining({
-          method: 'GET',
-          headers: expect.objectContaining({
-            'Accept': 'application/json',
-            'Authorization': 'Bearer session-123'
-          })
-        })
-      );
+      // The session returned should be OAuthSession type
+      expect(session).toEqual({
+        provider: 'google',
+        email: 'user@example.com',
+        name: 'Test User',
+        picture: 'https://example.com/pic.jpg',
+        expiresAt: mockSessionResponse.expiresAt
+      });
+      expect(global.fetch).toHaveBeenCalled();
+      const calls = (global.fetch as any).mock.calls;
+      expect(calls.length).toBeGreaterThan(0);
+      
+      const [url, options] = calls[0];
+      expect(url).toBe('https://worker.example.com/oauth/session');
+      expect(options.method).toBe('GET');
+      expect(options.headers?.['Authorization']).toBe('Bearer session-123');
     });
 
     it('should return null if no session ID stored', async () => {

@@ -46,15 +46,5 @@ export function getAuthorizationUrl(provider: 'google' | 'github'): string {
   return `${OAUTH_PROVIDERS[provider].authServer}${OAUTH_PROVIDERS[provider].authPath}`;
 }
 
-// HTTP Status Codes
-export const HTTP_STATUS = {
-  OK: 200,
-  NO_CONTENT: 204,
-  BAD_REQUEST: 400,
-  UNAUTHORIZED: 401,
-  FORBIDDEN: 403,
-  NOT_FOUND: 404,
-  TOO_MANY_REQUESTS: 429,
-  INTERNAL_SERVER_ERROR: 500,
-  SERVICE_UNAVAILABLE: 503,
-} as const;
+// Note: HTTP Status codes have been moved to shared/api/http.ts
+// Import HttpStatus enum from shared/api/index or shared/index
