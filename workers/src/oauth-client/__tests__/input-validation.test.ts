@@ -155,8 +155,11 @@ describe("Input Validation Security Tests", () => {
           expect(data.error).toBe("invalid_request");
         }
 
-        // Ensure KV was never called with malicious input
-        expect(env.OAUTH_SESSIONS.put).not.toHaveBeenCalled();
+        // Ensure KV was never called with malicious input (except for rate limiting)
+        // Rate limiter calls will have keys starting with "rate-limit:"
+        const kvCalls = (env.OAUTH_SESSIONS.put as any).mock.calls;
+        const nonRateLimitCalls = kvCalls.filter((call: any[]) => !call[0].startsWith("rate-limit:"));
+        expect(nonRateLimitCalls).toHaveLength(0);
         vi.clearAllMocks();
       }
     });

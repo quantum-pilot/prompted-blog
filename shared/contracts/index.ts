@@ -63,6 +63,24 @@ export {
   type HealthResponse,
 } from './health.contract';
 
+// User account contract schemas and types
+export {
+  UserAccountSchema,
+  CreateUserRequestSchema,
+  CreateUserSuccessSchema,
+  CreateUserErrorSchema,
+  CreateUserResponseSchema,
+  GetUserRequestSchema,
+  GetUserSuccessSchema,
+  GetUserErrorSchema,
+  GetUserResponseSchema,
+  type UserAccount,
+  type CreateUserRequest,
+  type CreateUserResponse,
+  type GetUserRequest,
+  type GetUserResponse,
+} from './user.contract';
+
 // Alias exports for compatibility with existing test expectations
 export {
   AuthorizeRouteSchema as authorizeRequestSchema,

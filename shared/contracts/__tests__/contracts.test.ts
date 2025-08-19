@@ -10,6 +10,8 @@ import {
   OAuthCallbackResponseSchema,
   SessionValidationResponseSchema,
   HealthCheckResponseSchema,
+  CreateUserResponseSchema,
+  GetUserResponseSchema,
 } from '../index';
 
 describe('OAuth Contract Schemas', () => {
@@ -106,6 +108,40 @@ describe('Health Contract Schemas', () => {
     };
     
     const result = HealthCheckResponseSchema.safeParse(health);
+    expect(result.success).toBe(true);
+  });
+});
+
+describe('User Contract Schemas', () => {
+  it('validates user account creation', () => {
+    const response = {
+      success: true,
+      user: {
+        id: '550e8400-e29b-41d4-a716-446655440000',
+        email: 'user@example.com',
+        provider: 'google',
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      },
+    };
+    
+    const result = CreateUserResponseSchema.safeParse(response);
+    expect(result.success).toBe(true);
+  });
+  
+  it('validates user retrieval', () => {
+    const response = {
+      success: true,
+      user: {
+        id: '550e8400-e29b-41d4-a716-446655440000',
+        email: 'user@example.com',
+        provider: 'github',
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      },
+    };
+    
+    const result = GetUserResponseSchema.safeParse(response);
     expect(result.success).toBe(true);
   });
 });

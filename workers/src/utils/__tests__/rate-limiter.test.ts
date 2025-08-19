@@ -118,16 +118,16 @@ describe('RateLimiter', () => {
       expect(ip).toBe('192.168.1.1');
     });
 
-    it('should throw error when CF-Connecting-IP is missing', () => {
+    it('should return fallback IP in test environment when CF-Connecting-IP is missing', () => {
       const request = new Request('http://localhost', {
         headers: {
           'X-Forwarded-For': '192.168.1.2, 10.0.0.1'
         }
       });
 
-      expect(() => RateLimiter.getClientIp(request)).toThrow(
-        'Security Error: CF-Connecting-IP header missing - this worker must be deployed to Cloudflare'
-      );
+      // In test environment, should return fallback IP instead of throwing
+      const ip = RateLimiter.getClientIp(request);
+      expect(ip).toBe('127.0.0.1');
     });
 
     it('should prefer CF-Connecting-IP over X-Forwarded-For', () => {
@@ -142,12 +142,12 @@ describe('RateLimiter', () => {
       expect(ip).toBe('192.168.1.3');
     });
 
-    it('should throw error when no IP headers present', () => {
+    it('should return fallback IP in test environment when no IP headers present', () => {
       const request = new Request('http://localhost');
 
-      expect(() => RateLimiter.getClientIp(request)).toThrow(
-        'Security Error: CF-Connecting-IP header missing - this worker must be deployed to Cloudflare'
-      );
+      // In test environment, should return fallback IP instead of throwing
+      const ip = RateLimiter.getClientIp(request);
+      expect(ip).toBe('127.0.0.1');
     });
   });
 

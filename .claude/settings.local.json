@@ -50,7 +50,12 @@
       "Bash(done)",
       "Bash(cat:*)",
       "Bash(touch:*)",
-      "Bash(npx ts-node:*)"
+      "Bash(npx ts-node:*)",
+      "Bash(NODE_ENV=test npm test -- src/oauth-client/__tests__/user-manager.test.ts)",
+      "Bash(NODE_ENV=test npm test)",
+      "Bash(NODE_ENV=test npm test -- src/utils/__tests__/rate-limiter.test.ts -t \"should throw\")",
+      "Bash(NODE_ENV=test npm test -- src/oauth-client/__tests__/oauth-user-integration.test.ts)",
+      "Bash(NODE_ENV=test npm test -- src/oauth-client/__tests__/input-validation.test.ts -t \"should reject state parameters with injection attempts\")"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",

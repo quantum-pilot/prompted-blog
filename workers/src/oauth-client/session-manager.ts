@@ -13,7 +13,8 @@ import type { OAuthSession } from "../../../shared";
 // Extend OAuthSession with worker-specific fields
 export interface SessionData extends OAuthSession {
   id: string;
-  userId: string; // Unique user identifier
+  userId: string; // Persistent user ID from our database
+  oauthSub?: string; // OAuth provider's sub claim (kept for reference)
   provider: 'google' | 'github';
   createdAt: number;
   state: string;

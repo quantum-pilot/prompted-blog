@@ -69,6 +69,33 @@ describe("SessionManager", () => {
       );
     });
 
+    it("should store oauthSub separately from userId", async () => {
+      const mockRequest = new Request("http://localhost/test");
+      const context = await RequestContext.create(mockRequest, mockEnv);
+      context.userId = "persistent-user-123";
+
+      const sessionData = {
+        provider: "google",
+        userId: "persistent-user-123",
+        oauthSub: "google-oauth-sub-456",
+        email: "test@example.com",
+        name: "Test User",
+        expiresAt: Date.now() + 3600000,
+        state: "test-state",
+        createdAt: Date.now()
+      };
+
+      const sessionId = await sessionManager.createSession(
+        sessionData,
+        context
+      );
+
+      const session = await sessionManager.getSession(sessionId, context);
+      expect(session).toBeDefined();
+      expect(session?.userId).toBe("persistent-user-123");
+      expect(session?.oauthSub).toBe("google-oauth-sub-456");
+    });
+
     it("should set correct TTL", async () => {
       const mockRequest = new Request("http://localhost/test");
       const context = await RequestContext.create(mockRequest, mockEnv);

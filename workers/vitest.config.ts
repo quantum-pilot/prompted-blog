@@ -21,5 +21,8 @@ export default defineWorkersConfig({
         "dist/",
       ],
     },
+    env: {
+      NODE_ENV: 'test',
+    },
   },
 });

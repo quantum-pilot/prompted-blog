@@ -5,11 +5,10 @@
 
 import { getCorsHeaders } from "../utils/cors-utils";
 import { RequestContext } from "../utils/request-context";
-import { SessionManager } from "./session-manager";
 import { handleOAuthCallback, handleOAuthCallbackWithParams } from "./oauth-handler";
+import { processOAuthSuccess } from "./user-integration";
 import type { Env } from "./types";
 import { 
-  OAuthCallbackSuccess,
   OAuthCallbackError,
   HttpStatus
 } from "../../../shared";
@@ -36,33 +35,7 @@ export async function handleCallbackWithParams(
   if (result.status === HttpStatus.OK) {
     const data = (await result.json()) as any;
     if (data.success && data.session) {
-      const sessionManager = new SessionManager(env);
-      const sessionId = await sessionManager.createSession(
-        data.session,
-        context
-      );
-
-      // Return typed success response
-      const successResponse: OAuthCallbackSuccess = {
-        success: true,
-        sessionId,
-        user: {
-          email: data.session.email,
-          name: data.session.name,
-          picture: data.session.picture,
-        },
-      };
-
-      return new Response(
-        JSON.stringify(successResponse),
-        {
-          status: HttpStatus.OK,
-          headers: {
-            "Content-Type": "application/json",
-            ...getCorsHeaders(context, env),
-          },
-        }
-      );
+      return processOAuthSuccess(data.session, env, context);
     }
   }
 
@@ -100,33 +73,7 @@ export async function handleCallback(
   if (result.status === HttpStatus.OK) {
     const data = (await result.json()) as any;
     if (data.success && data.session) {
-      const sessionManager = new SessionManager(env);
-      const sessionId = await sessionManager.createSession(
-        data.session,
-        context
-      );
-
-      // Return typed success response
-      const successResponse: OAuthCallbackSuccess = {
-        success: true,
-        sessionId,
-        user: {
-          email: data.session.email,
-          name: data.session.name,
-          picture: data.session.picture,
-        },
-      };
-
-      return new Response(
-        JSON.stringify(successResponse),
-        {
-          status: HttpStatus.OK,
-          headers: {
-            "Content-Type": "application/json",
-            ...getCorsHeaders(context, env),
-          },
-        }
-      );
+      return processOAuthSuccess(data.session, env, context);
     }
   }
 
