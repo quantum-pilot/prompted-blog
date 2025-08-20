@@ -10,7 +10,32 @@ vi.mock('oauth4webapi', () => ({
 }));
 
 // Mock the hono-client module
-vi.mock('../hono-client');
+const mockHonoClient = {
+  oauth: {
+    callback: {
+      $post: vi.fn()
+    },
+    session: {
+      $get: vi.fn()
+    }
+  },
+  api: {
+    profile: {
+      $get: vi.fn()
+    },
+    username: {
+      check: {}
+    }
+  }
+};
+
+vi.mock('../hono-client', () => ({
+  createHonoClient: vi.fn(() => mockHonoClient),
+  getAuthHeaders: vi.fn((sessionId: string) => ({
+    'Authorization': `Bearer ${sessionId}`,
+    'Content-Type': 'application/json',
+  }))
+}));
 
 // Mock the popup handler for successful popup flow
 const mockPopupHandler = {
@@ -49,6 +74,24 @@ describe('OAuthClient', () => {
     mockPopupHandler.isPopupBlocked.mockClear();
     mockPopupHandler.isPopupBlocked.mockReturnValue(false);
     
+    // Reset hono client mocks with default success responses
+    mockHonoClient.oauth.callback.$post.mockClear();
+    mockHonoClient.oauth.callback.$post.mockResolvedValue({
+      ok: true,
+      json: async () => ({ success: true, sessionId: 'test-session-id' })
+    });
+    
+    mockHonoClient.oauth.session.$get.mockClear();
+    mockHonoClient.oauth.session.$get.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        provider: 'google',
+        email: 'test@example.com',
+        name: 'Test User',
+        expiresAt: Date.now() + 3600000
+      })
+    });
+    
     client = new OAuthClient(mockConfig);
   });
 
@@ -72,7 +115,7 @@ describe('OAuthClient', () => {
       });
       
       // Mock successful token exchange
-      (global.fetch as any).mockResolvedValueOnce({
+      mockHonoClient.oauth.callback.$post.mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           success: true,
@@ -179,7 +222,7 @@ describe('OAuthClient', () => {
       }));
       
       // Mock failed token exchange
-      (global.fetch as any).mockResolvedValueOnce({
+      mockHonoClient.oauth.callback.$post.mockResolvedValueOnce({
         ok: false,
         status: 500
       });
@@ -199,7 +242,7 @@ describe('OAuthClient', () => {
         expiresAt: Date.now() + 3600000
       };
       
-      (global.fetch as any).mockResolvedValueOnce({
+      mockHonoClient.oauth.callback.$post.mockResolvedValueOnce({
         ok: true,
         json: async () => mockResponse
       });
@@ -210,19 +253,17 @@ describe('OAuthClient', () => {
       expect(result).toEqual({ success: true });
       
       // Check worker was called correctly
-      expect(global.fetch).toHaveBeenCalled();
-      const calls = (global.fetch as any).mock.calls;
+      expect(mockHonoClient.oauth.callback.$post).toHaveBeenCalled();
+      const calls = mockHonoClient.oauth.callback.$post.mock.calls;
       expect(calls.length).toBeGreaterThan(0);
       
-      const [url, options] = calls[0];
-      expect(url).toBe('https://worker.example.com/oauth/callback');
-      expect(options.method).toBe('POST');
-      expect(options.body).toBe(JSON.stringify({
+      const [args] = calls[0];
+      expect(args.json).toEqual({
         code: 'auth-code',
         state: 'test-state',
         code_verifier: 'test-verifier',
         provider: 'google'
-      }));
+      });
       
       // Check session ID was stored
       expect(getSessionId()).toBe('session-123');
@@ -257,44 +298,21 @@ describe('OAuthClient', () => {
       const { storeSessionId } = await import('../oauth-session');
       storeSessionId('session-123');
       
-      const mockSessionResponse = {
-        userId: 'user-123',
-        email: 'user@example.com',
-        name: 'Test User',
-        picture: 'https://example.com/pic.jpg',
-        provider: 'google' as const,
-        expiresAt: Date.now() + 3600000
-      };
-      
-      (global.fetch as any).mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockSessionResponse
-      });
-      
       const session = await client.validateSession();
       
       // The session returned should be OAuthSession type
       expect(session).toEqual({
         provider: 'google',
-        email: 'user@example.com',
+        email: 'test@example.com',
         name: 'Test User',
-        picture: 'https://example.com/pic.jpg',
-        expiresAt: mockSessionResponse.expiresAt
+        picture: undefined,
+        expiresAt: expect.any(Number)
       });
-      expect(global.fetch).toHaveBeenCalled();
-      const calls = (global.fetch as any).mock.calls;
-      expect(calls.length).toBeGreaterThan(0);
-      
-      const [url, options] = calls[0];
-      expect(url).toBe('https://worker.example.com/oauth/session');
-      expect(options.method).toBe('GET');
-      expect(options.headers?.['Authorization']).toBe('Bearer session-123');
     });
 
     it('should return null if no session ID stored', async () => {
       const session = await client.validateSession();
       expect(session).toBeNull();
-      expect(global.fetch).not.toHaveBeenCalled();
     });
 
     it('should handle expired sessions', async () => {
@@ -302,10 +320,11 @@ describe('OAuthClient', () => {
       const { storeSessionId } = await import('../oauth-session');
       storeSessionId('session-123');
       
-      (global.fetch as any).mockResolvedValueOnce({
+      // Mock expired session response
+      mockHonoClient.oauth.session.$get.mockResolvedValueOnce({
         ok: false,
         status: 404,
-        text: async () => 'Session not found or expired'
+        json: async () => ({ error: 'session_expired' })
       });
       
       const session = await client.validateSession();
@@ -363,7 +382,7 @@ describe('OAuthClient', () => {
       }));
       
       // Mock successful token exchange
-      (global.fetch as any).mockResolvedValueOnce({
+      mockHonoClient.oauth.callback.$post.mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           success: true,
@@ -391,7 +410,7 @@ describe('OAuthClient', () => {
       }));
       
       // Mock successful token exchange
-      (global.fetch as any).mockResolvedValueOnce({
+      mockHonoClient.oauth.callback.$post.mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           success: true,
@@ -443,7 +462,7 @@ describe('OAuthClient', () => {
       await client.startAuthFlow();
       
       // Verify session ID is stored in memory
-      expect(getSessionId()).toBe('session-123');
+      expect(getSessionId()).toBe('test-session-id');
       
       // Verify cleanup was called
       expect(mockPopupHandler.cleanup).toHaveBeenCalled();

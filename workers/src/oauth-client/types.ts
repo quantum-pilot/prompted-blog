@@ -3,8 +3,6 @@
  * OAuth client type definitions for worker
  */
 
-import { OAuthCallbackResult } from "../../../shared";
-
 // Extend WorkerEnv to properly type KVNamespace
 export interface Env {
   ALLOWED_ORIGINS: string;
@@ -12,9 +10,6 @@ export interface Env {
   SESSION_ENCRYPTION_KEY: string;
   SESSION_ENCRYPTION_SALT: string;
 }
-
-// Re-export shared types for convenience
-export type { OAuthCallbackResult };
 
 export interface OAuthTokenResponse {
   access_token: string;

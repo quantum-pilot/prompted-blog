@@ -1,5 +1,7 @@
 import { OAuthFlowStart } from "./components/oauth-flow-start/index.js";
+import { UsernameSetupModal } from "./components/username-setup-modal/index.js";
 import { setupOAuthHandler } from "./oauth-handler.js";
+import { cleanupUsernameModal } from "./username-setup-handler.js";
 
 function enforceHTTPS(): void {
   // Only enforce HTTPS in production (not localhost or 127.0.0.1)
@@ -19,11 +21,36 @@ function registerComponents(): void {
   if (!customElements.get("oauth-flow-start")) {
     customElements.define("oauth-flow-start", OAuthFlowStart);
   }
+  if (!customElements.get("username-setup-modal")) {
+    customElements.define("username-setup-modal", UsernameSetupModal);
+  }
+}
+
+function setupEventHandlers(): void {
+  // Listen for username ready event
+  document.addEventListener("username-ready", (event: Event) => {
+    const customEvent = event as CustomEvent;
+    console.log("Username setup complete:", customEvent.detail?.username);
+    // App can now proceed with username-dependent features
+  });
+
+  // Handle username setup errors
+  document.addEventListener("username-setup-error", (event: Event) => {
+    const customEvent = event as CustomEvent;
+    console.error("Username setup error:", customEvent.detail?.error);
+    // App should handle this error appropriately
+  });
+
+  // Clean up modal on page unload
+  window.addEventListener("beforeunload", () => {
+    cleanupUsernameModal();
+  });
 }
 
 function init(): void {
   enforceHTTPS();
   registerComponents();
+  setupEventHandlers();
   setupOAuthHandler();
 }
 
@@ -33,4 +60,4 @@ if (document.readyState === "loading") {
   init();
 }
 
-export { registerComponents };
+export { registerComponents, UsernameSetupModal };

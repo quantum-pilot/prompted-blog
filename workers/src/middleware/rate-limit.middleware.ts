@@ -19,8 +19,8 @@ export const rateLimitMiddleware = (
   windowMs = 60 * 1000
 ): MiddlewareHandler<{ Bindings: Env }> => {
   return async (c, next) => {
-    // Use RATE_LIMITER_KV if available, otherwise use OAUTH_SESSIONS
-    const kvNamespace = c.env.RATE_LIMITER_KV || c.env.OAUTH_SESSIONS;
+    // Use OAUTH_SESSIONS for rate limiting
+    const kvNamespace = c.env.OAUTH_SESSIONS;
     
     // Only rate limit if KV namespace is available
     if (!kvNamespace) {

@@ -24,6 +24,15 @@ export {
   type AuthorizeRouteInput,
 } from './oauth-authorize.contract';
 
+// Add inferred types for schemas
+import type { z } from 'zod';
+import {
+  OAuthAuthorizeSuccessSchema as _OAuthAuthorizeSuccessSchema,
+  OAuthAuthorizeErrorSchema as _OAuthAuthorizeErrorSchema,
+} from './oauth-authorize.contract';
+export type OAuthAuthorizeSuccess = z.infer<typeof _OAuthAuthorizeSuccessSchema>;
+export type OAuthAuthorizeError = z.infer<typeof _OAuthAuthorizeErrorSchema>;
+
 // OAuth callback contract schemas and types
 export {
   OAuthCallbackRequestSchema,
@@ -35,6 +44,14 @@ export {
   type OAuthCallbackResponse,
   type CallbackRouteInput,
 } from './oauth-callback.contract';
+
+// Add inferred types for callback schemas
+import {
+  OAuthCallbackSuccessSchema as _OAuthCallbackSuccessSchema,
+  OAuthCallbackErrorSchema as _OAuthCallbackErrorSchema,
+} from './oauth-callback.contract';
+export type OAuthCallbackSuccess = z.infer<typeof _OAuthCallbackSuccessSchema>;
+export type OAuthCallbackError = z.infer<typeof _OAuthCallbackErrorSchema>;
 
 // Session contract schemas and types
 export {
@@ -52,6 +69,14 @@ export {
   type OAuthSession,
   type PKCEChallengeData,
 } from './session.contract';
+
+// Add inferred types for session schemas
+import {
+  SessionValidationSuccessSchema as _SessionValidationSuccessSchema,
+  SessionValidationErrorSchema as _SessionValidationErrorSchema,
+} from './session.contract';
+export type SessionValidationSuccess = z.infer<typeof _SessionValidationSuccessSchema>;
+export type SessionValidationError = z.infer<typeof _SessionValidationErrorSchema>;
 
 // Health check contract schemas and types
 export {

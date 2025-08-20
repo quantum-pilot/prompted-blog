@@ -190,7 +190,7 @@ describe("User Validation", () => {
         username: "Invalid-Username", // uppercase not allowed
         provider: "google"
       };
-      expect(() => sanitizeUserInput(input)).toThrow("Invalid user data");
+      expect(() => sanitizeUserInput(input)).toThrow("Username must be lowercase alphanumeric");
     });
 
     it("should handle optional username", () => {

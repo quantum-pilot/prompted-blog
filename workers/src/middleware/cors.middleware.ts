@@ -20,7 +20,10 @@ export const corsMiddleware = (): MiddlewareHandler<{ Bindings: Env }> => {
     
     // Handle preflight OPTIONS requests
     if (c.req.method === 'OPTIONS') {
-      return c.text('', 204, corsHeaders);
+      return new Response('', {
+        status: 204,
+        headers: corsHeaders
+      });
     }
     
     // Continue to next middleware/handler

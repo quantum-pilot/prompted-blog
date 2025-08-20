@@ -6,7 +6,6 @@
 // OAuth endpoints and utilities
 export {
   OAUTH_ENDPOINTS,
-  type OAuthProvider,
   buildAuthorizeUrl,
   buildCallbackUrl,
   buildSessionUrl,

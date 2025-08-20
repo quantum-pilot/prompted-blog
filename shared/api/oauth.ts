@@ -6,7 +6,7 @@
 import type {
   OAuthAuthorizeRequest,
   OAuthCallbackRequest,
-} from "../types/oauth";
+} from "../contracts";
 
 /** OAuth API endpoint paths */
 export const OAUTH_ENDPOINTS = {
@@ -15,8 +15,7 @@ export const OAUTH_ENDPOINTS = {
   session: "/oauth/session",
 } as const;
 
-/** OAuth provider type */
-export type OAuthProvider = "google" | "github";
+// OAuthProvider is imported from contracts
 
 /**
  * Build OAuth authorization endpoint URL with query parameters

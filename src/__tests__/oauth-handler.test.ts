@@ -5,6 +5,7 @@ const mockStartAuthFlow = vi.fn();
 const mockHandleCallback = vi.fn();
 const mockValidateSession = vi.fn();
 const mockLogout = vi.fn();
+const mockCheckAndShowUsernameSetup = vi.fn();
 
 // Mock the API client module with factory function
 vi.mock("../api/oauth-client", () => {
@@ -22,6 +23,11 @@ vi.mock("../api/oauth-client", () => {
   };
 });
 
+// Mock username setup handler
+vi.mock("../username-setup-handler", () => ({
+  checkAndShowUsernameSetup: mockCheckAndShowUsernameSetup
+}));
+
 describe("OAuth Handler", () => {
   beforeEach(() => {
     // Clear DOM
@@ -36,6 +42,7 @@ describe("OAuth Handler", () => {
     mockHandleCallback.mockReset();
     mockValidateSession.mockReset();
     mockLogout.mockReset();
+    mockCheckAndShowUsernameSetup.mockReset();
 
     // Mock console methods
     vi.spyOn(console, "log").mockImplementation(() => {});
@@ -203,6 +210,90 @@ describe("OAuth Handler", () => {
           },
         })
       );
+      expect(mockCheckAndShowUsernameSetup).toHaveBeenCalled();
+    });
+
+    it("should check username setup after OAuth callback success", async () => {
+      // Mock successful callback and session
+      mockHandleCallback.mockImplementation(() => 
+        Promise.resolve({ success: true })
+      );
+      mockValidateSession.mockImplementation(() =>
+        Promise.resolve({
+          userId: "user-456",
+          email: "newuser@example.com",
+          name: "New User",
+          expiresAt: Date.now() + 3600000,
+        })
+      );
+      mockCheckAndShowUsernameSetup.mockImplementation(() => 
+        Promise.resolve(undefined)
+      );
+
+      // Mock window.history.replaceState to prevent navigation
+      const replaceStateSpy = vi.spyOn(window.history, "replaceState").mockImplementation(() => {});
+
+      const successListener = vi.fn();
+      document.addEventListener("oauth-success", successListener);
+
+      // Set up OAuth callback URL before importing module
+      Object.defineProperty(window, "location", {
+        value: {
+          ...window.location,
+          pathname: "/oauth/callback",
+          href: "https://app.example.com/oauth/callback?code=abc123",
+          origin: "https://app.example.com",
+        },
+        writable: true,
+        configurable: true,
+      });
+
+      // Import and setup OAuth handler which will trigger callback handling
+      const module = await import("../oauth-handler");
+      module.setupOAuthHandler();
+
+      // Wait for all async operations to complete
+      await vi.waitFor(() => {
+        expect(mockHandleCallback).toHaveBeenCalled();
+        expect(mockValidateSession).toHaveBeenCalled();
+        expect(successListener).toHaveBeenCalled();
+        expect(mockCheckAndShowUsernameSetup).toHaveBeenCalled();
+      }, { timeout: 1000 });
+
+      replaceStateSpy.mockRestore();
+    });
+
+    it("should not check username on OAuth errors", async () => {
+      // Set up OAuth callback URL with error
+      Object.defineProperty(window, "location", {
+        value: {
+          ...window.location,
+          pathname: "/oauth/callback",
+          href: "https://app.example.com/oauth/callback?error=access_denied",
+          origin: "https://app.example.com",
+        },
+        writable: true,
+        configurable: true,
+      });
+
+      // Mock failed callback
+      mockHandleCallback.mockResolvedValueOnce({ 
+        success: false, 
+        error: "OAuth callback failed" 
+      });
+
+      const errorListener = vi.fn();
+      document.addEventListener("oauth-error", errorListener);
+
+      // Import and setup OAuth handler
+      const module = await import("../oauth-handler");
+      module.setupOAuthHandler();
+
+      // Wait for async operations
+      await new Promise((resolve) => setTimeout(resolve, 20));
+
+      expect(mockCheckAndShowUsernameSetup).not.toHaveBeenCalled();
+      expect(errorListener).toHaveBeenCalled();
     });
   });
 });

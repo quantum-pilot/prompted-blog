@@ -8,11 +8,15 @@ import { zValidator } from '@hono/zod-validator';
 import {
   OAuthAuthorizeRequestSchema,
   OAuthCallbackRequestSchema,
+  OAuthAuthorizeErrorSchema,
+  OAuthCallbackErrorSchema,
   type OAuthAuthorizeResponse,
   type OAuthCallbackResponse,
-  type OAuthAuthorizeError,
-  type OAuthCallbackError,
 } from '../../../shared/contracts';
+import type { z } from 'zod';
+
+type OAuthAuthorizeError = z.infer<typeof OAuthAuthorizeErrorSchema>;
+type OAuthCallbackError = z.infer<typeof OAuthCallbackErrorSchema>;
 import { RequestContext } from '../utils/request-context';
 import { handleInitiateOAuth } from '../oauth-client/auth-handler';
 import { handleCallbackWithParams } from '../oauth-client/callback-handler';

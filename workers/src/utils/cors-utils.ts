@@ -43,7 +43,7 @@ export function getCorsHeaders(
   context?: RequestContext | { origin: string | null },
   env?: Env
 ): Record<string, string> {
-  const origin = 'origin' in context ? context.origin : context?.request?.headers.get('Origin') || null;
+  const origin = context && 'origin' in context ? context.origin : (context as RequestContext | undefined)?.request?.headers.get('Origin') || null;
   
   // Use shared CORS header builder when origin is allowed
   if (origin && isAllowedOrigin(origin, env)) {

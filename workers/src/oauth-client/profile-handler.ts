@@ -4,7 +4,7 @@ import type { RequestContext } from "../utils/request-context";
 import { UsernameChecker } from "./username-checker";
 import { UserIndexManager } from "./user-index-manager";
 import { sanitizeError } from "../utils/error-sanitizer";
-import { UsernameBlocklist } from "./username-blocklist";
+import { checkUsernameValidity } from "./username-blocklist";
 import { ConstantTimeHelper } from "./constant-time-helper";
 import {
   type UserAccount, type UpdateUserProfileRequest, type UpdateUserProfileResponse,
@@ -80,7 +80,8 @@ export class ProfileHandler {
     }
     
     // Check blocklist
-    if (UsernameBlocklist.isBlocked(req.username)) {
+    const blockReason = checkUsernameValidity(req.username);
+    if (blockReason) {
       await timer.ensureConstantTime();
       return { success: true, available: false };
     }

@@ -4,7 +4,7 @@ import type { RequestContext } from "../utils/request-context";
 import { UserIndexManager } from "./user-index-manager";
 import { AuditedKVStore } from "../utils/audit-kvstore";
 import { sanitizeError } from "../utils/error-sanitizer";
-import { UsernameBlocklist } from "./username-blocklist";
+import { checkUsernameValidity } from "./username-blocklist";
 import { UsernameAtomicOps } from "./username-atomic-ops";
 
 export class UsernameChecker {
@@ -30,7 +30,7 @@ export class UsernameChecker {
     if (!username) return false;
     
     // Check blocklist first
-    if (UsernameBlocklist.isBlocked(username)) return false;
+    if (checkUsernameValidity(username)) return false;
     
     try {
       const existing = await this.indexManager.getUsernameIndex(username, context);

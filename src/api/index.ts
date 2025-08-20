@@ -26,3 +26,16 @@ export {
   validateSessionWithWorker,
   clearOAuthData,
 } from "./oauth-session";
+
+// Profile API client for user profile operations
+export { ProfileClient } from "./profile-client";
+
+// Profile types - re-export from shared for convenience
+export type {
+  UserAccount,
+  GetUserResponse,
+  UpdateUserProfileRequest,
+  UpdateUserProfileResponse,
+  CheckUsernameAvailabilityRequest,
+  CheckUsernameAvailabilityResponse,
+} from "@app/shared/contracts";

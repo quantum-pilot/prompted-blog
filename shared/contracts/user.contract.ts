@@ -1,13 +1,13 @@
 /**
  * User Account Contract Schema Definitions
  * Contract-first API schemas for user account management using Zod
- * 
+ *
  * Usage example:
  * ```typescript
  * // Validate create request
  * const request = { email: 'user@example.com', provider: 'google' };
  * const validated = CreateUserRequestSchema.parse(request);
- * 
+ *
  * // Validate response
  * const response = { success: true, user: {...} };
  * const validatedResponse = CreateUserResponseSchema.parse(response);
@@ -31,12 +31,7 @@ export const UsernameSchema = z
   .max(30)
   .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, {
     message: 'Username must be lowercase alphanumeric with hyphens (not at start/end, no consecutive)',
-  })
-  .refine((username) => {
-    // Basic blocklist check - full validation happens server-side
-    const reserved = ['admin', 'root', 'system', 'api', 'auth', 'oauth'];
-    return !reserved.includes(username.toLowerCase());
-  }, { message: 'This username is reserved' });
+  });
 
 export const UserAccountSchema = z.object({
   id: UUIDSchema,

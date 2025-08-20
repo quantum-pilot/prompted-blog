@@ -2,7 +2,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { UsernameChecker } from '../src/oauth-client/username-checker';
 import { ProfileHandler } from '../src/oauth-client/profile-handler';
-import { UsernameBlocklist } from '../src/oauth-client/username-blocklist';
+import { checkUsernameValidity } from '../src/oauth-client/username-blocklist';
 import { RateLimiter } from '../src/utils/rate-limiter';
 import type { Env } from '../src/oauth-client/types';
 import type { RequestContext } from '../src/utils/request-context';
@@ -40,28 +40,30 @@ describe('Username Security Tests', () => {
 
   describe('Username Blocklist', () => {
     it('should block reserved system usernames', () => {
-      expect(UsernameBlocklist.isBlocked('admin')).toBe(true);
-      expect(UsernameBlocklist.isBlocked('root')).toBe(true);
-      expect(UsernameBlocklist.isBlocked('system')).toBe(true);
-      expect(UsernameBlocklist.isBlocked('api')).toBe(true);
-      expect(UsernameBlocklist.isBlocked('oauth')).toBe(true);
+      expect(checkUsernameValidity('admin')).toBeTruthy();
+      expect(checkUsernameValidity('root')).toBeTruthy();
+      expect(checkUsernameValidity('system')).toBeTruthy();
+      expect(checkUsernameValidity('api')).toBeTruthy();
+      expect(checkUsernameValidity('oauth')).toBeTruthy();
     });
 
     it('should block inappropriate usernames', () => {
-      expect(UsernameBlocklist.isBlocked('administrator')).toBe(true);
-      expect(UsernameBlocklist.isBlocked('test123')).toBe(true);
-      expect(UsernameBlocklist.isBlocked('user456')).toBe(true);
+      expect(checkUsernameValidity('administrator')).toBeTruthy();
+      expect(checkUsernameValidity('test1')).toBeTruthy();
+      expect(checkUsernameValidity('user12')).toBeTruthy();
     });
 
     it('should allow valid usernames', () => {
-      expect(UsernameBlocklist.isBlocked('john-doe')).toBe(false);
-      expect(UsernameBlocklist.isBlocked('alice123')).toBe(false);
-      expect(UsernameBlocklist.isBlocked('developer')).toBe(false);
+      expect(checkUsernameValidity('john-doe')).toBeUndefined();
+      expect(checkUsernameValidity('alice123')).toBeUndefined();
+      expect(checkUsernameValidity('test123')).toBeUndefined();  // 3 digits, allowed
+      expect(checkUsernameValidity('user456')).toBeUndefined();  // 3 digits, allowed
+      expect(checkUsernameValidity('developer123')).toBeUndefined();  // 3 digits, allowed
     });
 
     it('should provide appropriate block reasons', () => {
-      expect(UsernameBlocklist.getBlockReason('admin')).toContain('reserved');
-      expect(UsernameBlocklist.getBlockReason('test123')).toContain('inappropriate');
+      expect(checkUsernameValidity('admin')).toContain('reserved');
+      expect(checkUsernameValidity('test1')).toContain('reserved');
     });
   });
 

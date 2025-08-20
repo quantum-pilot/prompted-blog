@@ -1,6 +1,6 @@
 // @agent: cloudflare-backend
 import { z } from "zod";
-import { UsernameBlocklist } from "./username-blocklist";
+import { checkUsernameValidity } from "../../../shared/contracts/username-validator";
 
 // Username validation: 3-30 chars, lowercase alphanumeric and hyphens only
 // Cannot start/end with hyphen, no consecutive hyphens, and must not be blocked
@@ -11,7 +11,7 @@ export const UsernameSchema = z
   .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, {
     message: 'Username must be lowercase alphanumeric with hyphens (not at start/end, no consecutive)',
   })
-  .refine((username) => !UsernameBlocklist.isBlocked(username), {
+  .refine((username) => !checkUsernameValidity(username), {
     message: 'This username is reserved or contains inappropriate terms',
   });
 
@@ -62,8 +62,11 @@ export function sanitizeUserInput(input: {
   provider?: string;
 }): ValidatedUserAccount {
   // Check username against blocklist before processing
-  if (input.username && UsernameBlocklist.isBlocked(input.username)) {
-    throw new Error(UsernameBlocklist.getBlockReason(input.username));
+  if (input.username) {
+    const validityError = checkUsernameValidity(input.username);
+    if (validityError) {
+      throw new Error(validityError);
+    }
   }
   
   const user = {

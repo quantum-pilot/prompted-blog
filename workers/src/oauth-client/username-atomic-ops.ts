@@ -4,7 +4,7 @@ import type { RequestContext } from "../utils/request-context";
 import { UserIndexManager } from "./user-index-manager";
 import { AuditedKVStore } from "../utils/audit-kvstore";
 import { sanitizeError } from "../utils/error-sanitizer";
-import { UsernameBlocklist } from "./username-blocklist";
+import { checkUsernameValidity } from "./username-blocklist";
 
 const RESERVATION_TTL = 90; // 90 seconds TTL for username reservations
 
@@ -27,7 +27,7 @@ export class UsernameAtomicOps {
 
   async reserve(username: string, userId: string, context: RequestContext): Promise<boolean> {
     if (!username || !userId) return false;
-    if (UsernameBlocklist.isBlocked(username)) return false;
+    if (checkUsernameValidity(username)) return false;
     
     try {
       const key = this.getReservationKey(username);
@@ -50,7 +50,7 @@ export class UsernameAtomicOps {
 
   async confirmClaim(username: string, userId: string, context: RequestContext): Promise<boolean> {
     if (!username || !userId) return false;
-    if (UsernameBlocklist.isBlocked(username)) return false;
+    if (checkUsernameValidity(username)) return false;
     
     try {
       const key = this.getReservationKey(username);

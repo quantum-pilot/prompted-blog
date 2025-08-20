@@ -1,9 +1,11 @@
 /**
  * OAuth handler module - Production version
  * Always uses real OAuth flow without mock authentication
+ * Integrates username setup flow after successful authentication
  */
 import { OAuthClient } from "./api/oauth-client";
 import { OAuthProvider, OAUTH_PROVIDERS } from "@app/shared";
+import { checkAndShowUsernameSetup } from "./username-setup-handler";
 
 // Create OAuth client instance
 // Worker is on same origin, so we can use relative paths
@@ -38,6 +40,9 @@ async function handleOAuthCallback(): Promise<void> {
 
       // Redirect to home page
       window.history.replaceState({}, document.title, "/");
+      
+      // Check and setup username if needed
+      await checkAndShowUsernameSetup();
     } else {
       throw new Error("Failed to validate session after OAuth callback");
     }
@@ -72,6 +77,9 @@ async function checkExistingSession(): Promise<void> {
         bubbles: true,
       });
       document.dispatchEvent(successEvent);
+      
+      // Check and setup username if needed
+      await checkAndShowUsernameSetup();
     }
   } catch (error) {
     console.error("Failed to check existing session:", error);

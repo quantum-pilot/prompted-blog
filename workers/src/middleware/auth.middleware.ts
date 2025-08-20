@@ -5,6 +5,7 @@
 
 import type { MiddlewareHandler } from 'hono';
 import type { Env } from '../oauth-client/types';
+import type { AuthContext } from '../types/context';
 import { SessionManager } from '../oauth-client/session-manager';
 import { RequestContext } from '../utils/request-context';
 import { AuditEventType } from '../utils/audit-logger';
@@ -28,9 +29,10 @@ const unauthorizedResponse = (c: any, description: string) =>
 /**
  * Authentication middleware - validates Bearer token and sets user context
  */
-export const authMiddleware = (): MiddlewareHandler<{ Bindings: Env }> => {
+export const authMiddleware = (): MiddlewareHandler<{ Bindings: Env } & AuthContext> => {
   return async (c, next) => {
-    const sessionId = extractBearerToken(c.req.header('Authorization'));
+    const authHeader = c.req.header('Authorization');
+    const sessionId = extractBearerToken(authHeader || null);
     const context = await RequestContext.create(c.req.raw, c.env);
     const path = new URL(c.req.url).pathname;
     
@@ -69,9 +71,10 @@ export const authMiddleware = (): MiddlewareHandler<{ Bindings: Env }> => {
 /**
  * Optional auth middleware - validates token if present but doesn't require it
  */
-export const optionalAuthMiddleware = (): MiddlewareHandler<{ Bindings: Env }> => {
+export const optionalAuthMiddleware = (): MiddlewareHandler<{ Bindings: Env } & AuthContext> => {
   return async (c, next) => {
-    const sessionId = extractBearerToken(c.req.header('Authorization'));
+    const authHeader = c.req.header('Authorization');
+    const sessionId = extractBearerToken(authHeader || null);
     
     if (sessionId) {
       const context = await RequestContext.create(c.req.raw, c.env);
