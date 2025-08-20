@@ -1,5 +1,6 @@
 import { OAuthFlowStart } from "./components/oauth-flow-start/index.js";
 import { UsernameSetupModal } from "./components/username-setup-modal/index.js";
+import { AuthHandler } from "./components/auth-handler/index.js";
 import { setupOAuthHandler } from "./oauth-handler.js";
 import { cleanupUsernameModal } from "./username-setup-handler.js";
 
@@ -23,6 +24,9 @@ function registerComponents(): void {
   }
   if (!customElements.get("username-setup-modal")) {
     customElements.define("username-setup-modal", UsernameSetupModal);
+  }
+  if (!customElements.get("auth-handler")) {
+    customElements.define("auth-handler", AuthHandler);
   }
 }
 
@@ -52,6 +56,10 @@ function init(): void {
   registerComponents();
   setupEventHandlers();
   setupOAuthHandler();
+  
+  // Add auth-handler component to handle authentication routing
+  const authHandler = document.createElement("auth-handler");
+  document.body.appendChild(authHandler);
 }
 
 if (document.readyState === "loading") {
@@ -60,4 +68,4 @@ if (document.readyState === "loading") {
   init();
 }
 
-export { registerComponents, UsernameSetupModal };
+export { registerComponents, UsernameSetupModal, AuthHandler };

@@ -1,0 +1,29 @@
+/* Auth Handler - Non-visual component for authentication routing */
+
+/* Base styles - Keep component non-visual */
+auth-handler {
+  display: contents; /* Doesn't affect layout flow */
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  box-shadow: none;
+}
+
+/* Loading state - Subtle visual feedback during auth checks */
+auth-handler.loading {
+  display: inline;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Transitioning state - Smooth transitions during routing */
+auth-handler.transitioning {
+  display: inline;
+  transition: opacity 0.3s ease-in-out;
+}
+
+/* Hidden state support */
+auth-handler[hidden] {
+  display: none !important;
+}
