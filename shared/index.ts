@@ -6,6 +6,9 @@
 // Export all constants (OAuth providers, app config, helper functions)
 export * from "./constants";
 
+// Export all types (including legacy OAuthProvider enum)
+export * from "./types";
+
 // Export all API utilities
 export * from "./api/index";
 

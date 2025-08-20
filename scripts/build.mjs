@@ -16,9 +16,12 @@ console.log(`Building in ${isWatch ? "watch" : "production"} mode...`);
 
 // Build options - always optimized for production
 const buildOptions = {
-  entryPoints: [resolve(rootDir, "src/main.ts")],
+  entryPoints: {
+    main: resolve(rootDir, "src/main.ts"),
+    admin: resolve(rootDir, "src/admin.ts"),
+  },
   bundle: true,
-  outfile: resolve(distDir, "main.js"),
+  outdir: distDir,
   format: "esm",
   target: "es2020",
   platform: "browser",
@@ -55,6 +58,12 @@ function copyAssets() {
   const copyTasks = [
     // Main index.html
     { src: "index.html", dest: "dist/index.html" },
+    // Admin dashboard
+    {
+      src: "admin.html",
+      dest: "dist/admin/index.html",
+      createDir: "dist/admin",
+    },
     // OAuth callback (with directory creation)
     {
       src: "src/oauth-callback.html",
@@ -114,10 +123,17 @@ async function build() {
 
       // Output build size
       if (result.metafile) {
-        const output = result.metafile.outputs[resolve(distDir, "main.js")];
-        if (output) {
+        const mainOutput = result.metafile.outputs[resolve(distDir, "main.js")];
+        const adminOutput = result.metafile.outputs[resolve(distDir, "admin.js")];
+        
+        if (mainOutput) {
           console.log(
-            `✓ Built main.js (${(output.bytes / 1024).toFixed(2)} KB)`
+            `✓ Built main.js (${(mainOutput.bytes / 1024).toFixed(2)} KB)`
+          );
+        }
+        if (adminOutput) {
+          console.log(
+            `✓ Built admin.js (${(adminOutput.bytes / 1024).toFixed(2)} KB)`
           );
         }
       }

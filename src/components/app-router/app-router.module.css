@@ -1,0 +1,13 @@
+/* App Router Component Styles */
+
+app-router {
+  display: block;
+  min-height: 100vh;
+  width: 100%;
+  position: relative;
+}
+
+/* Ensure content flows properly */
+app-router > * {
+  width: 100%;
+}
