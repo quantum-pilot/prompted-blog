@@ -2,37 +2,37 @@
 import type { Env } from "./types";
 import type { RequestContext } from "../utils/request-context";
 import { SessionEncryption } from "./session-encryption";
-import { AuditedKVStore } from "../utils/audit-kvstore";
+import { UserIndexManager } from "./user-index-manager";
+import { UserAtomicOperations } from "./user-atomic-operations";
 import { ValidatedUserAccount, validateUserAccount } from "./user-validation";
 import { sanitizeError } from "../utils/error-sanitizer";
-const USER_TTL = 30 * 24 * 60 * 60;
-
-// Use validated type instead of loose interface
 export type UserAccount = ValidatedUserAccount;
 
 export class UserStorage {
   private encryption: SessionEncryption;
-  private auditedKV: AuditedKVStore;
+  private indexManager: UserIndexManager;
+  private atomicOps: UserAtomicOperations;
+  
   constructor(private env: Env) {
     this.encryption = new SessionEncryption(env);
-    this.auditedKV = new AuditedKVStore(env.OAUTH_SESSIONS);
+    this.indexManager = new UserIndexManager(env);
+    this.atomicOps = new UserAtomicOperations(env);
   }
 
   async storeUser(user: UserAccount, context: RequestContext): Promise<void> {
-    // Validate user data before storage
     const validation = validateUserAccount(user);
     if (!validation.success) {
       console.error("USER_STORE_VALIDATION_FAILED");
       throw new Error("Invalid user data for storage");
     }
     const validUser = validation.data;
-    
     try {
       const encryptedData = await this.encryption.encrypt(JSON.stringify(validUser));
-      await this.auditedKV.put(`user:id:${validUser.id}`, encryptedData,
-        context.userId || "system", { expirationTtl: USER_TTL });
-      await this.auditedKV.put(`user:email:${validUser.email}`, validUser.id,
-        context.userId || "system", { expirationTtl: USER_TTL });
+      await this.indexManager.setUserData(validUser.id, encryptedData, context);
+      await this.indexManager.setEmailIndex(validUser.email, validUser.id, context);
+      if (validUser.username) {
+        await this.indexManager.setUsernameIndex(validUser.username, validUser.id, context);
+      }
     } catch (error) {
       console.error(sanitizeError(error, "USER_STORE"));
       throw new Error("Failed to store user data");
@@ -40,67 +40,55 @@ export class UserStorage {
   }
 
   async retrieveUserByEmail(email: string, context: RequestContext): Promise<UserAccount | null> {
-    if (!email) {
-      console.error("USER_RETRIEVE_EMAIL_INVALID");
-      return null;
-    }
+    if (!email) return null;
     try {
-      const userId = await this.auditedKV.get(
-        `user:email:${email}`,
-        context.userId || "system"
-      );
-      if (!userId) return null;
-      return await this.retrieveUserById(userId, context);
+      const userId = await this.indexManager.getEmailIndex(email, context);
+      return userId ? await this.retrieveUserById(userId, context) : null;
     } catch (error) {
       console.error(sanitizeError(error, "USER_RETRIEVE_BY_EMAIL"));
       return null;
     }
   }
 
-  async retrieveUserById(id: string, context: RequestContext): Promise<UserAccount | null> {
-    if (!id) {
-      console.error("USER_RETRIEVE_ID_INVALID");
-      return null;
-    }
+  async retrieveUserByUsername(username: string, context: RequestContext): Promise<UserAccount | null> {
+    if (!username) return null;
     try {
-      const encryptedData = await this.auditedKV.get(
-        `user:id:${id}`,
-        context.userId || "system"
-      );
-      if (!encryptedData) return null;
-      const decryptedData = await this.encryption.decrypt(encryptedData);
-      const userData = JSON.parse(decryptedData);
-      
-      // Validate retrieved data
-      const validation = validateUserAccount(userData);
-      if (!validation.success) {
-        console.error("USER_RETRIEVE_VALIDATION_FAILED");
-        return null;
-      }
-      return validation.data;
+      const userId = await this.indexManager.getUsernameIndex(username, context);
+      return userId ? await this.retrieveUserById(userId, context) : null;
     } catch (error) {
-      console.error(sanitizeError(error, "USER_RETRIEVE_BY_ID"));
+      console.error(sanitizeError(error, "USER_RETRIEVE_BY_USERNAME"));
       return null;
     }
   }
 
+  async checkUsernameAvailability(username: string, context: RequestContext): Promise<boolean> {
+    return await this.indexManager.checkUsernameAvailable(username, context);
+  }
+
+  async retrieveUserById(id: string, context: RequestContext): Promise<UserAccount | null> {
+    return await this.atomicOps.retrieveUserById(id, context);
+  }
+
   async updateUser(user: UserAccount, context: RequestContext): Promise<void> {
-    // Validate user data before update
     const validation = validateUserAccount(user);
     if (!validation.success) {
       console.error("USER_UPDATE_VALIDATION_FAILED");
       throw new Error("Invalid user data for update");
     }
     const validUser = validation.data;
-    
     try {
       const existingUser = await this.retrieveUserById(validUser.id, context);
       const updatedUser = { ...validUser, updatedAt: new Date().toISOString() };
-      if (existingUser && existingUser.email !== validUser.email) {
-        await this.auditedKV.delete(
-          `user:email:${existingUser.email}`,
-          context.userId || "system"
-        );
+      if (existingUser) {
+        if (existingUser.email !== validUser.email) {
+          await this.indexManager.deleteEmailIndex(existingUser.email, context);
+        }
+        if (existingUser.username && existingUser.username !== validUser.username) {
+          await this.indexManager.deleteUsernameIndex(existingUser.username, context);
+        }
+        if (existingUser.username && !validUser.username) {
+          await this.indexManager.deleteUsernameIndex(existingUser.username, context);
+        }
       }
       await this.storeUser(updatedUser, context);
     } catch (error) {
@@ -113,75 +101,6 @@ export class UserStorage {
     user: UserAccount,
     context: RequestContext
   ): Promise<{ created: boolean; user: UserAccount }> {
-    // Validate user data before creation
-    const validation = validateUserAccount(user);
-    if (!validation.success) {
-      console.error("USER_CREATE_VALIDATION_FAILED");
-      throw new Error("Invalid user data for creation");
-    }
-    const validUser = validation.data;
-    
-    try {
-      // Try to atomically create the email key first
-      // This acts as our lock to prevent duplicate users with same email
-      const emailKey = `user:email:${validUser.email}`;
-      
-      // Check if email already exists
-      const existingUserId = await this.auditedKV.get(emailKey, context.userId || "system");
-      
-      if (existingUserId) {
-        // Email already exists, retrieve and return the existing user
-        const existingUser = await this.retrieveUserById(existingUserId, context);
-        if (!existingUser) {
-          // Edge case: email index exists but user data doesn't
-          console.error("USER_CREATE_DATA_INCONSISTENCY");
-          throw new Error("Data inconsistency detected");
-        }
-        return { created: false, user: existingUser };
-      }
-      
-      // Email doesn't exist, try to create it atomically
-      // Store email index first to claim the email
-      await this.auditedKV.put(
-        emailKey,
-        validUser.id,
-        context.userId || "system",
-        { expirationTtl: USER_TTL }
-      );
-      
-      // Double-check that we successfully claimed the email
-      // This handles the race condition where another request might have created it
-      const claimedUserId = await this.auditedKV.get(emailKey, context.userId || "system");
-      
-      if (claimedUserId !== validUser.id) {
-        // Another request won the race, return the existing user
-        const existingUser = await this.retrieveUserById(claimedUserId, context);
-        if (!existingUser) {
-          console.error("USER_CREATE_RACE_CONDITION_INCONSISTENCY");
-          throw new Error("Data inconsistency detected");
-        }
-        return { created: false, user: existingUser };
-      }
-      
-      // We successfully claimed the email, now store the user data
-      try {
-        const encryptedData = await this.encryption.encrypt(JSON.stringify(validUser));
-        await this.auditedKV.put(
-          `user:id:${validUser.id}`,
-          encryptedData,
-          context.userId || "system",
-          { expirationTtl: USER_TTL }
-        );
-      } catch (error) {
-        // If user data storage fails, clean up the email index
-        await this.auditedKV.delete(emailKey, context.userId || "system");
-        throw error;
-      }
-      
-      return { created: true, user: validUser };
-    } catch (error) {
-      console.error(sanitizeError(error, "USER_CREATE_ATOMIC"));
-      throw new Error("Failed to create user atomically");
-    }
+    return await this.atomicOps.createUserIfNotExists(user, context);
   }
 }

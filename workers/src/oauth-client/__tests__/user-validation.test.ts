@@ -1,7 +1,7 @@
 // @agent: cloudflare-backend
 import { describe, it, expect } from "vitest";
 import { z } from "zod";
-import { validateUserAccount, UserAccountSchema, AllowedMetadataSchema } from "../user-validation";
+import { validateUserAccount, UserAccountSchema, AllowedMetadataSchema, sanitizeUserInput, UsernameSchema } from "../user-validation";
 
 describe("User Validation", () => {
   describe("AllowedMetadataSchema", () => {
@@ -45,6 +45,32 @@ describe("User Validation", () => {
     });
   });
 
+  describe("UsernameSchema", () => {
+    it("should validate correct usernames", () => {
+      const validUsernames = ['abc', 'myuser123', 'john-doe', 'test-user-123', 'a'.repeat(30)];
+      validUsernames.forEach(username => {
+        expect(() => UsernameSchema.parse(username)).not.toThrow();
+      });
+    });
+
+    it("should reject invalid usernames", () => {
+      const invalidUsernames = [
+        'ab', // too short
+        'a'.repeat(31), // too long
+        'User123', // uppercase
+        '-test', // starts with hyphen
+        'test-', // ends with hyphen
+        'test--user', // consecutive hyphens
+        'test_user', // underscore
+        'test user', // space
+        'test@user', // special char
+      ];
+      invalidUsernames.forEach(username => {
+        expect(() => UsernameSchema.parse(username)).toThrow();
+      });
+    });
+  });
+
   describe("UserAccountSchema", () => {
     it("should validate complete user account", () => {
       const validUser = {
@@ -54,6 +80,16 @@ describe("User Validation", () => {
         picture: "https://example.com/pic.jpg",
         createdAt: new Date().toISOString(),
         metadata: { provider: "google" }
+      };
+      expect(() => UserAccountSchema.parse(validUser)).not.toThrow();
+    });
+
+    it("should validate user account with username", () => {
+      const validUser = {
+        id: crypto.randomUUID(),
+        email: "user@example.com",
+        username: "john-doe",
+        createdAt: new Date().toISOString()
       };
       expect(() => UserAccountSchema.parse(validUser)).not.toThrow();
     });
@@ -134,6 +170,36 @@ describe("User Validation", () => {
       validateUserAccount(input);
       const duration = performance.now() - start;
       expect(duration).toBeLessThan(50);
+    });
+  });
+
+  describe("sanitizeUserInput", () => {
+    it("should include username when provided", () => {
+      const input = {
+        email: "user@example.com",
+        username: "john-doe",
+        provider: "google"
+      };
+      const result = sanitizeUserInput(input);
+      expect(result.username).toBe("john-doe");
+    });
+
+    it("should validate username format", () => {
+      const input = {
+        email: "user@example.com",
+        username: "Invalid-Username", // uppercase not allowed
+        provider: "google"
+      };
+      expect(() => sanitizeUserInput(input)).toThrow("Invalid user data");
+    });
+
+    it("should handle optional username", () => {
+      const input = {
+        email: "user@example.com",
+        provider: "google"
+      };
+      const result = sanitizeUserInput(input);
+      expect(result.username).toBeUndefined();
     });
   });
 });

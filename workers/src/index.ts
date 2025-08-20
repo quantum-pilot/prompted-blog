@@ -18,6 +18,7 @@ import { authMiddleware, optionalAuthMiddleware } from './middleware/auth.middle
 import oauthRoutes from './routes/oauth.route';
 import sessionRoutes from './routes/session.route';
 import healthRoutes from './routes/health.route';
+import profileRoutes from './routes/profile.route';
 
 import type { Env } from './oauth-client/types';
 
@@ -51,6 +52,7 @@ app.use('/oauth/token', rateLimitMiddleware(10, 60 * 1000)); // 10 requests per 
 // Apply auth middleware to session endpoints (except health check)
 app.use('/session/*', authMiddleware());
 app.use('/oauth/userinfo', authMiddleware());
+app.use('/api/profile', authMiddleware());
 
 // Optional auth for certain routes
 app.use('/oauth/logout', optionalAuthMiddleware());
@@ -59,6 +61,7 @@ app.use('/oauth/logout', optionalAuthMiddleware());
 app.route('/', oauthRoutes);
 app.route('/', sessionRoutes);
 app.route('/', healthRoutes);
+app.route('/', profileRoutes);
 
 // 404 handler
 app.notFound(async (c) => {

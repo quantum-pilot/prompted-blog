@@ -65,6 +65,7 @@ export {
 
 // User account contract schemas and types
 export {
+  UsernameSchema,
   UserAccountSchema,
   CreateUserRequestSchema,
   CreateUserSuccessSchema,
@@ -74,11 +75,23 @@ export {
   GetUserSuccessSchema,
   GetUserErrorSchema,
   GetUserResponseSchema,
+  UpdateUserProfileRequestSchema,
+  UpdateUserProfileSuccessSchema,
+  UpdateUserProfileErrorSchema,
+  UpdateUserProfileResponseSchema,
+  CheckUsernameAvailabilityRequestSchema,
+  CheckUsernameAvailabilitySuccessSchema,
+  CheckUsernameAvailabilityErrorSchema,
+  CheckUsernameAvailabilityResponseSchema,
   type UserAccount,
   type CreateUserRequest,
   type CreateUserResponse,
   type GetUserRequest,
   type GetUserResponse,
+  type UpdateUserProfileRequest,
+  type UpdateUserProfileResponse,
+  type CheckUsernameAvailabilityRequest,
+  type CheckUsernameAvailabilityResponse,
 } from './user.contract';
 
 // Alias exports for compatibility with existing test expectations

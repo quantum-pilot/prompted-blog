@@ -101,6 +101,25 @@ describe("UserStorage", () => {
       );
     });
 
+    it("should store username index when username provided", async () => {
+      const userId = crypto.randomUUID();
+      const user: UserAccount = {
+        id: userId,
+        email: "john@example.com",
+        username: "john-doe",
+        name: "John Doe",
+        createdAt: new Date().toISOString(),
+      };
+
+      await storage.storeUser(user, mockContext);
+
+      expect(kvMockImpl.put).toHaveBeenCalledWith(
+        "user:username:john-doe",
+        userId,
+        expect.objectContaining({ expirationTtl: expect.any(Number) })
+      );
+    });
+
     it("should encrypt user data", async () => {
       const userId = crypto.randomUUID();
       const user: UserAccount = {
@@ -172,6 +191,54 @@ describe("UserStorage", () => {
     });
   });
 
+  describe("retrieveUserByUsername", () => {
+    it("should retrieve user by username", async () => {
+      const user: UserAccount = {
+        id: crypto.randomUUID(),
+        email: "john@example.com",
+        username: "john-doe",
+        name: "John Doe",
+        createdAt: new Date().toISOString(),
+      };
+
+      await storage.storeUser(user, mockContext);
+      const retrieved = await storage.retrieveUserByUsername("john-doe", mockContext);
+
+      expect(retrieved).toEqual(user);
+    });
+
+    it("should return null for non-existent username", async () => {
+      const retrieved = await storage.retrieveUserByUsername("nonexistent", mockContext);
+      expect(retrieved).toBeNull();
+    });
+
+    it("should handle invalid username format gracefully", async () => {
+      const retrieved = await storage.retrieveUserByUsername("", mockContext);
+      expect(retrieved).toBeNull();
+    });
+  });
+
+  describe("checkUsernameAvailability", () => {
+    it("should return true for available username", async () => {
+      const available = await storage.checkUsernameAvailability("available-username", mockContext);
+      expect(available).toBe(true);
+    });
+
+    it("should return false for taken username", async () => {
+      const user: UserAccount = {
+        id: crypto.randomUUID(),
+        email: "john@example.com",
+        username: "taken-username",
+        name: "John Doe",
+        createdAt: new Date().toISOString(),
+      };
+
+      await storage.storeUser(user, mockContext);
+      const available = await storage.checkUsernameAvailability("taken-username", mockContext);
+      expect(available).toBe(false);
+    });
+  });
+
   describe("updateUser", () => {
     it("should update existing user data", async () => {
       const userId = crypto.randomUUID();
@@ -212,6 +279,69 @@ describe("UserStorage", () => {
       // New email should retrieve user
       const newEmailResult = await storage.retrieveUserByEmail("newemail@example.com", mockContext);
       expect(newEmailResult?.id).toBe(userId);
+    });
+
+    it("should update username index when username changes", async () => {
+      const userId = crypto.randomUUID();
+      const user: UserAccount = {
+        id: userId,
+        email: "john@example.com",
+        username: "old-username",
+        name: "John Doe",
+        createdAt: new Date().toISOString(),
+      };
+
+      await storage.storeUser(user, mockContext);
+
+      const updatedUser = { ...user, username: "new-username" };
+      await storage.updateUser(updatedUser, mockContext);
+
+      // Old username should not retrieve user
+      const oldUsernameResult = await storage.retrieveUserByUsername("old-username", mockContext);
+      expect(oldUsernameResult).toBeNull();
+
+      // New username should retrieve user
+      const newUsernameResult = await storage.retrieveUserByUsername("new-username", mockContext);
+      expect(newUsernameResult?.id).toBe(userId);
+    });
+
+    it("should handle adding username to user without one", async () => {
+      const userId = crypto.randomUUID();
+      const user: UserAccount = {
+        id: userId,
+        email: "john@example.com",
+        name: "John Doe",
+        createdAt: new Date().toISOString(),
+      };
+
+      await storage.storeUser(user, mockContext);
+
+      const updatedUser = { ...user, username: "new-username" };
+      await storage.updateUser(updatedUser, mockContext);
+
+      const result = await storage.retrieveUserByUsername("new-username", mockContext);
+      expect(result?.id).toBe(userId);
+    });
+
+    it("should handle removing username from user", async () => {
+      const userId = crypto.randomUUID();
+      const user: UserAccount = {
+        id: userId,
+        email: "john@example.com",
+        username: "to-remove",
+        name: "John Doe",
+        createdAt: new Date().toISOString(),
+      };
+
+      await storage.storeUser(user, mockContext);
+
+      const updatedUser = { ...user };
+      delete updatedUser.username;
+      await storage.updateUser(updatedUser, mockContext);
+
+      // Old username should not retrieve user
+      const result = await storage.retrieveUserByUsername("to-remove", mockContext);
+      expect(result).toBeNull();
     });
   });
 
@@ -300,6 +430,43 @@ describe("UserStorage", () => {
       // Verify only one user exists in storage
       const retrieved = await storage.retrieveUserByEmail(email, mockContext);
       expect(retrieved?.id).toBe(firstUser.id);
+    });
+
+    it("should handle concurrent username claims atomically", async () => {
+      const username = "concurrent-username";
+      const email1 = "user1@example.com";
+      const email2 = "user2@example.com";
+      
+      // Create two users with different emails but same username
+      const user1: UserAccount = {
+        id: crypto.randomUUID(),
+        email: email1,
+        username,
+        name: "User 1",
+        createdAt: new Date().toISOString(),
+      };
+      
+      const user2: UserAccount = {
+        id: crypto.randomUUID(),
+        email: email2,
+        username,
+        name: "User 2",
+        createdAt: new Date().toISOString(),
+      };
+      
+      // Try to create both users concurrently
+      const [result1, result2] = await Promise.all([
+        storage.createUserIfNotExists(user1, mockContext),
+        storage.createUserIfNotExists(user2, mockContext),
+      ]);
+      
+      // Both should succeed with user creation (different emails)
+      expect(result1.created || result2.created).toBe(true);
+      
+      // But only one should have the username
+      const userWithUsername = await storage.retrieveUserByUsername(username, mockContext);
+      expect(userWithUsername).toBeTruthy();
+      expect([user1.id, user2.id]).toContain(userWithUsername?.id);
     });
   });
 

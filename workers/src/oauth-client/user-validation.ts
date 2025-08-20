@@ -1,5 +1,19 @@
 // @agent: cloudflare-backend
 import { z } from "zod";
+import { UsernameBlocklist } from "./username-blocklist";
+
+// Username validation: 3-30 chars, lowercase alphanumeric and hyphens only
+// Cannot start/end with hyphen, no consecutive hyphens, and must not be blocked
+export const UsernameSchema = z
+  .string()
+  .min(3)
+  .max(30)
+  .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, {
+    message: 'Username must be lowercase alphanumeric with hyphens (not at start/end, no consecutive)',
+  })
+  .refine((username) => !UsernameBlocklist.isBlocked(username), {
+    message: 'This username is reserved or contains inappropriate terms',
+  });
 
 // Strict schema for allowed metadata fields
 export const AllowedMetadataSchema = z.object({
@@ -12,6 +26,7 @@ export const AllowedMetadataSchema = z.object({
 export const UserAccountSchema = z.object({
   id: z.string().uuid(),
   email: z.string().email().max(255),
+  username: UsernameSchema.optional(),
   name: z.string().max(1000).optional(),
   picture: z.string().url().max(1000).optional(),
   createdAt: z.string().datetime(),
@@ -41,13 +56,20 @@ export function validateUserAccount(data: unknown):
 export function sanitizeUserInput(input: {
   id?: string;
   email: string;
+  username?: string;
   name?: string;
   picture?: string;
   provider?: string;
 }): ValidatedUserAccount {
+  // Check username against blocklist before processing
+  if (input.username && UsernameBlocklist.isBlocked(input.username)) {
+    throw new Error(UsernameBlocklist.getBlockReason(input.username));
+  }
+  
   const user = {
     id: input.id || crypto.randomUUID(),
     email: input.email,
+    ...(input.username && { username: input.username }),
     ...(input.name && { name: input.name }),
     ...(input.picture && { picture: input.picture }),
     createdAt: new Date().toISOString(),

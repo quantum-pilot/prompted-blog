@@ -23,10 +23,26 @@ import { OAuthProviderSchema } from './oauth-base.contract';
 
 const UUIDSchema = z.string().uuid();
 
+// Username validation: 3-30 chars, lowercase alphanumeric and hyphens only
+// Cannot start/end with hyphen, no consecutive hyphens
+export const UsernameSchema = z
+  .string()
+  .min(3)
+  .max(30)
+  .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, {
+    message: 'Username must be lowercase alphanumeric with hyphens (not at start/end, no consecutive)',
+  })
+  .refine((username) => {
+    // Basic blocklist check - full validation happens server-side
+    const reserved = ['admin', 'root', 'system', 'api', 'auth', 'oauth'];
+    return !reserved.includes(username.toLowerCase());
+  }, { message: 'This username is reserved' });
+
 export const UserAccountSchema = z.object({
   id: UUIDSchema,
   email: z.string().email(),
   provider: OAuthProviderSchema,
+  username: UsernameSchema.optional(),
   createdAt: z.number().int().positive(),
   updatedAt: z.number().int().positive(),
 });
@@ -87,6 +103,55 @@ export const GetUserResponseSchema = z.discriminatedUnion('success', [
 ]);
 
 // ===========================
+// Update User Profile Endpoint
+// ===========================
+
+export const UpdateUserProfileRequestSchema = z.object({
+  id: UUIDSchema,
+  username: UsernameSchema,
+});
+
+export const UpdateUserProfileSuccessSchema = z.object({
+  success: z.literal(true),
+  user: UserAccountSchema,
+});
+
+export const UpdateUserProfileErrorSchema = z.object({
+  success: z.literal(false),
+  error: z.enum(['username_taken', 'username_invalid', 'profile_update_failed']),
+  error_description: z.string().min(1),
+});
+
+export const UpdateUserProfileResponseSchema = z.discriminatedUnion('success', [
+  UpdateUserProfileSuccessSchema,
+  UpdateUserProfileErrorSchema,
+]);
+
+// ===========================
+// Check Username Availability Endpoint
+// ===========================
+
+export const CheckUsernameAvailabilityRequestSchema = z.object({
+  username: UsernameSchema,
+});
+
+export const CheckUsernameAvailabilitySuccessSchema = z.object({
+  success: z.literal(true),
+  available: z.boolean(),
+});
+
+export const CheckUsernameAvailabilityErrorSchema = z.object({
+  success: z.literal(false),
+  error: z.enum(['username_invalid']),
+  error_description: z.string().min(1),
+});
+
+export const CheckUsernameAvailabilityResponseSchema = z.discriminatedUnion('success', [
+  CheckUsernameAvailabilitySuccessSchema,
+  CheckUsernameAvailabilityErrorSchema,
+]);
+
+// ===========================
 // Type Exports
 // ===========================
 
@@ -95,3 +160,7 @@ export type CreateUserRequest = z.infer<typeof CreateUserRequestSchema>;
 export type CreateUserResponse = z.infer<typeof CreateUserResponseSchema>;
 export type GetUserRequest = z.infer<typeof GetUserRequestSchema>;
 export type GetUserResponse = z.infer<typeof GetUserResponseSchema>;
+export type UpdateUserProfileRequest = z.infer<typeof UpdateUserProfileRequestSchema>;
+export type UpdateUserProfileResponse = z.infer<typeof UpdateUserProfileResponseSchema>;
+export type CheckUsernameAvailabilityRequest = z.infer<typeof CheckUsernameAvailabilityRequestSchema>;
+export type CheckUsernameAvailabilityResponse = z.infer<typeof CheckUsernameAvailabilityResponseSchema>;
