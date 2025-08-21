@@ -2,14 +2,12 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { AuthHandler } from "../components/auth-handler/index";
 import { ProfileClient } from "../api/profile-client";
 import { OAuthClient } from "../api/oauth-client";
-import { getSessionId } from "../api/oauth-session";
 import { checkAndShowUsernameSetup, cleanupUsernameModal } from "../username-setup-handler";
 import { setupOAuthHandler } from "../oauth-handler";
 
 // Mock dependencies
 vi.mock("../api/profile-client");
 vi.mock("../api/oauth-client");
-vi.mock("../api/oauth-session");
 
 // Mock username setup modal component
 class MockUsernameSetupModal extends HTMLElement {
@@ -81,8 +79,7 @@ describe("Authentication Integration Flow", () => {
 
   describe("OAuth Success → Username Setup → Admin Route", () => {
     it("should route to admin when user has existing username", async () => {
-      // Setup: User has existing username
-      vi.mocked(getSessionId).mockReturnValue("session-123");
+      // Setup: User is authenticated with existing username (cookies handled by backend)
       mockProfileClient.getProfile.mockResolvedValue({
         success: true,
         user: {
@@ -117,8 +114,7 @@ describe("Authentication Integration Flow", () => {
     });
 
     it("should show modal then route to admin when username is set", async () => {
-      // Setup: User has no username initially
-      vi.mocked(getSessionId).mockReturnValue("session-456");
+      // Setup: User is authenticated but has no username initially
       mockProfileClient.getProfile.mockResolvedValue({
         success: true,
         user: {
@@ -229,8 +225,7 @@ describe("Authentication Integration Flow", () => {
         configurable: true
       });
 
-      // Setup user with username
-      vi.mocked(getSessionId).mockReturnValue("prod-session");
+      // Setup user is authenticated with username
       mockProfileClient.getProfile.mockResolvedValue({
         success: true,
         user: {
@@ -260,8 +255,7 @@ describe("Authentication Integration Flow", () => {
 
   describe("Error Handling", () => {
     it("should not route when profile fetch fails", async () => {
-      // Setup: Profile fetch fails
-      vi.mocked(getSessionId).mockReturnValue("error-session");
+      // Setup: Profile fetch returns error
       mockProfileClient.getProfile.mockResolvedValue({
         success: false,
         error: "internal_error",
@@ -292,8 +286,12 @@ describe("Authentication Integration Flow", () => {
     });
 
     it("should not route when user is not authenticated", async () => {
-      // Setup: No session
-      vi.mocked(getSessionId).mockReturnValue(null);
+      // Setup: Not authenticated (profile returns unauthorized)
+      mockProfileClient.getProfile.mockResolvedValue({
+        success: false,
+        error: "unauthorized",
+        error_description: "No active session"
+      });
 
       // Create auth-handler
       const authHandler = new AuthHandler();
@@ -302,14 +300,13 @@ describe("Authentication Integration Flow", () => {
       // Wait for init check
       await new Promise(resolve => setTimeout(resolve, 0));
 
-      // Verify: No API calls made and no routing
-      expect(mockProfileClient.getProfile).not.toHaveBeenCalled();
+      // Verify: Profile check was made but no routing
+      expect(mockProfileClient.getProfile).toHaveBeenCalled();
       expect(mockAssign).not.toHaveBeenCalled();
     });
 
     it("should handle unauthorized gracefully", async () => {
       // Setup: Unauthorized response
-      vi.mocked(getSessionId).mockReturnValue("invalid-session");
       mockProfileClient.getProfile.mockResolvedValue({
         success: false,
         error: "unauthorized",
@@ -363,12 +360,29 @@ describe("Authentication Integration Flow", () => {
         }
       });
 
+      // Mock authenticated user with username for session check
+      mockOAuthClient.validateSession.mockResolvedValue({
+        provider: "google",
+        email: "eventuser@example.com",
+        name: "Event User",
+        expiresAt: Date.now() + 3600000
+      });
+      
+      mockProfileClient.getProfile.mockResolvedValue({
+        success: true,
+        user: {
+          id: "event-user",
+          email: "eventuser@example.com",
+          provider: "google",
+          username: "eventuser",
+          createdAt: "2024-01-01",
+          updatedAt: "2024-01-01"
+        }
+      });
+      
       // Create auth-handler
       const authHandler = new AuthHandler();
       document.body.appendChild(authHandler);
-      
-      // Mock existing session check
-      vi.mocked(getSessionId).mockReturnValue("event-session");
       
       setupOAuthHandler();
 

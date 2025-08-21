@@ -1,114 +1,48 @@
 // @agent: cloudflare-backend
-/**
- * OAuth routes using Hono and Zod contracts
- */
-
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
-import {
-  OAuthAuthorizeRequestSchema,
-  OAuthCallbackRequestSchema,
-  OAuthAuthorizeErrorSchema,
-  OAuthCallbackErrorSchema,
-  type OAuthAuthorizeResponse,
-  type OAuthCallbackResponse,
-} from '../../../shared/contracts';
-import type { z } from 'zod';
-
-type OAuthAuthorizeError = z.infer<typeof OAuthAuthorizeErrorSchema>;
-type OAuthCallbackError = z.infer<typeof OAuthCallbackErrorSchema>;
+import { OAuthAuthorizeRequestSchema, OAuthCallbackRequestSchema } from '../../../shared/contracts';
 import { RequestContext } from '../utils/request-context';
 import { handleInitiateOAuth } from '../oauth-client/auth-handler';
 import { handleCallbackWithParams } from '../oauth-client/callback-handler';
 import type { Env } from '../oauth-client/types';
 import { HttpStatus } from '../../../shared';
+import { setSessionCookie } from '../utils/cookie-manager';
+import type { OAuthAuthorizeResponse, OAuthCallbackResponse } from '../../../shared/contracts';
+import { processOAuthSuccess } from '../oauth-client/user-integration';
+
+const authError = { error: 'invalid_request', error_description: 'Authentication failed' };
 
 const app = new Hono<{ Bindings: Env }>()
   .get(
     '/oauth/authorize',
-    zValidator('query', OAuthAuthorizeRequestSchema, (result, c) => {
-      if (!result.success) {
-        // Always return 'Authentication failed' for security
-        return c.json(
-          {
-            error: 'invalid_request',
-            error_description: 'Authentication failed',
-          },
-          HttpStatus.BAD_REQUEST
-        );
-      }
-    }),
+    zValidator('query', OAuthAuthorizeRequestSchema, (r, c) => 
+      !r.success ? c.json(authError, HttpStatus.BAD_REQUEST) : undefined),
     async (c) => {
       const query = c.req.valid('query');
-      
-      // Create a new request with validated query params for the handlers
       const url = new URL(c.req.url);
-      url.search = ''; // Clear existing params
-      Object.entries(query).forEach(([key, value]) => {
-        url.searchParams.set(key, value as string);
-      });
-      
-      const newRequest = new Request(url.toString(), {
-        method: c.req.method,
-        headers: c.req.raw.headers,
-      });
-      
-      const context = await RequestContext.create(newRequest, c.env);
-      const response = await handleInitiateOAuth(c.env, context);
-      const data = await response.json() as OAuthAuthorizeResponse;
-      
-      return c.json(data, response.status as any);
+      url.search = '';
+      Object.entries(query).forEach(([k, v]) => url.searchParams.set(k, v as string));
+      const req = new Request(url.toString(), { method: c.req.method, headers: c.req.raw.headers });
+      const ctx = await RequestContext.create(req, c.env);
+      const res = await handleInitiateOAuth(c.env, ctx);
+      const resData = await res.json() as OAuthAuthorizeResponse;
+      return c.json(resData, res.status as any);
     }
   )
   .post(
     '/oauth/callback',
     async (c, next) => {
-      // Check if content-type is JSON
-      const contentType = c.req.header('content-type');
-      if (!contentType?.includes('application/json')) {
-        return c.json(
-          {
-            error: 'invalid_request',
-            error_description: 'Authentication failed',
-          },
-          HttpStatus.BAD_REQUEST
-        );
-      }
-      
-      // Try to parse JSON body
-      try {
-        await c.req.json();
-      } catch (e) {
-        return c.json(
-          {
-            error: 'invalid_request',
-            error_description: 'Authentication failed',
-          },
-          HttpStatus.BAD_REQUEST
-        );
-      }
-      
+      const ct = c.req.header('content-type');
+      if (!ct?.includes('application/json')) return c.json(authError, HttpStatus.BAD_REQUEST);
+      try { await c.req.json(); } catch { return c.json(authError, HttpStatus.BAD_REQUEST); }
       return next();
     },
-    zValidator('json', OAuthCallbackRequestSchema, (result, c) => {
-      if (!result.success) {
-        // Always return 'Authentication failed' for security
-        return c.json(
-          {
-            error: 'invalid_request',
-            error_description: 'Authentication failed',
-          },
-          HttpStatus.BAD_REQUEST
-        );
-      }
-    }),
+    zValidator('json', OAuthCallbackRequestSchema, (r, c) => 
+      !r.success ? c.json(authError, HttpStatus.BAD_REQUEST) : undefined),
     async (c) => {
       const body = c.req.valid('json');
-      
-      // Create context from original request
-      const context = await RequestContext.create(c.req.raw, c.env);
-      
-      // Pass the validated and parsed params directly
+      const ctx = await RequestContext.create(c.req.raw, c.env);
       const params = {
         code: body.code || null,
         state: body.state || null,
@@ -116,10 +50,29 @@ const app = new Hono<{ Bindings: Env }>()
         provider: body.provider || null,
       };
       
-      const response = await handleCallbackWithParams(params, c.env, context);
-      const data = await response.json() as OAuthCallbackResponse;
+      const res = await handleCallbackWithParams(params, c.env, ctx);
+      const data = await res.json() as OAuthCallbackResponse;
       
-      return c.json(data, response.status as any);
+      // Handle successful OAuth with session cookie
+      if (res.status === HttpStatus.OK && data.success && (data as any).session) {
+        const processed = await processOAuthSuccess((data as any).session, c.env, ctx);
+        const pData = await processed.json() as OAuthCallbackResponse;
+        
+        if ((pData as any).sessionId) {
+          // Set HttpOnly session cookie
+          const cookieHdrs = setSessionCookie((pData as any).sessionId, c.env as any);
+          const hdrs = new Headers(processed.headers);
+          const cookie = cookieHdrs.get('Set-Cookie');
+          if (cookie) hdrs.set('Set-Cookie', cookie);
+          
+          // Keep sessionId in response for backward compatibility (deprecated)
+          // The sessionId field will be removed in a future version
+          return new Response(JSON.stringify(pData), { status: processed.status, headers: hdrs });
+        }
+        return c.json(pData, processed.status as any);
+      }
+      
+      return c.json(data, res.status as any);
     }
   );
 

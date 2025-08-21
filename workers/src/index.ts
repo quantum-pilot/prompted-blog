@@ -12,7 +12,7 @@ import { HttpStatus } from '../../shared';
 import { corsMiddleware } from './middleware/cors.middleware';
 import { securityMiddleware } from './middleware/security.middleware';
 import { rateLimitMiddleware } from './middleware/rate-limit.middleware';
-import { authMiddleware, optionalAuthMiddleware } from './middleware/auth.middleware';
+import { authMiddleware } from './middleware/auth.middleware';
 
 // Import route modules
 import oauthRoutes from './routes/oauth.route';
@@ -54,8 +54,7 @@ app.use('/session/*', authMiddleware());
 app.use('/oauth/userinfo', authMiddleware());
 app.use('/api/profile', authMiddleware());
 
-// Optional auth for certain routes
-app.use('/oauth/logout', optionalAuthMiddleware());
+// No optional auth needed for logout - it's a public route
 
 // Mount routes
 app.route('/', oauthRoutes);

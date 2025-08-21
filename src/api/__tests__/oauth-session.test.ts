@@ -1,70 +1,96 @@
 /**
  * Tests for OAuth session management functions
+ * Now focused on cookie-based sessions (no in-memory session ID storage)
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
-  storeSessionId,
-  getSessionId,
-  clearSessionId,
-  clearOAuthData
+  validateSessionWithWorker
 } from '../oauth-session';
+import { createHonoClient } from '../hono-client';
+
+// Mock the hono client
+vi.mock('../hono-client', () => ({
+  createHonoClient: vi.fn()
+}));
 
 describe('OAuth Session Management', () => {
+  let mockHonoClient: any;
+
   beforeEach(() => {
-    // Clear session before each test
-    clearOAuthData();
+    // Reset mocks
+    vi.clearAllMocks();
+    
+    // Setup mock Hono client
+    mockHonoClient = {
+      oauth: {
+        session: {
+          $get: vi.fn()
+        }
+      }
+    };
+    
+    vi.mocked(createHonoClient).mockReturnValue(mockHonoClient);
   });
 
-  describe('storeSessionId', () => {
-    it('should store session ID in memory', () => {
-      const sessionId = 'test-session-123';
-      storeSessionId(sessionId);
+  describe('validateSessionWithWorker', () => {
+    it('should validate session using cookies (no sessionId parameter needed)', async () => {
+      const workerUrl = 'http://localhost:8787';
+      const mockSession = {
+        provider: 'google',
+        email: 'test@example.com',
+        name: 'Test User',
+        picture: 'https://example.com/pic.jpg',
+        expiresAt: Date.now() + 3600000
+      };
       
-      expect(getSessionId()).toBe(sessionId);
-    });
-
-    it('should overwrite previous session ID', () => {
-      storeSessionId('session-1');
-      storeSessionId('session-2');
+      mockHonoClient.oauth.session.$get.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          provider: mockSession.provider,
+          email: mockSession.email,
+          name: mockSession.name,
+          picture: mockSession.picture,
+          expiresAt: mockSession.expiresAt
+        })
+      });
       
-      expect(getSessionId()).toBe('session-2');
-    });
-  });
-
-  describe('getSessionId', () => {
-    it('should return null when no session ID is stored', () => {
-      expect(getSessionId()).toBeNull();
-    });
-
-    it('should return the stored session ID', () => {
-      const sessionId = 'test-session-456';
-      storeSessionId(sessionId);
+      const result = await validateSessionWithWorker(workerUrl);
       
-      expect(getSessionId()).toBe(sessionId);
+      expect(result).toEqual(mockSession);
+      expect(mockHonoClient.oauth.session.$get).toHaveBeenCalledWith(
+        {},
+        {}
+      );
+      expect(createHonoClient).toHaveBeenCalledWith(workerUrl);
     });
-  });
 
-  describe('clearSessionId', () => {
-    it('should clear the stored session ID', () => {
-      storeSessionId('test-session');
-      clearSessionId();
+    it('should return null when session is invalid', async () => {
+      const workerUrl = 'http://localhost:8787';
       
-      expect(getSessionId()).toBeNull();
-    });
-
-    it('should handle clearing when no session exists', () => {
-      clearSessionId();
-      expect(getSessionId()).toBeNull();
-    });
-  });
-
-  describe('clearOAuthData', () => {
-    it('should clear the session ID', () => {
-      storeSessionId('test-session');
-      clearOAuthData();
+      mockHonoClient.oauth.session.$get.mockResolvedValue({
+        ok: false
+      });
       
-      expect(getSessionId()).toBeNull();
+      const result = await validateSessionWithWorker(workerUrl);
+      
+      expect(result).toBeNull();
+    });
+
+    it('should return null when response contains error', async () => {
+      const workerUrl = 'http://localhost:8787';
+      
+      mockHonoClient.oauth.session.$get.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          error: 'session_expired',
+          error_description: 'Session has expired'
+        })
+      });
+      
+      const result = await validateSessionWithWorker(workerUrl);
+      
+      expect(result).toBeNull();
     });
   });
 });

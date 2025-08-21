@@ -1,18 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ProfileClient } from '../profile-client';
-import * as oauthSession from '../oauth-session';
 import { createHonoClient } from '../hono-client';
 
-vi.mock('../oauth-session');
 vi.mock('../hono-client', () => ({
   createHonoClient: vi.fn(),
-  getAuthHeaders: vi.fn((id: string) => ({ Authorization: `Bearer ${id}`, 'Content-Type': 'application/json' })),
 }));
 
 describe('ProfileClient', () => {
   let client: ProfileClient;
   let mockApi: any;
-  const SESSION = 'test-session';
   const mockUser = { id: 'u1', email: 'test@test.com', provider: 'google' as const, username: 'test', createdAt: 1, updatedAt: 1 };
 
   beforeEach(() => {
@@ -23,20 +19,22 @@ describe('ProfileClient', () => {
       },
     };
     (createHonoClient as any).mockReturnValue(mockApi);
-    vi.mocked(oauthSession.getSessionId).mockReturnValue(SESSION);
     client = new ProfileClient('http://localhost:8787');
   });
 
   describe('getProfile', () => {
-    it('gets profile with auth', async () => {
+    it('gets profile using cookies', async () => {
       mockApi.api.profile.$get.mockResolvedValue({ ok: true, json: async () => ({ success: true, user: mockUser }) });
       const result = await client.getProfile();
       expect(result).toEqual({ success: true, user: mockUser });
-      expect(mockApi.api.profile.$get).toHaveBeenCalledWith({}, { headers: expect.any(Object) });
+      expect(mockApi.api.profile.$get).toHaveBeenCalledWith({}, {});
     });
 
-    it('handles no session', async () => {
-      vi.mocked(oauthSession.getSessionId).mockReturnValue(null);
+    it('handles unauthorized response', async () => {
+      mockApi.api.profile.$get.mockResolvedValue({ 
+        ok: true, 
+        json: async () => ({ success: false, error: 'unauthorized', error_description: 'No valid session' })
+      });
       const result = await client.getProfile();
       expect(result.success).toBe(false);
       expect(result.error).toBe('unauthorized');
@@ -51,15 +49,18 @@ describe('ProfileClient', () => {
   });
 
   describe('updateProfile', () => {
-    it('updates username', async () => {
+    it('updates username using cookies', async () => {
       mockApi.api.profile.$put.mockResolvedValue({ ok: true, json: async () => ({ success: true, user: { ...mockUser, username: 'new' } }) });
       const result = await client.updateProfile('new');
       expect(result.success).toBe(true);
-      expect(mockApi.api.profile.$put).toHaveBeenCalledWith({ json: { username: 'new' } }, expect.any(Object));
+      expect(mockApi.api.profile.$put).toHaveBeenCalledWith({ json: { username: 'new' } }, {});
     });
 
-    it('handles no session', async () => {
-      vi.mocked(oauthSession.getSessionId).mockReturnValue(null);
+    it('handles unauthorized response', async () => {
+      mockApi.api.profile.$put.mockResolvedValue({ 
+        ok: true, 
+        json: async () => ({ success: false, error: 'profile_update_failed', error_description: 'Unauthorized' })
+      });
       const result = await client.updateProfile('new');
       expect(result.success).toBe(false);
       expect(result.error).toBe('profile_update_failed');

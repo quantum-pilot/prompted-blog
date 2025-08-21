@@ -1,9 +1,8 @@
 /**
  * Profile API Client - Handles user profile operations with the backend
- * Requires authentication via session ID for protected endpoints
+ * Uses cookie-based authentication for protected endpoints
  */
-import { createHonoClient, getAuthHeaders } from './hono-client';
-import { getSessionId } from './oauth-session';
+import { createHonoClient } from './hono-client';
 import type {
   GetUserResponse,
   UpdateUserProfileRequest,
@@ -21,11 +20,8 @@ export class ProfileClient {
   /** Get the authenticated user's profile */
   async getProfile(): Promise<GetUserResponse> {
     try {
-      const sessionId = getSessionId();
-      if (!sessionId) {
-        return { success: false, error: 'unauthorized', error_description: 'No active session' };
-      }
-      const response = await this.honoClient.api.profile.$get({}, { headers: getAuthHeaders(sessionId) });
+      // Cookies are sent automatically with credentials: 'include'
+      const response = await this.honoClient.api.profile.$get({}, {});
       return await response.json() as GetUserResponse;
     } catch (error) {
       return {
@@ -39,14 +35,11 @@ export class ProfileClient {
   /** Update the authenticated user's profile username */
   async updateProfile(username: string): Promise<UpdateUserProfileResponse> {
     try {
-      const sessionId = getSessionId();
-      if (!sessionId) {
-        return { success: false, error: 'profile_update_failed', error_description: 'No active session' };
-      }
       const requestBody: Pick<UpdateUserProfileRequest, 'username'> = { username };
+      // Cookies are sent automatically with credentials: 'include'
       const response = await this.honoClient.api.profile.$put(
         { json: requestBody },
-        { headers: getAuthHeaders(sessionId) }
+        {}
       );
       return await response.json() as UpdateUserProfileResponse;
     } catch (error) {

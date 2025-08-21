@@ -1,10 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { AuthHandler } from '../index';
 import { ProfileClient } from '../../../api/profile-client';
-import { getSessionId } from '../../../api/oauth-session';
 
 vi.mock('../../../api/profile-client');
-vi.mock('../../../api/oauth-session');
 
 describe('AuthHandler', () => {
   let authHandler: AuthHandler;
@@ -24,30 +22,36 @@ describe('AuthHandler', () => {
 
   afterEach(() => authHandler?.parentNode?.removeChild(authHandler));
 
-  const setupMocks = (sessionId: string | null, hasUsername = false) => {
-    vi.mocked(getSessionId).mockReturnValue(sessionId);
-    const mockGetProfile = vi.fn().mockResolvedValue({
-      success: true,
-      user: {
-        id: 'u1', email: 'test@example.com', provider: 'google',
-        ...(hasUsername && { username: 'testuser' }),
-        createdAt: '2024-01-01', updatedAt: '2024-01-01'
-      }
-    });
+  const setupMocks = (authenticated = true, hasUsername = false) => {
+    const mockGetProfile = vi.fn().mockResolvedValue(
+      authenticated
+        ? {
+            success: true,
+            user: {
+              id: 'u1', email: 'test@example.com', provider: 'google',
+              ...(hasUsername && { username: 'testuser' }),
+              createdAt: '2024-01-01', updatedAt: '2024-01-01'
+            }
+          }
+        : {
+            success: false,
+            error: 'unauthorized',
+            error_description: 'No active session'
+          }
+    );
     vi.mocked(ProfileClient).mockImplementation(() => ({ getProfile: mockGetProfile } as any));
     return mockGetProfile;
   };
 
   it('should check authentication on init', async () => {
-    const mockGetProfile = setupMocks('session-id');
+    const mockGetProfile = setupMocks(true);
     authHandler = new AuthHandler();
     document.body.appendChild(authHandler);
-    expect(getSessionId).toHaveBeenCalled();
     expect(mockGetProfile).toHaveBeenCalled();
   });
 
   it('should route to admin if authenticated with username', async () => {
-    setupMocks('session-id', true);
+    setupMocks(true, true);
     authHandler = new AuthHandler();
     document.body.appendChild(authHandler);
     await new Promise(r => setTimeout(r, 0));
@@ -55,7 +59,7 @@ describe('AuthHandler', () => {
   });
 
   it('should not route without username', async () => {
-    setupMocks('session-id', false);
+    setupMocks(true, false);
     authHandler = new AuthHandler();
     document.body.appendChild(authHandler);
     await new Promise(r => setTimeout(r, 0));
@@ -63,7 +67,7 @@ describe('AuthHandler', () => {
   });
 
   it('should not route if not authenticated', async () => {
-    setupMocks(null);
+    setupMocks(false);
     authHandler = new AuthHandler();
     document.body.appendChild(authHandler);
     await new Promise(r => setTimeout(r, 0));

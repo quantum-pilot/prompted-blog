@@ -14,6 +14,8 @@ import { RequestContext } from '../utils/request-context';
 import { handleSessionGet } from '../oauth-client/session-handler';
 import type { Env } from '../oauth-client/types';
 import { HttpStatus } from '../../../shared';
+import { getSessionFromCookie, clearSessionCookie } from '../utils/cookie-manager';
+import { SessionManager } from '../oauth-client/session-manager';
 
 // Schema for Authorization header
 const AuthHeaderSchema = z.object({
@@ -52,7 +54,40 @@ const app = new Hono<{ Bindings: Env }>()
       
       return c.json(data, response.status as any);
     }
-  );
+  )
+  .post('/oauth/logout', async (c) => {
+    try {
+      // Create request context
+      const context = await RequestContext.create(c.req.raw, c.env);
+      
+      // Extract session from cookie if present
+      const sessionId = getSessionFromCookie(c.req.raw);
+      
+      // If session exists, delete it from KV
+      if (sessionId) {
+        const sessionManager = new SessionManager(c.env);
+        await sessionManager.deleteSession(sessionId, context);
+      }
+      
+      // Clear the session cookie
+      const clearCookieHeaders = clearSessionCookie();
+      
+      // Return success response (always success to prevent information leakage)
+      return c.json(
+        { success: true, message: 'Logged out successfully' },
+        HttpStatus.OK,
+        { 'Set-Cookie': clearCookieHeaders.get('Set-Cookie') || '' }
+      );
+    } catch (error) {
+      // Always return success to prevent information leakage
+      const clearCookieHeaders = clearSessionCookie();
+      return c.json(
+        { success: true, message: 'Logged out successfully' },
+        HttpStatus.OK,
+        { 'Set-Cookie': clearCookieHeaders.get('Set-Cookie') || '' }
+      );
+    }
+  });
 
 export type SessionRouteType = typeof app;
 export default app;

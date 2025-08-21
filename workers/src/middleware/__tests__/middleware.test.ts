@@ -8,7 +8,7 @@ import { Hono } from 'hono';
 import { corsMiddleware } from '../cors.middleware';
 import { securityMiddleware } from '../security.middleware';
 import { rateLimitMiddleware } from '../rate-limit.middleware';
-import { authMiddleware, optionalAuthMiddleware } from '../auth.middleware';
+// Auth middleware is tested separately in auth.middleware.test.ts and auth-integration.test.ts
 import type { Env } from '../../oauth-client/types';
 
 describe('Hono Middleware Tests', () => {
@@ -97,25 +97,7 @@ describe('Hono Middleware Tests', () => {
     });
   });
 
-  describe('Auth Middleware', () => {
-    it('should reject requests without Bearer token', async () => {
-      app.use('*', authMiddleware());
-      app.get('/test', (c) => c.text('OK'));
-
-      const response = await app.request('/test', {}, mockEnv);
-
-      expect(response.status).toBe(401);
-      const data = await response.json() as any;
-      expect(data.error).toBe('unauthorized');
-    });
-
-    it('should pass through with optional auth when no token', async () => {
-      app.use('*', optionalAuthMiddleware());
-      app.get('/test', (c) => c.text('OK'));
-
-      const response = await app.request('/test', {}, mockEnv);
-
-      expect(response.status).toBe(200);
-    });
-  });
+  // Auth middleware tests are in separate test files:
+  // - auth.middleware.test.ts for unit tests
+  // - auth-integration.test.ts for integration tests
 });

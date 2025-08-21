@@ -2,6 +2,7 @@
  * OAuth Client for frontend authentication
  * Handles OAuth flow with Google (and future providers) via Cloudflare Worker
  * Uses popup-only mode for security - no sessionStorage or redirect mode
+ * Sessions are managed via HttpOnly cookies set by the backend
  */
 
 import * as oauth from "oauth4webapi";
@@ -16,12 +17,7 @@ import {
   getAuthorizationUrl
 } from "@app/shared";
 import { createHonoClient } from "./hono-client";
-import {
-  getSessionId,
-  validateSessionWithWorker,
-  clearOAuthData,
-  storeSessionId,
-} from "./oauth-session";
+import { validateSessionWithWorker } from "./oauth-session";
 import { OAuthPopupHandler } from "./oauth-popup-handler";
 
 export class OAuthClient {
@@ -149,13 +145,11 @@ export class OAuthClient {
     const result = (await response.json()) as OAuthCallbackResponse;
 
     // Use discriminated union to handle response
-    if (result.success) {
-      // TypeScript knows this is OAuthCallbackSuccess
-      storeSessionId(result.sessionId);
-    } else {
+    if (!result.success) {
       // TypeScript knows this is OAuthCallbackError
       throw new Error(`OAuth error: ${result.error}: ${result.error_description}`);
     }
+    // Success - cookies are set by the backend automatically
   }
 
   /**
@@ -209,18 +203,39 @@ export class OAuthClient {
 
   /**
    * Validate current session with worker
+   * Uses cookies for authentication (no sessionId needed)
    */
   async validateSession(): Promise<OAuthSession | null> {
-    const sessionId = getSessionId();
-
-    if (!sessionId) {
-      return null;
-    }
-
-    return validateSessionWithWorker(this.config.workerUrl, sessionId);
+    return validateSessionWithWorker(this.config.workerUrl);
   }
 
-  logout(): void {
-    clearOAuthData();
+  /**
+   * Logout - calls backend to clear session and redirects to home
+   * Always succeeds from user perspective (errors are logged but not thrown)
+   */
+  async logout(): Promise<void> {
+    try {
+      // Call the logout endpoint to clear server-side session
+      // The backend will clear the HttpOnly cookie
+      const response = await this.honoClient.oauth.logout.$post({});
+      
+      // Log non-ok responses for debugging
+      if (!response.ok) {
+        console.error('Logout API returned non-ok status:', response.status);
+      }
+    } catch (error) {
+      // Log error for debugging but don't throw
+      // User wants to logout regardless of server errors
+      console.error('Logout error:', error);
+    }
+    
+    // Clear any remaining in-memory OAuth state
+    this.clearMemory();
+    
+    // Dispatch a custom event for other components to react to logout
+    window.dispatchEvent(new CustomEvent('oauth:logout'));
+    
+    // Always redirect to home page after logout
+    window.location.href = '/';
   }
 }

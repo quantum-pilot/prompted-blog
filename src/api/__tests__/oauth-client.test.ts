@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { OAuthClient } from '../oauth-client';
 import { OAuthProvider, OAuthConfig } from '@app/shared';
-import { getSessionId, clearOAuthData } from '../oauth-session';
 
 // Mock oauth4webapi
 vi.mock('oauth4webapi', () => ({
@@ -30,11 +29,7 @@ const mockHonoClient = {
 };
 
 vi.mock('../hono-client', () => ({
-  createHonoClient: vi.fn(() => mockHonoClient),
-  getAuthHeaders: vi.fn((sessionId: string) => ({
-    'Authorization': `Bearer ${sessionId}`,
-    'Content-Type': 'application/json',
-  }))
+  createHonoClient: vi.fn(() => mockHonoClient)
 }));
 
 // Mock the popup handler for successful popup flow
@@ -61,9 +56,6 @@ describe('OAuthClient', () => {
   };
 
   beforeEach(() => {
-    // Clear in-memory session
-    clearOAuthData();
-    
     // Mock fetch
     global.fetch = vi.fn();
     
@@ -78,7 +70,7 @@ describe('OAuthClient', () => {
     mockHonoClient.oauth.callback.$post.mockClear();
     mockHonoClient.oauth.callback.$post.mockResolvedValue({
       ok: true,
-      json: async () => ({ success: true, sessionId: 'test-session-id' })
+      json: async () => ({ success: true })
     });
     
     mockHonoClient.oauth.session.$get.mockClear();
@@ -118,8 +110,7 @@ describe('OAuthClient', () => {
       mockHonoClient.oauth.callback.$post.mockResolvedValueOnce({
         ok: true,
         json: async () => ({
-          success: true,
-          sessionId: 'session-123'
+          success: true
         })
       });
       
@@ -153,9 +144,6 @@ describe('OAuthClient', () => {
       
       // Check cleanup was called
       expect(mockPopupHandler.cleanup).toHaveBeenCalled();
-      
-      // Check session ID was stored
-      expect(getSessionId()).toBe('session-123');
     });
 
 
@@ -237,9 +225,7 @@ describe('OAuthClient', () => {
     it('should exchange code for session token when PKCE params provided', async () => {
       // Mock successful worker response
       const mockResponse = {
-        success: true,
-        sessionId: 'session-123',
-        expiresAt: Date.now() + 3600000
+        success: true
       };
       
       mockHonoClient.oauth.callback.$post.mockResolvedValueOnce({
@@ -264,9 +250,6 @@ describe('OAuthClient', () => {
         code_verifier: 'test-verifier',
         provider: 'google'
       });
-      
-      // Check session ID was stored
-      expect(getSessionId()).toBe('session-123');
     });
 
     it('should require PKCE parameters', async () => {
@@ -293,11 +276,7 @@ describe('OAuthClient', () => {
   });
 
   describe('validateSession', () => {
-    it('should validate session with worker', async () => {
-      // Store a session ID
-      const { storeSessionId } = await import('../oauth-session');
-      storeSessionId('session-123');
-      
+    it('should validate session with worker using cookies', async () => {
       const session = await client.validateSession();
       
       // The session returned should be OAuthSession type
@@ -310,16 +289,7 @@ describe('OAuthClient', () => {
       });
     });
 
-    it('should return null if no session ID stored', async () => {
-      const session = await client.validateSession();
-      expect(session).toBeNull();
-    });
-
     it('should handle expired sessions', async () => {
-      // Store a session ID
-      const { storeSessionId } = await import('../oauth-session');
-      storeSessionId('session-123');
-      
       // Mock expired session response
       mockHonoClient.oauth.session.$get.mockResolvedValueOnce({
         ok: false,
@@ -330,19 +300,160 @@ describe('OAuthClient', () => {
       const session = await client.validateSession();
       
       expect(session).toBeNull();
-      expect(getSessionId()).toBeNull();
     });
   });
 
   describe('logout', () => {
-    it('should clear session data', async () => {
-      // Store a session ID
-      const { storeSessionId } = await import('../oauth-session');
-      storeSessionId('session-123');
+    it('should call logout endpoint and handle success', async () => {
+      // Mock successful logout response
+      mockHonoClient.oauth.logout = {
+        $post: vi.fn().mockResolvedValue({
+          ok: true,
+          json: async () => ({ success: true, message: 'Logged out successfully' })
+        })
+      };
       
-      client.logout();
+      // Mock window.location for redirect testing
+      const originalLocation = window.location;
+      delete (window as any).location;
+      window.location = { ...originalLocation, href: '/' } as Location;
       
-      expect(getSessionId()).toBeNull();
+      await client.logout();
+      
+      // Verify logout endpoint was called with credentials
+      expect(mockHonoClient.oauth.logout.$post).toHaveBeenCalledWith({});
+      
+      // Verify redirect to home page
+      expect(window.location.href).toBe('/');
+      
+      // Restore window.location
+      window.location = originalLocation;
+    });
+    
+    it('should still redirect even if logout API call fails', async () => {
+      // Mock failed logout response
+      mockHonoClient.oauth.logout = {
+        $post: vi.fn().mockRejectedValue(new Error('Network error'))
+      };
+      
+      // Mock console.error to verify error logging
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      
+      // Mock window.location for redirect testing
+      const originalLocation = window.location;
+      delete (window as any).location;
+      window.location = { ...originalLocation, href: '/' } as Location;
+      
+      await client.logout();
+      
+      // Verify logout was attempted
+      expect(mockHonoClient.oauth.logout.$post).toHaveBeenCalled();
+      
+      // Verify error was logged but not thrown
+      expect(consoleSpy).toHaveBeenCalledWith('Logout error:', expect.any(Error));
+      
+      // Verify user is still redirected (logout should always succeed from user perspective)
+      expect(window.location.href).toBe('/');
+      
+      // Restore
+      consoleSpy.mockRestore();
+      window.location = originalLocation;
+    });
+    
+    it('should clear in-memory OAuth state on logout', async () => {
+      // Mock successful logout
+      mockHonoClient.oauth.logout = {
+        $post: vi.fn().mockResolvedValue({
+          ok: true,
+          json: async () => ({ success: true })
+        })
+      };
+      
+      // Mock window.location
+      const originalLocation = window.location;
+      delete (window as any).location;
+      window.location = { ...originalLocation, href: '/' } as Location;
+      
+      // Start an auth flow to populate in-memory state (then interrupt it)
+      mockPopupHandler.openPopup.mockImplementation(() => {
+        // Simulate user closing popup immediately
+        throw new Error('User closed popup');
+      });
+      
+      try {
+        await client.startAuthFlow();
+      } catch {
+        // Expected - popup was closed
+      }
+      
+      // Now logout should clear any remaining state
+      await client.logout();
+      
+      // Verify cleanup happens (state clearing is internal, but we can verify the API call)
+      expect(mockHonoClient.oauth.logout.$post).toHaveBeenCalled();
+      
+      // Restore
+      window.location = originalLocation;
+    });
+    
+    it('should dispatch a custom logout event for other components to listen to', async () => {
+      // Mock successful logout
+      mockHonoClient.oauth.logout = {
+        $post: vi.fn().mockResolvedValue({
+          ok: true,
+          json: async () => ({ success: true })
+        })
+      };
+      
+      // Mock window.location
+      const originalLocation = window.location;
+      delete (window as any).location;
+      window.location = { ...originalLocation, href: '/' } as Location;
+      
+      // Set up event listener
+      const logoutHandler = vi.fn();
+      window.addEventListener('oauth:logout', logoutHandler);
+      
+      await client.logout();
+      
+      // Verify custom event was dispatched
+      expect(logoutHandler).toHaveBeenCalled();
+      
+      // Clean up
+      window.removeEventListener('oauth:logout', logoutHandler);
+      window.location = originalLocation;
+    });
+    
+    it('should handle logout response without throwing even with non-ok status', async () => {
+      // Mock 500 error response
+      mockHonoClient.oauth.logout = {
+        $post: vi.fn().mockResolvedValue({
+          ok: false,
+          status: 500,
+          json: async () => ({ error: 'Internal server error' })
+        })
+      };
+      
+      // Mock console.error
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      
+      // Mock window.location
+      const originalLocation = window.location;
+      delete (window as any).location;
+      window.location = { ...originalLocation, href: '/' } as Location;
+      
+      // Should not throw
+      await expect(client.logout()).resolves.not.toThrow();
+      
+      // Verify error was logged
+      expect(consoleSpy).toHaveBeenCalledWith('Logout API returned non-ok status:', 500);
+      
+      // Verify redirect still happens
+      expect(window.location.href).toBe('/');
+      
+      // Restore
+      consoleSpy.mockRestore();
+      window.location = originalLocation;
     });
   });
 
@@ -385,8 +496,7 @@ describe('OAuthClient', () => {
       mockHonoClient.oauth.callback.$post.mockResolvedValueOnce({
         ok: true,
         json: async () => ({
-          success: true,
-          sessionId: 'session-123'
+          success: true
         })
       });
       
@@ -413,8 +523,7 @@ describe('OAuthClient', () => {
       mockHonoClient.oauth.callback.$post.mockResolvedValueOnce({
         ok: true,
         json: async () => ({
-          success: true,
-          sessionId: 'session-123'
+          success: true
         })
       });
       
@@ -429,11 +538,9 @@ describe('OAuthClient', () => {
       expect(sessionStorage.getItem('oauth_state')).toBeNull();
       expect(sessionStorage.getItem('oauth_provider')).toBeNull();
       
-      // Verify session ID is also NOT in sessionStorage (memory only)
+      // Verify session ID is also NOT in sessionStorage
+      // Sessions are now handled via HttpOnly cookies
       expect(sessionStorage.getItem('oauth_session_id')).toBeNull();
-      
-      // But session ID should be in memory
-      expect(getSessionId()).toBe('session-123');
     });
 
     it('should clear memory after successful authentication', async () => {
@@ -450,19 +557,14 @@ describe('OAuthClient', () => {
       }));
       
       // Mock successful token exchange
-      (global.fetch as any).mockResolvedValueOnce({
+      mockHonoClient.oauth.callback.$post.mockResolvedValueOnce({
         ok: true,
         json: async () => ({
-          success: true,
-          sessionId: 'session-123',
-          expiresAt: Date.now() + 3600000
+          success: true
         })
       });
       
       await client.startAuthFlow();
-      
-      // Verify session ID is stored in memory
-      expect(getSessionId()).toBe('test-session-id');
       
       // Verify cleanup was called
       expect(mockPopupHandler.cleanup).toHaveBeenCalled();

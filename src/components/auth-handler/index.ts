@@ -1,7 +1,6 @@
 import { BaseComponent } from "../../utils/base-component.js";
 import { ErrorHandler } from "../../utils/error-handler.js";
 import { ProfileClient } from "../../api/profile-client.js";
-import { getSessionId } from "../../api/oauth-session.js";
 import type { GetUserResponse } from "@app/shared/contracts";
 
 export interface UsernameReadyEvent extends CustomEvent {
@@ -32,16 +31,13 @@ export class AuthHandler extends BaseComponent {
 
   private async checkAuthenticationStatus(): Promise<void> {
     try {
-      const sessionId = getSessionId();
-      if (!sessionId) {
-        return;
-      }
-
+      // Try to get profile - cookies will be sent automatically
       const response: GetUserResponse = await this.profileClient.getProfile();
       
       if (response.success && response.user.username) {
         this.routeToAdmin(response.user.username);
       }
+      // If not authenticated or no username, do nothing
     } catch (error) {
       this.handleError(error, "checkAuthenticationStatus");
     }

@@ -4,7 +4,7 @@ import type { AppType } from '../../workers/src/index';
 export const createHonoClient = (workerUrl: string) => {
   return hc<AppType>(workerUrl, {
     init: {
-      credentials: 'include',
+      credentials: 'include', // This ensures cookies are sent with every request
       headers: {
         'Content-Type': 'application/json',
       },
@@ -23,12 +23,5 @@ const getDefaultWorkerUrl = (): string => {
 };
 
 export const honoClient = createHonoClient(getDefaultWorkerUrl());
-
-export const getAuthHeaders = (sessionId: string): HeadersInit => {
-  return {
-    'Authorization': `Bearer ${sessionId}`,
-    'Content-Type': 'application/json',
-  };
-};
 
 export default honoClient;

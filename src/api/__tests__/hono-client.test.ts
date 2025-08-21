@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createHonoClient, getAuthHeaders } from '../hono-client';
+import { createHonoClient } from '../hono-client';
 import type { InferRequestType, InferResponseType } from 'hono/client';
 import type { AppType } from '../../../workers/src/index';
 
@@ -42,15 +42,7 @@ describe('Hono Client', () => {
     });
   });
 
-  describe('getAuthHeaders', () => {
-    it('should create correct authorization headers', () => {
-      const sessionId = 'test-session-123';
-      const headers = getAuthHeaders(sessionId);
-      
-      expect(headers['Authorization']).toBe(`Bearer ${sessionId}`);
-      expect(headers['Content-Type']).toBe('application/json');
-    });
-  });
+  // Note: getAuthHeaders has been removed - cookies are now sent automatically
 
   describe('Type Safety', () => {
     it('should have correct type inference for OAuth callback', () => {
@@ -85,11 +77,11 @@ describe('Hono Client', () => {
       type SessionRequest = InferRequestType<AppType['oauth']['session']['$get']>;
       type SessionResponse = InferResponseType<AppType['oauth']['session']['$get']>;
       
-      // Session endpoint doesn't take query params, only headers
-      const headers = getAuthHeaders('test-session');
+      // Session endpoint now uses cookies automatically
+      // No need to manually pass authorization headers
+      const request: SessionRequest = {};
       
-      expect(headers).toBeDefined();
-      expect(headers['Authorization']).toContain('Bearer');
+      expect(request).toBeDefined();
     });
   });
 });
