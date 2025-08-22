@@ -94,8 +94,8 @@ export async function handleInitiateOAuth(
     provider,
   });
 
-  // Get provider configuration
-  const providerConfig = getProvider(provider, env);
+  // Get provider configuration with dynamic redirect URI based on request host
+  const providerConfig = getProvider(provider, env, context);
 
   // Build authorization URL using shared utility
   const authParams = {

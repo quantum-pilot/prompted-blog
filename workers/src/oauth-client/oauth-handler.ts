@@ -86,7 +86,7 @@ export async function handleOAuthCallbackWithParams(
     );
   }
 
-  const provider = getProvider(challengeInfo.provider, env);
+  const provider = getProvider(challengeInfo.provider, env, context);
   try {
     const as = await oauth
       .discoveryRequest(provider.authorizationServer)

@@ -64,13 +64,24 @@ export class AuthHandler extends BaseComponent {
   private routeToAdmin(username: string): void {
     ErrorHandler.getInstance().wrap(() => {
       const hostname = window.location.hostname;
+      const port = window.location.port;
       
-      if (hostname === "localhost") {
+      // Check if we're in local development
+      if (hostname === "localhost" || hostname === "127.0.0.1" || hostname.startsWith("192.168.") || hostname.endsWith(".local")) {
         // Local development - route to /admin without subdomain
         window.location.assign("/admin");
       } else {
-        // Production - route to username subdomain
-        const adminUrl = `https://${username}.promptedblog.com/admin/`;
+        // Production/staging - route to username subdomain using current domain
+        // Extract the root domain (remove any existing subdomain)
+        const domainParts = hostname.split('.');
+        const rootDomain = domainParts.length > 2 
+          ? domainParts.slice(-2).join('.') // Get last two parts (e.g., promptedblog.com)
+          : hostname; // Use as-is if it's already root domain
+        
+        // Build URL with username subdomain
+        const protocol = window.location.protocol;
+        const portSuffix = port && port !== '80' && port !== '443' ? `:${port}` : '';
+        const adminUrl = `${protocol}//${username}.${rootDomain}${portSuffix}/admin/`;
         window.location.assign(adminUrl);
       }
     }, {
