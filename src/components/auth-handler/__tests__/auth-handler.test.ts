@@ -15,7 +15,12 @@ describe('AuthHandler', () => {
     vi.clearAllMocks();
     mockAssign = vi.fn();
     Object.defineProperty(window, 'location', {
-      value: { hostname: 'localhost', assign: mockAssign },
+      value: { 
+        hostname: 'localhost', 
+        protocol: 'http:',
+        port: '',
+        assign: mockAssign 
+      },
       writable: true
     });
   });
@@ -85,7 +90,15 @@ describe('AuthHandler', () => {
   });
 
   it('should route to subdomain in production', () => {
-    window.location.hostname = 'promptedblog.com';
+    Object.defineProperty(window, 'location', {
+      value: { 
+        hostname: 'promptedblog.com',
+        protocol: 'https:',
+        port: '',
+        assign: mockAssign 
+      },
+      writable: true
+    });
     authHandler = new AuthHandler();
     document.body.appendChild(authHandler);
     window.dispatchEvent(new CustomEvent('username-ready', {

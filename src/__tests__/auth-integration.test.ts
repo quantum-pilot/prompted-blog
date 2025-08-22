@@ -40,7 +40,9 @@ describe("Authentication Integration Flow", () => {
     mockAssign = vi.fn();
     Object.defineProperty(window, "location", {
       value: { 
-        hostname: "localhost", 
+        hostname: "localhost",
+        protocol: "http:",
+        port: "3000", 
         origin: "http://localhost:3000",
         pathname: "/",
         assign: mockAssign 
@@ -217,6 +219,8 @@ describe("Authentication Integration Flow", () => {
       Object.defineProperty(window, "location", {
         value: {
           hostname: "promptedblog.com",
+          protocol: "https:",
+          port: "",
           origin: "https://promptedblog.com",
           pathname: "/",
           assign: mockAssign
