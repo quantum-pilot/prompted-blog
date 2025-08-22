@@ -19,7 +19,11 @@ I started off with ChatGPT (through Canvas), then switched to Claude Code along 
 
 As of now, the only features it has implemented:
 
-- OAuth + PKCE flow using Google and Cloudflare Workers + KV
+- **OAuth Authentication**: Server-driven PKCE flow with Google OAuth
+  - Secure popup-based authentication (no redirects)
+  - PKCE challenges stored server-side in Cloudflare KV
+  - HttpOnly session cookies for enhanced security
+  - Comprehensive error handling with retry logic
 
 ### Problems with current Agentic Coding
 
