@@ -1,10 +1,21 @@
 /* Admin Profile Component Styles */
 
+admin-profile {
+  display: block;
+}
+
 /* Container for the profile form */
 [data-profile-container] {
   max-width: 600px;
   padding: 24px;
   margin: 0 auto;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  [data-profile-container] {
+    padding: 16px;
+  }
 }
 
 /* Heading */

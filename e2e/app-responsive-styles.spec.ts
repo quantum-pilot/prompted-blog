@@ -3,7 +3,7 @@ import { test, expect } from "@playwright/test";
 
 test.describe("App-level responsive styles", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("http://localhost:8000");
+    await page.goto("/");
   });
 
   test("should be responsive on mobile viewports", async ({ page }) => {

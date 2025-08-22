@@ -36,6 +36,7 @@ describe("OAuth Client Worker", () => {
       SESSION_ENCRYPTION_KEY: "test-key-1234567890123456789012",
       SESSION_ENCRYPTION_SALT: "test-salt-for-oauth-client-test",
       ALLOWED_ORIGINS: "http://localhost:3000,http://localhost:5173",
+      GOOGLE_CLIENT_SECRET: "test-google-secret",
       OAUTH_SESSIONS: {
         put: async () => {},
   get: async () => null,

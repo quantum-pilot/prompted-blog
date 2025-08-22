@@ -3,11 +3,25 @@ import { AuthHandler } from "../components/auth-handler/index";
 import { ProfileClient } from "../api/profile-client";
 import { OAuthClient } from "../api/oauth-client";
 import { checkAndShowUsernameSetup, cleanupUsernameModal } from "../username-setup-handler";
-import { setupOAuthHandler } from "../oauth-handler";
 
 // Mock dependencies
 vi.mock("../api/profile-client");
 vi.mock("../api/oauth-client");
+vi.mock("../auth-state", () => {
+  const mockSubscribe = vi.fn();
+  const mockGetState = vi.fn();
+  const mockCheckAuthStatus = vi.fn();
+  
+  return {
+    authState: {
+      subscribe: mockSubscribe,
+      getState: mockGetState,
+      checkAuthStatus: mockCheckAuthStatus,
+      clearAuth: vi.fn(),
+      refreshAuth: vi.fn()
+    }
+  };
+});
 
 // Mock username setup modal component
 class MockUsernameSetupModal extends HTMLElement {
@@ -157,10 +171,12 @@ describe("Authentication Integration Flow", () => {
     });
 
     it("should handle OAuth callback → username check → admin route flow", async () => {
-      // Setup OAuth callback scenario
+      // Setup OAuth callback scenario  
       Object.defineProperty(window, "location", {
         value: {
           hostname: "localhost",
+          protocol: "http:",
+          port: "3000",
           origin: "http://localhost:3000",
           pathname: "/oauth/callback",
           href: "http://localhost:3000/oauth/callback?code=auth_code",
@@ -168,15 +184,6 @@ describe("Authentication Integration Flow", () => {
         },
         writable: true,
         configurable: true
-      });
-
-      // Mock successful OAuth callback
-      mockOAuthClient.handleCallback.mockResolvedValue({ success: true });
-      mockOAuthClient.validateSession.mockResolvedValue({
-        userId: "user-789",
-        email: "oauthuser@example.com",
-        name: "OAuth User",
-        expiresAt: Date.now() + 3600000
       });
 
       // Mock user has username
@@ -196,22 +203,30 @@ describe("Authentication Integration Flow", () => {
       const authHandler = new AuthHandler();
       document.body.appendChild(authHandler);
       
-      // Mock replaceState to prevent navigation
-      const replaceStateSpy = vi.spyOn(window.history, "replaceState").mockImplementation(() => {});
-      
-      setupOAuthHandler();
+      // Simulate OAuth success event which triggers username check
+      const oauthSuccessEvent = new CustomEvent("oauth-success", {
+        detail: { 
+          user: {
+            userId: "user-789",
+            email: "oauthuser@example.com",
+            name: "OAuth User",
+            expiresAt: Date.now() + 3600000
+          }
+        },
+        bubbles: true
+      });
+      document.dispatchEvent(oauthSuccessEvent);
 
-      // Wait for OAuth callback processing
-      await vi.waitFor(() => {
-        expect(mockOAuthClient.handleCallback).toHaveBeenCalled();
-      }, { timeout: 1000 });
+      // Trigger username check which should lead to routing
+      await checkAndShowUsernameSetup();
+
+      // Wait for async operations
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       // Wait for username check and routing
       await vi.waitFor(() => {
         expect(mockAssign).toHaveBeenCalledWith("/admin");
       }, { timeout: 1000 });
-
-      replaceStateSpy.mockRestore();
     });
 
     it("should route to subdomain in production environment", async () => {
@@ -290,11 +305,22 @@ describe("Authentication Integration Flow", () => {
     });
 
     it("should not route when user is not authenticated", async () => {
-      // Setup: Not authenticated (profile returns unauthorized)
-      mockProfileClient.getProfile.mockResolvedValue({
-        success: false,
-        error: "unauthorized",
-        error_description: "No active session"
+      // Setup: Not authenticated
+      const { authState } = await import("../auth-state");
+      vi.mocked(authState.getState).mockReturnValue({
+        isAuthenticated: false,
+        isChecking: false,
+        session: null,
+        user: null
+      });
+      vi.mocked(authState.subscribe).mockImplementation((callback) => {
+        callback({
+          isAuthenticated: false,
+          isChecking: false,
+          session: null,
+          user: null
+        });
+        return vi.fn();
       });
 
       // Create auth-handler
@@ -304,8 +330,8 @@ describe("Authentication Integration Flow", () => {
       // Wait for init check
       await new Promise(resolve => setTimeout(resolve, 0));
 
-      // Verify: Profile check was made but no routing
-      expect(mockProfileClient.getProfile).toHaveBeenCalled();
+      // Verify: Auth check was made but no routing
+      expect(authState.checkAuthStatus).toHaveBeenCalled();
       expect(mockAssign).not.toHaveBeenCalled();
     });
 
@@ -340,38 +366,15 @@ describe("Authentication Integration Flow", () => {
     it("should properly chain events: oauth-success → username-ready → route", async () => {
       const eventOrder: string[] = [];
       
-      // Track event order
-      document.addEventListener("oauth-success", () => eventOrder.push("oauth-success"));
+      // Track event order (avoid duplicates by checking if already tracked)
+      document.addEventListener("oauth-success", () => {
+        if (!eventOrder.includes("oauth-success")) {
+          eventOrder.push("oauth-success");
+        }
+      });
       document.addEventListener("username-ready", () => eventOrder.push("username-ready"));
 
       // Setup user with username
-      mockOAuthClient.validateSession.mockResolvedValue({
-        userId: "event-user",
-        email: "eventuser@example.com",
-        name: "Event User",
-        expiresAt: Date.now() + 3600000
-      });
-      
-      mockProfileClient.getProfile.mockResolvedValue({
-        success: true,
-        user: {
-          id: "event-user",
-          email: "eventuser@example.com",
-          provider: "google",
-          username: "eventuser",
-          createdAt: "2024-01-01",
-          updatedAt: "2024-01-01"
-        }
-      });
-
-      // Mock authenticated user with username for session check
-      mockOAuthClient.validateSession.mockResolvedValue({
-        provider: "google",
-        email: "eventuser@example.com",
-        name: "Event User",
-        expiresAt: Date.now() + 3600000
-      });
-      
       mockProfileClient.getProfile.mockResolvedValue({
         success: true,
         user: {
@@ -388,18 +391,30 @@ describe("Authentication Integration Flow", () => {
       const authHandler = new AuthHandler();
       document.body.appendChild(authHandler);
       
-      setupOAuthHandler();
+      // Simulate OAuth success event
+      const oauthSuccessEvent = new CustomEvent("oauth-success", {
+        detail: {
+          user: {
+            userId: "event-user",
+            email: "eventuser@example.com",
+            name: "Event User",
+            expiresAt: Date.now() + 3600000
+          }
+        },
+        bubbles: true
+      });
+      
+      // Dispatch OAuth success event
+      document.dispatchEvent(oauthSuccessEvent);
 
-      // Wait for existing session check
-      await vi.waitFor(() => {
-        expect(mockOAuthClient.validateSession).toHaveBeenCalled();
-      }, { timeout: 1000 });
+      // Trigger username check which should dispatch username-ready
+      await checkAndShowUsernameSetup();
 
       // Wait for all events to be dispatched
       await new Promise(resolve => setTimeout(resolve, 100));
 
       // Verify event order
-      expect(eventOrder).toContain("username-ready");
+      expect(eventOrder).toEqual(["oauth-success", "username-ready"]);
       
       // Verify final routing
       expect(mockAssign).toHaveBeenCalledWith("/admin");

@@ -118,6 +118,11 @@ export class OAuthClient {
    * Determine if an error is retryable
    */
   private isRetryableError(error: any): boolean {
+    // Check if it's an OAuthError with retryable flag
+    if (error instanceof OAuthError && error.retryable) {
+      return true;
+    }
+    
     // Network errors are retryable
     if (error?.name === 'TypeError' || error?.message?.includes('fetch')) {
       return true;
@@ -539,7 +544,7 @@ export class OAuthClient {
   private async exchangeCodeForTokens(
     code: string,
     state: string
-  ): Promise<void> {
+  ): Promise<OAuthCallbackResult> {
     if (!this.codeVerifier) {
       this.log('error', 'Missing code verifier for token exchange');
       throw new OAuthError(
@@ -631,6 +636,12 @@ export class OAuthClient {
       
       this.log('info', 'Token exchange completed successfully');
       // Success - cookies are set by the backend automatically
+      // Return the user data from the response
+      return { 
+        success: true, 
+        sessionId: result.sessionId,
+        user: result.user 
+      };
       
     } catch (error) {
       if (error instanceof OAuthError) {
@@ -749,9 +760,9 @@ export class OAuthClient {
 
       try {
         this.log('info', 'Exchanging callback authorization code');
-        await this.exchangeCodeForTokens(code, state);
+        const result = await this.exchangeCodeForTokens(code, state);
         this.log('info', 'OAuth callback handling completed successfully');
-        return { success: true };
+        return result;
       } finally {
         this.clearMemory();
       }

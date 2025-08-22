@@ -101,6 +101,7 @@ export async function handleOAuthCallbackWithParams(
         clientId: provider.clientId,
         redirectUri: provider.redirectUri,
         tokenEndpoint: as.token_endpoint!,
+        clientSecret: challengeInfo.provider === 'google' ? env.GOOGLE_CLIENT_SECRET : undefined,
       },
       as,
       context
@@ -136,10 +137,25 @@ export async function handleOAuthCallbackWithParams(
       env
     );
   } catch (error) {
+    let errorCode = "server_error";
+    let errorMessage = "Authentication failed";
+    let httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+    
+    // Extract OAuth-specific error details from ResponseBodyError
+    if (error && typeof error === 'object' && 'cause' in error && error.cause) {
+      const cause = error.cause as any;
+      if (cause.error) {
+        errorCode = cause.error;
+        errorMessage = cause.error_description || "OAuth authentication failed";
+        // Map OAuth errors to appropriate HTTP status codes
+        httpStatus = HttpStatus.BAD_REQUEST; // Most OAuth errors are client errors
+      }
+    }
+    
     return context.errorResponse(
-      HttpStatus.INTERNAL_SERVER_ERROR,
-      "server_error",
-      "Authentication failed",
+      httpStatus,
+      errorCode,
+      errorMessage,
       env,
       AuditEventType.AUTH_LOGIN_FAILURE,
       { reason: "OAuth flow failed", error: error instanceof Error ? error.message : "Unknown error" }

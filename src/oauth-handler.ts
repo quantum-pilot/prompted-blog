@@ -6,6 +6,7 @@
 import { OAuthClient } from "./api/oauth-client";
 import { OAuthProvider, OAUTH_PROVIDERS } from "@app/shared";
 import { checkAndShowUsernameSetup } from "./username-setup-handler";
+import { authState } from "./auth-state";
 
 // Create OAuth client instance
 // Worker is on same origin, so we can use relative paths
@@ -27,13 +28,14 @@ async function handleOAuthCallback(): Promise<void> {
       throw new Error(result.error || "OAuth callback failed");
     }
 
-    // Validate the session to get user info
-    const session = await oauthClient.validateSession();
-
-    if (session) {
-      // Dispatch success event with user data
+    // The OAuth callback already returns user data, use it directly
+    if (result.user) {
+      // Refresh auth state with new session
+      await authState.refreshAuth();
+      
+      // Dispatch success event with user data from callback
       const successEvent = new CustomEvent("oauth-success", {
-        detail: { user: session },
+        detail: { user: result.user },
         bubbles: true,
       });
       document.dispatchEvent(successEvent);
@@ -41,10 +43,33 @@ async function handleOAuthCallback(): Promise<void> {
       // Redirect to home page
       window.history.replaceState({}, document.title, "/");
       
-      // Check and setup username if needed
-      await checkAndShowUsernameSetup();
+      // Check and setup username if needed (auth state will have the data)
+      const state = authState.getState();
+      await checkAndShowUsernameSetup(state.user || result.user);
     } else {
-      throw new Error("Failed to validate session after OAuth callback");
+      // Fallback: Try to validate session if user data wasn't returned
+      const session = await oauthClient.validateSession();
+      
+      if (session) {
+        // Refresh auth state with new session
+        await authState.refreshAuth();
+        
+        // Dispatch success event with user data
+        const successEvent = new CustomEvent("oauth-success", {
+          detail: { user: session },
+          bubbles: true,
+        });
+        document.dispatchEvent(successEvent);
+
+        // Redirect to home page
+        window.history.replaceState({}, document.title, "/");
+        
+        // Check and setup username if needed (auth state will have the data)
+        const state = authState.getState();
+        await checkAndShowUsernameSetup(state.user || session);
+      } else {
+        throw new Error("Failed to validate session after OAuth callback");
+      }
     }
   } catch (error) {
     console.error("OAuth callback error:", error);
@@ -68,18 +93,20 @@ async function handleOAuthCallback(): Promise<void> {
 
 async function checkExistingSession(): Promise<void> {
   try {
-    const session = await oauthClient.validateSession();
+    // Use centralized auth state check
+    await authState.checkAuthStatus();
+    const state = authState.getState();
 
-    if (session) {
+    if (state.isAuthenticated && state.session) {
       // User is already authenticated
       const successEvent = new CustomEvent("oauth-restored", {
-        detail: { user: session },
+        detail: { user: state.session },
         bubbles: true,
       });
       document.dispatchEvent(successEvent);
       
-      // Check and setup username if needed
-      await checkAndShowUsernameSetup();
+      // Check and setup username if needed (use cached user data)
+      await checkAndShowUsernameSetup(state.user || state.session);
     }
   } catch (error) {
     console.error("Failed to check existing session:", error);

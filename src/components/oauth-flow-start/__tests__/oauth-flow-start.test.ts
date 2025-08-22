@@ -1,100 +1,223 @@
-import { describe, it, expect, beforeEach, afterEach, vi, Mock } from "vitest";
-import { OAuthFlowStart } from "../index";
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { OAuthFlowStart } from '../index';
 import { OAuthClient } from "../../../api/oauth-client";
-import { ProfileClient } from "../../../api/profile-client";
 
-const TAG = "oauth-flow-start";
+// Mock dependencies
 vi.mock("../../../api/oauth-client");
-vi.mock("../../../api/profile-client");
+vi.mock('../../../auth-state', () => {
+  const mockSubscribe = vi.fn();
+  const mockGetState = vi.fn();
+  const mockCheckAuthStatus = vi.fn();
+  const mockClearAuth = vi.fn();
+  const mockRefreshAuth = vi.fn();
+  
+  return {
+    authState: {
+      subscribe: mockSubscribe,
+      getState: mockGetState,
+      checkAuthStatus: mockCheckAuthStatus,
+      clearAuth: mockClearAuth,
+      refreshAuth: mockRefreshAuth
+    }
+  };
+});
 
-describe("OAuthFlowStart", () => {
-  let element: OAuthFlowStart;
-  let mockOAuthClient: { logout: Mock };
-  let mockProfileClient: { getProfile: Mock };
+import { authState } from '../../../auth-state';
+
+describe('OAuthFlowStart', () => {
+  let component: OAuthFlowStart;
 
   beforeEach(() => {
-    mockOAuthClient = { logout: vi.fn().mockResolvedValue(undefined) };
-    mockProfileClient = { getProfile: vi.fn().mockResolvedValue({ success: false }) };
-    (OAuthClient as any).mockImplementation(() => mockOAuthClient);
-    (ProfileClient as any).mockImplementation(() => mockProfileClient);
-    if (!customElements.get(TAG)) customElements.define(TAG, OAuthFlowStart);
-    element = document.createElement(TAG) as OAuthFlowStart;
+    vi.clearAllMocks();
+    
+    // Register component if not already registered
+    if (!customElements.get('oauth-flow-start')) {
+      customElements.define('oauth-flow-start', OAuthFlowStart);
+    }
+
+    // Mock OAuthClient
+    const mockStartAuthFlow = vi.fn().mockResolvedValue(undefined);
+    const mockLogout = vi.fn().mockImplementation(async () => {
+      // Simulate the real logout behavior - dispatch oauth:logout event
+      window.dispatchEvent(new CustomEvent('oauth:logout'));
+    });
+    vi.mocked(OAuthClient).mockImplementation(() => ({
+      startAuthFlow: mockStartAuthFlow,
+      logout: mockLogout,
+      validateSession: vi.fn(),
+      handleCallback: vi.fn()
+    } as any));
   });
 
   afterEach(() => {
-    if (element.parentNode) document.body.removeChild(element);
-    vi.clearAllMocks();
+    if (component && component.parentNode) {
+      component.parentNode.removeChild(component);
+    }
   });
 
-  it("should extend BaseComponent", () => {
-    document.body.appendChild(element);
-    expect(element).toBeInstanceOf(HTMLElement);
-  });
+  const setupAuthMocks = (authenticated = false) => {
+    const mockState = {
+      isAuthenticated: authenticated,
+      isChecking: false,
+      session: authenticated ? { 
+        email: 'test@example.com', 
+        provider: 'google' as const 
+      } : null,
+      user: authenticated ? {
+        id: 'u1',
+        email: 'test@example.com',
+        provider: 'google' as const,
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+      } : null
+    };
 
-  it("should check authentication status on initialization", async () => {
-    document.body.appendChild(element);
-    await vi.waitFor(() => expect(mockProfileClient.getProfile).toHaveBeenCalled());
-  });
-
-  it("should show login button when not authenticated", async () => {
-    document.body.appendChild(element);
-    await vi.waitFor(() => expect(element.querySelector("button")?.textContent).toContain("Sign in with Google"));
-  });
-
-  it("should show logout button when authenticated", async () => {
-    mockProfileClient.getProfile.mockResolvedValue({ 
-      success: true, user: { id: "123", email: "test@example.com" }
+    vi.mocked(authState.getState).mockReturnValue(mockState);
+    vi.mocked(authState.checkAuthStatus).mockResolvedValue(undefined);
+    
+    // Setup subscribe to call callback immediately and return unsubscribe
+    vi.mocked(authState.subscribe).mockImplementation((callback) => {
+      callback(mockState);
+      return vi.fn(); // Return unsubscribe function
     });
-    const authEl = document.createElement(TAG) as OAuthFlowStart;
-    document.body.appendChild(authEl);
-    await vi.waitFor(() => expect(authEl.querySelector("button")?.textContent).toContain("Sign out"));
-    document.body.removeChild(authEl);
+    
+    return mockState;
+  };
+
+  it('should create and render sign-in button when not authenticated', () => {
+    setupAuthMocks(false);
+    
+    component = new OAuthFlowStart();
+    document.body.appendChild(component);
+
+    const button = component.querySelector('.oauth-button');
+    expect(button).toBeTruthy();
+    expect(button?.textContent).toBe('Sign in with Google');
+    expect(button?.classList.contains('oauth-button--google')).toBe(true);
   });
 
-  it("should emit oauth-start event on login click", () => {
-    document.body.appendChild(element);
-    const spy = vi.fn();
-    element.addEventListener("oauth-start", spy);
-    element.querySelector("button")?.click();
-    expect(spy).toHaveBeenCalledWith(
-      expect.objectContaining({ type: "oauth-start", detail: { provider: "google" } })
+  it('should create and render sign-out button when authenticated', () => {
+    setupAuthMocks(true);
+    
+    component = new OAuthFlowStart();
+    document.body.appendChild(component);
+
+    const button = component.querySelector('.oauth-button');
+    expect(button).toBeTruthy();
+    expect(button?.textContent).toBe('Sign out');
+    expect(button?.classList.contains('oauth-button--logout')).toBe(true);
+  });
+
+  it('should start OAuth flow when sign-in button is clicked', async () => {
+    setupAuthMocks(false);
+    
+    component = new OAuthFlowStart();
+    document.body.appendChild(component);
+
+    const button = component.querySelector('.oauth-button') as HTMLButtonElement;
+    const oauthStartListener = vi.fn();
+    document.addEventListener('oauth-start', oauthStartListener);
+
+    button.click();
+    
+    await new Promise(resolve => setTimeout(resolve, 0));
+    
+    expect(oauthStartListener).toHaveBeenCalledWith(
+      expect.objectContaining({
+        detail: { provider: 'google' }
+      })
     );
   });
 
-  it("should call logout when logout button clicked", async () => {
-    mockProfileClient.getProfile.mockResolvedValue({ success: true, user: { id: "1" } });
-    const authEl = document.createElement(TAG) as OAuthFlowStart;
-    document.body.appendChild(authEl);
-    await vi.waitFor(() => expect(authEl.querySelector("button")?.textContent).toContain("Sign out"));
-    authEl.querySelector("button")?.click();
-    await vi.waitFor(() => expect(mockOAuthClient.logout).toHaveBeenCalled());
-    document.body.removeChild(authEl);
+  it('should handle logout when sign-out button is clicked', async () => {
+    setupAuthMocks(true);
+    
+    component = new OAuthFlowStart();
+    document.body.appendChild(component);
+
+    const button = component.querySelector('.oauth-button--logout') as HTMLButtonElement;
+    
+    button.click();
+    
+    await new Promise(resolve => setTimeout(resolve, 0));
+    
+    const oauthClient = vi.mocked(OAuthClient).mock.results[0]?.value;
+    expect(oauthClient?.logout).toHaveBeenCalled();
+    expect(authState.clearAuth).toHaveBeenCalled();
   });
 
-  it("should disable button during logout", async () => {
-    mockProfileClient.getProfile.mockResolvedValue({ success: true, user: { id: "1" } });
-    mockOAuthClient.logout.mockImplementation(() => new Promise(r => setTimeout(r, 50)));
-    const authEl = document.createElement(TAG) as OAuthFlowStart;
-    document.body.appendChild(authEl);
-    await vi.waitFor(() => expect(authEl.querySelector("button")?.textContent).toContain("Sign out"));
-    authEl.querySelector("button")?.click();
-    await vi.waitFor(() => expect(authEl.querySelector("button")?.disabled).toBe(true));
-    await vi.waitFor(() => expect(authEl.querySelector("button")?.disabled).toBe(false), { timeout: 100 });
-    document.body.removeChild(authEl);
+  it('should check auth status on init', () => {
+    setupAuthMocks(false);
+    
+    component = new OAuthFlowStart();
+    document.body.appendChild(component);
+    
+    expect(authState.checkAuthStatus).toHaveBeenCalled();
   });
 
-  it("should update UI on oauth:logout event", async () => {
-    mockProfileClient.getProfile.mockResolvedValue({ success: true, user: { id: "1" } });
-    const authEl = document.createElement(TAG) as OAuthFlowStart;
-    document.body.appendChild(authEl);
-    await vi.waitFor(() => expect(authEl.querySelector("button")?.textContent).toContain("Sign out"));
-    window.dispatchEvent(new CustomEvent("oauth:logout"));
-    await vi.waitFor(() => expect(authEl.querySelector("button")?.textContent).toContain("Sign in"));
-    document.body.removeChild(authEl);
+  it('should re-render when auth state changes', () => {
+    let stateCallback: ((state: any) => void) | null = null;
+    
+    vi.mocked(authState.subscribe).mockImplementation((callback) => {
+      stateCallback = callback;
+      // Call with initial state
+      callback({
+        isAuthenticated: false,
+        isChecking: false,
+        session: null,
+        user: null
+      });
+      return vi.fn();
+    });
+    
+    vi.mocked(authState.getState).mockReturnValue({
+      isAuthenticated: false,
+      isChecking: false,
+      session: null,
+      user: null
+    });
+    
+    component = new OAuthFlowStart();
+    document.body.appendChild(component);
+    
+    // Initially shows sign-in button
+    let button = component.querySelector('.oauth-button');
+    expect(button?.textContent).toBe('Sign in with Google');
+    
+    // Simulate auth state change
+    if (stateCallback) {
+      stateCallback({
+        isAuthenticated: true,
+        isChecking: false,
+        session: { email: 'test@example.com', provider: 'google' },
+        user: { email: 'test@example.com', provider: 'google' }
+      });
+    }
+    
+    // Should now show sign-out button
+    button = component.querySelector('.oauth-button');
+    expect(button?.textContent).toBe('Sign out');
   });
 
-  it("should clean up event listeners on disconnect", () => {
-    expect(element.disconnectedCallback).toBeDefined();
-    element.disconnectedCallback();
+  it('should unsubscribe from auth state on disconnect', () => {
+    const unsubscribe = vi.fn();
+    vi.mocked(authState.subscribe).mockReturnValue(unsubscribe);
+    
+    component = new OAuthFlowStart();
+    document.body.appendChild(component);
+    component.remove();
+    
+    expect(unsubscribe).toHaveBeenCalled();
+  });
+
+  it('should refresh auth state on successful OAuth', () => {
+    setupAuthMocks(false);
+    
+    component = new OAuthFlowStart();
+    document.body.appendChild(component);
+    
+    document.dispatchEvent(new CustomEvent('oauth-success'));
+    
+    expect(authState.refreshAuth).toHaveBeenCalled();
   });
 });

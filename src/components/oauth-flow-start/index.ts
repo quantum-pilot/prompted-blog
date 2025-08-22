@@ -1,7 +1,7 @@
 import { BaseComponent } from "../../utils/base-component.js";
 import { OAuthProvider } from "@app/shared";
 import { OAuthClient } from "../../api/oauth-client.js";
-import { ProfileClient } from "../../api/profile-client.js";
+import { authState } from "../../auth-state.js";
 import { ErrorHandler } from "../../utils/error-handler.js";
 
 export interface OAuthStartEvent extends CustomEvent {
@@ -12,7 +12,7 @@ export class OAuthFlowStart extends BaseComponent {
   private isAuthenticated = false;
   private isLoading = false;
   private oauthClient: OAuthClient;
-  private profileClient: ProfileClient;
+  private unsubscribe: (() => void) | null = null;
 
   constructor() {
     super();
@@ -23,21 +23,38 @@ export class OAuthFlowStart extends BaseComponent {
       redirectUri: `${window.location.origin}/oauth/callback`,
       workerUrl
     });
-    this.profileClient = new ProfileClient(workerUrl);
-    this.addManagedEventListener(window, "oauth:logout", () => {
-      this.isAuthenticated = false;
+    // Subscribe to auth state changes
+    this.unsubscribe = authState.subscribe((state) => {
+      this.isAuthenticated = state.isAuthenticated;
+      this.isLoading = state.isChecking;
       this.render();
     });
+    
+    // Initial render with current state
+    const state = authState.getState();
+    this.isAuthenticated = state.isAuthenticated;
+    this.isLoading = state.isChecking;
     this.render();
-    this.checkAuthStatus();
+    
+    // Trigger auth check if not already done
+    authState.checkAuthStatus();
+    
+    this.addManagedEventListener(window, "oauth:logout", () => {
+      authState.clearAuth();
+    });
+    
+    // Listen for OAuth success to refresh auth state
+    this.addManagedEventListener(document, "oauth-success", () => {
+      authState.refreshAuth();
+    });
   }
 
-  private async checkAuthStatus(): Promise<void> {
-    await ErrorHandler.getInstance().wrap(async () => {
-      const response = await this.profileClient.getProfile();
-      this.isAuthenticated = response.success === true;
-      this.render(); // Re-render after auth check
-    }, { message: "Failed to check auth status" });
+  protected disconnectedCallback(): void {
+    super.disconnectedCallback();
+    if (this.unsubscribe) {
+      this.unsubscribe();
+      this.unsubscribe = null;
+    }
   }
 
   private render(): void {
@@ -95,7 +112,4 @@ export class OAuthFlowStart extends BaseComponent {
     this.render();
   }
 
-  disconnectedCallback(): void {
-    super.disconnectedCallback();
-  }
 }

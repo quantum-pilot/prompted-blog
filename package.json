@@ -6,7 +6,6 @@
   "scripts": {
     "build": "node scripts/build.mjs && node scripts/bundle-css.mjs",
     "dev": "npm run build && cd workers && wrangler dev",
-    "serve": "npm run build && npx http-server dist -p 8000",
     "test": "npm run test:frontend && npm run test:workers && npm run test:e2e",
     "test:frontend": "vitest --config vitest.config.ts",
     "test:workers": "cd workers && vitest",
@@ -15,7 +14,6 @@
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.8.60",
-    "@cloudflare/workers-types": "^4.20250805.0",
     "@playwright/test": "^1.54.2",
     "@types/node": "^20.0.0",
     "@vitest/ui": "^3.2.4",

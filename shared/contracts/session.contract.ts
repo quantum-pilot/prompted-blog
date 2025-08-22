@@ -35,6 +35,7 @@ export const SessionValidationSuccessSchema = z.object({
   picture: z.string().url().optional(),
   provider: OAuthProviderSchema,
   expiresAt: z.number().int().positive(),
+  username: z.string().optional(), // Include username from user profile
 });
 
 export const SessionValidationErrorSchema = z.object({
@@ -65,6 +66,7 @@ export const OAuthSessionSchema = z.object({
   createdAt: z.number().int().positive(),
   expiresAt: z.number().int().positive(),
   state: z.string().min(32).max(128),
+  username: z.string().optional(), // Include username from user profile
 });
 
 export const PKCEChallengeDataSchema = z.object({

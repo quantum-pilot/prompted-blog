@@ -3,12 +3,10 @@
  * OAuth client type definitions for worker
  */
 
-// Extend WorkerEnv to properly type KVNamespace
-export interface Env {
+// Extend the generated Cloudflare.Env interface
+// Cloudflare.Env already includes: OAUTH_SESSIONS, GOOGLE_CLIENT_SECRET, SESSION_ENCRYPTION_KEY, SESSION_ENCRYPTION_SALT
+export interface Env extends Cloudflare.Env {
   ALLOWED_ORIGINS: string;
-  OAUTH_SESSIONS: KVNamespace;
-  SESSION_ENCRYPTION_KEY: string;
-  SESSION_ENCRYPTION_SALT: string;
 }
 
 export interface OAuthTokenResponse {

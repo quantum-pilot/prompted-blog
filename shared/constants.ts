@@ -18,7 +18,7 @@ export function getRedirectUri(protocol: 'http' | 'https' = 'https'): string {
 export const OAUTH_PROVIDERS = {
   google: {
     name: "Google",
-    clientId: "200871674285-39ni3ek941gka7tp7a4894eg7noe9ude.apps.googleusercontent.com",
+    clientId: "200871674285-j1v1t2cdlp2jgmltpvcaal50ori524ba.apps.googleusercontent.com",
     authServer: "https://accounts.google.com",
     authPath: "/o/oauth2/v2/auth",
     tokenUrl: "https://oauth2.googleapis.com/token",

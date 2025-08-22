@@ -75,6 +75,11 @@ export async function handleSessionGet(
     });
   }
 
+  // Fetch the user profile to include username
+  const { UserManager } = await import("./user-manager");
+  const userManager = new UserManager(env);
+  const user = await userManager.getUserById(session.userId, context);
+
   // Return typed session data (excluding sensitive fields)
   const successResponse: SessionValidationSuccess = {
     userId: session.userId,
@@ -83,6 +88,7 @@ export async function handleSessionGet(
     picture: session.picture,
     provider: session.provider as "google" | "github",
     expiresAt: session.expiresAt,
+    username: user?.username, // Include username from profile
   };
   
   return new Response(JSON.stringify(successResponse), {

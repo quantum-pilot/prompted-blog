@@ -20,4 +20,9 @@ export interface OAuthCallbackResult {
   success: boolean;
   error?: string;
   sessionId?: string;
+  user?: {
+    email: string;
+    name?: string;
+    picture?: string;
+  };
 }

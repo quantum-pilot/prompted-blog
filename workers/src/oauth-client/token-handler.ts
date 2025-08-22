@@ -13,6 +13,7 @@ export interface TokenExchangeParams {
   clientId: string;
   redirectUri: string;
   tokenEndpoint: string;
+  clientSecret?: string;
 }
 
 export interface TokenValidationResult {
@@ -28,44 +29,74 @@ export async function exchangeCodeForTokens(
   as: oauth.AuthorizationServer,
   context: RequestContext
 ): Promise<oauth.TokenEndpointResponse> {
-  // Create OAuth client for PKCE flow (public client)
+  // Create OAuth client - use client_secret_post if secret is provided
   const client: oauth.Client = {
     client_id: params.clientId,
-    token_endpoint_auth_method: "none", // Public client for PKCE
+    token_endpoint_auth_method: params.clientSecret ? "client_secret_post" : "none",
   };
 
-  // Create parameters for token exchange
-  const requestParams = new URLSearchParams();
-  requestParams.set("grant_type", "authorization_code");
-  requestParams.set("code", params.code);
-  requestParams.set("redirect_uri", params.redirectUri);
-  requestParams.set("client_id", params.clientId);
-  requestParams.set("code_verifier", params.codeVerifier);
+  // Create URLSearchParams from the authorization response
+  // This simulates what validateAuthResponse would return
+  const callbackParams = new URLSearchParams();
+  callbackParams.set("code", params.code);
+  
+  // Validate the authorization response (even though we already have the code)
+  // This is required by oauth4webapi to ensure the URLSearchParams come from validation
+  const currentLocation = new URL(params.redirectUri);
+  currentLocation.searchParams.set("code", params.code);
+  
+  // Validate the simulated response to get properly formatted parameters
+  const validatedParams = oauth.validateAuthResponse(
+    as,
+    client,
+    currentLocation,
+    oauth.expectNoState // We handle state validation separately
+  );
 
-  // Exchange code for tokens with proper validation
-  const tokenResponse = await fetch(params.tokenEndpoint, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: requestParams,
-  });
+  // Choose authentication method based on whether client_secret is provided
+  // Google requires client_secret even with PKCE, while other providers may not
+  const clientAuth = params.clientSecret 
+    ? oauth.ClientSecretPost(params.clientSecret)
+    : oauth.None();
 
-  // Process the token response with oauth4webapi for signature validation
+  // Use oauth4webapi's built-in method for token exchange
   try {
-    // oauth4webapi validates JWT signature against provider's JWKS
+    const response = await oauth.authorizationCodeGrantRequest(
+      as,
+      client,
+      clientAuth,
+      validatedParams,
+      params.redirectUri,
+      params.codeVerifier
+    );
+
+    // Process the response to get tokens
     const tokens = await oauth.processAuthorizationCodeResponse(
       as,
       client,
-      tokenResponse
+      response
     );
 
     return tokens;
   } catch (error) {
+    let errorDetails = error instanceof Error ? error.message : "Unknown error";
+    let oauthError = null;
+    
+    // Extract actual OAuth error from ResponseBodyError
+    // oauth4webapi throws ResponseBodyError with the OAuth error in the cause property
+    if (error && typeof error === 'object' && 'cause' in error && error.cause) {
+      const cause = error.cause as any;
+      if (cause.error) {
+        oauthError = cause.error;
+        errorDetails = `${cause.error}: ${cause.error_description || 'No description provided'}`;
+      }
+    }
+    
     // Log detailed error for debugging
     context.log(AuditEventType.AUTH_LOGIN_FAILURE, "failure", {
       reason: "Token response validation failed",
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: errorDetails,
+      oauthError: oauthError
     });
     throw error;
   }

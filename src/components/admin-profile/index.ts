@@ -14,19 +14,13 @@ export class AdminProfile extends BaseComponent {
   }
 
   private init(): void {
-    this.attachShadow({ mode: 'open' });
     this.render();
     this.setAttribute('data-component', 'admin-profile');
   }
 
   private render(): void {
-    if (!this.shadowRoot) return;
-
     // Create structure without user data to avoid XSS
-    this.shadowRoot.innerHTML = `
-      <style>
-        @import url('./admin-profile.module.css');
-      </style>
+    this.innerHTML = `
       <div data-profile-container>
         <h2>User Profile</h2>
         <div class="form-group">
@@ -50,8 +44,8 @@ export class AdminProfile extends BaseComponent {
       </div>
     `;
 
-    this.usernameInput = this.shadowRoot.querySelector('input[name="username"]')!;
-    this.emailInput = this.shadowRoot.querySelector('input[name="email"]')!;
+    this.usernameInput = this.querySelector('input[name="username"]')!;
+    this.emailInput = this.querySelector('input[name="email"]')!;
     
     // Set values safely using DOM properties
     const username = this.getAttribute('username');

@@ -6,8 +6,21 @@ import { ProfileClient } from "./api/profile-client";
 import type { GetUserResponse } from "@app/shared/contracts";
 
 /** Check if username setup is needed and show modal */
-export async function checkAndShowUsernameSetup(): Promise<void> {
+export async function checkAndShowUsernameSetup(existingSession?: { username?: string }): Promise<void> {
   try {
+    // If we already have session data with username info, use it
+    if (existingSession) {
+      if (existingSession.username) {
+        // User has username, dispatch complete event
+        dispatchUsernameReady(existingSession.username);
+        return;
+      }
+      // User needs to set username - show modal
+      showUsernameSetupModal();
+      return;
+    }
+
+    // Fallback: fetch profile if session data not provided
     // Create client instance when needed for better testability
     const profileClient = new ProfileClient();
     

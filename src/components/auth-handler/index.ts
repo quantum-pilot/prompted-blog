@@ -1,7 +1,6 @@
 import { BaseComponent } from "../../utils/base-component.js";
 import { ErrorHandler } from "../../utils/error-handler.js";
-import { ProfileClient } from "../../api/profile-client.js";
-import type { GetUserResponse } from "@app/shared/contracts";
+import { authState } from "../../auth-state.js";
 
 export interface UsernameReadyEvent extends CustomEvent {
   detail: {
@@ -10,18 +9,32 @@ export interface UsernameReadyEvent extends CustomEvent {
 }
 
 export class AuthHandler extends BaseComponent {
-  private profileClient: ProfileClient;
+  private unsubscribe: (() => void) | null = null;
 
   constructor() {
     super();
-    this.profileClient = new ProfileClient();
     this.init();
   }
 
   private init(): void {
     ErrorHandler.getInstance().wrap(() => {
-      this.checkAuthenticationStatus();
       this.setupEventListeners();
+      
+      // Subscribe to auth state changes
+      this.unsubscribe = authState.subscribe((state) => {
+        if (state.isAuthenticated && state.user?.username) {
+          this.routeToAdmin(state.user.username);
+        }
+      });
+      
+      // Check current state
+      const state = authState.getState();
+      if (state.isAuthenticated && state.user?.username) {
+        this.routeToAdmin(state.user.username);
+      }
+      
+      // Trigger auth check if not already done
+      authState.checkAuthStatus();
     }, {
       message: "AuthHandler: initialization",
       code: "AUTH_HANDLER_INIT_ERROR",
@@ -29,17 +42,11 @@ export class AuthHandler extends BaseComponent {
     });
   }
 
-  private async checkAuthenticationStatus(): Promise<void> {
-    try {
-      // Try to get profile - cookies will be sent automatically
-      const response: GetUserResponse = await this.profileClient.getProfile();
-      
-      if (response.success && response.user.username) {
-        this.routeToAdmin(response.user.username);
-      }
-      // If not authenticated or no username, do nothing
-    } catch (error) {
-      this.handleError(error, "checkAuthenticationStatus");
+  protected disconnectedCallback(): void {
+    super.disconnectedCallback();
+    if (this.unsubscribe) {
+      this.unsubscribe();
+      this.unsubscribe = null;
     }
   }
 
@@ -91,7 +98,4 @@ export class AuthHandler extends BaseComponent {
     });
   }
 
-  disconnectedCallback(): void {
-    super.disconnectedCallback();
-  }
 }

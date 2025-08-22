@@ -45,6 +45,7 @@ export async function validateSessionWithWorker(
     email: data.email,
     name: data.name,
     picture: data.picture,
-    expiresAt: data.expiresAt
+    expiresAt: data.expiresAt,
+    username: data.username // Include username from session
   } as OAuthSession;
 }
