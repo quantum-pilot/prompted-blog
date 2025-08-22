@@ -141,7 +141,7 @@ describe('OAuth Route Cookie Setting', () => {
       expect(setCookie).toContain('HttpOnly');
       expect(setCookie).toContain('SameSite=Strict');
       expect(setCookie).toContain('Path=/');
-      expect(setCookie).toContain('Max-Age=604800'); // 7 days
+      expect(setCookie).toContain('Max-Age=86400'); // 1 day
       
       // Response should still include success and user data for backward compatibility
       const data = await response.json() as any;

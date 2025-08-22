@@ -92,7 +92,7 @@ describe('OAuth Cookie Setting', () => {
     expect(setCookie).toContain('HttpOnly');
     expect(setCookie).toContain('SameSite=Strict');
     expect(setCookie).toContain('Path=/');
-    expect(setCookie).toContain('Max-Age=604800');
+    expect(setCookie).toContain('Max-Age=86400'); // 1 day
     
     const data = await response.json() as any;
     expect(data.success).toBe(true);

@@ -17,6 +17,8 @@ I started off with ChatGPT (through Canvas), then switched to Claude Code along 
 
 **Result:** Prolly wasted some of my brain cells in the past month.
 
+**Update 2025-08-22:** I'm now trying out this [workflow](https://github.com/automazeio/ccpm) 
+
 As of now, the only features it has implemented:
 
 - **OAuth Authentication**: Server-driven PKCE flow with Google OAuth
@@ -43,5 +45,3 @@ My problems in no particular order:
 - **Illusional feedback loop** - LLMs give this amazing feedback loop (dopamine?) - that coding is always happening. I'm honestly tired of it because I cannot trust the code emitted by it and the more I work with it, the more I feel like I can't trust it anymore and I have to do it by myself. It gets to you eventually when you have to keep shouting at an intern who only charges $200/month but has constant amnesia. Blatantly stupid security issues, ignored test cases (especially when the story is dead simple), ignored practices and instructions (see earlier points), invalid assumptions, flawed understanding of requirements, etc. And no, I've been dead clear. I'm sure I've only gotten better in writing stories as clear as possible, provided that if I don't write it properly in the first attempt, I have to battle with it backfiring on me.
 
 After wasting my time on this, now I know it's bullshit when people make questionable claims with Claude Code - or even [Claude teams themselves](https://www-cdn.anthropic.com/58284b19e702b49db9302d5b6f135ad8871e7658.pdf) for that matter. I'm happy with a $20/mo plan using it to write one-off scripts, which is all it's good for in the current state of LLMs. I no longer feel FOMO in the present AI hype train.
-
-My new idea is to never review the code - let it continue building the project or do whatever it wants to if I keep feeding stories. I don't care how it exhausts my Max 20x plan. We'll see how far it goes before my plan expires.
