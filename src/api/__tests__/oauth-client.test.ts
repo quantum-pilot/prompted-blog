@@ -2,15 +2,14 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { OAuthClient } from '../oauth-client';
 import { OAuthProvider, OAuthConfig } from '@app/shared';
 
-// Mock oauth4webapi
-vi.mock('oauth4webapi', () => ({
-  generateRandomCodeVerifier: vi.fn(() => 'test-verifier'),
-  calculatePKCECodeChallenge: vi.fn(() => Promise.resolve('test-challenge'))
-}));
+// Remove oauth4webapi mock - no longer needed
 
 // Mock the hono-client module
 const mockHonoClient = {
   oauth: {
+    authorize: {
+      $get: vi.fn()
+    },
     callback: {
       $post: vi.fn()
     },
@@ -67,6 +66,15 @@ describe('OAuthClient', () => {
     mockPopupHandler.isPopupBlocked.mockReturnValue(false);
     
     // Reset hono client mocks with default success responses
+    mockHonoClient.oauth.authorize.$get.mockClear();
+    mockHonoClient.oauth.authorize.$get.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        success: true,
+        authorizationUrl: 'https://accounts.google.com/o/oauth2/v2/auth?client_id=test-client-id&redirect_uri=https%3A%2F%2Fapp.example.com%2Foauth%2Fcallback&response_type=code&scope=openid%20email%20profile&code_challenge=test-challenge&code_challenge_method=S256&state=test-state&access_type=offline&prompt=consent'
+      })
+    });
+    
     mockHonoClient.oauth.callback.$post.mockClear();
     mockHonoClient.oauth.callback.$post.mockResolvedValue({
       ok: true,
@@ -99,7 +107,7 @@ describe('OAuthClient', () => {
   });
 
   describe('startAuthFlow', () => {
-    it('should open popup with correct authorization URL', async () => {
+    it('should call server authorize endpoint and open popup with returned URL', async () => {
       // Mock successful popup callback
       mockPopupHandler.waitForCallback.mockResolvedValue({
         code: 'auth-code',
@@ -116,19 +124,36 @@ describe('OAuthClient', () => {
       
       // Mock state validation - we need to capture the actual state
       let capturedState: string | null = null;
-      mockPopupHandler.openPopup.mockImplementation((url: string) => {
-        const urlObj = new URL(url);
-        capturedState = urlObj.searchParams.get('state');
+      let capturedCodeChallenge: string | null = null;
+      
+      // Override the authorize endpoint to capture the request
+      mockHonoClient.oauth.authorize.$get.mockImplementation(async ({ query }) => {
+        capturedState = query.state;
+        capturedCodeChallenge = query.code_challenge;
+        return {
+          ok: true,
+          json: async () => ({
+            success: true,
+            authorizationUrl: `https://accounts.google.com/o/oauth2/v2/auth?client_id=test-client-id&redirect_uri=https%3A%2F%2Fapp.example.com%2Foauth%2Fcallback&response_type=code&scope=openid%20email%20profile&code_challenge=${query.code_challenge}&code_challenge_method=S256&state=${query.state}&access_type=offline&prompt=consent`
+          })
+        };
       });
       
       mockPopupHandler.waitForCallback.mockImplementation(async () => ({
         code: 'auth-code',
-        state: capturedState // Use the actual state from the URL
+        state: capturedState // Use the actual state from the authorize request
       }));
       
       await client.startAuthFlow();
       
-      // Check popup was opened with correct URL
+      // Check that authorize endpoint was called with correct parameters
+      expect(mockHonoClient.oauth.authorize.$get).toHaveBeenCalledTimes(1);
+      const authorizeCall = mockHonoClient.oauth.authorize.$get.mock.calls[0][0];
+      expect(authorizeCall.query.provider).toBe('google');
+      expect(authorizeCall.query.state).toBeTruthy();
+      expect(authorizeCall.query.code_challenge).toBeTruthy();
+      
+      // Check popup was opened with server-provided URL
       expect(mockPopupHandler.openPopup).toHaveBeenCalledTimes(1);
       const authUrl = mockPopupHandler.openPopup.mock.calls[0][0];
       const url = new URL(authUrl);
@@ -139,13 +164,36 @@ describe('OAuthClient', () => {
       expect(url.searchParams.get('redirect_uri')).toBe('https://app.example.com/oauth/callback');
       expect(url.searchParams.get('response_type')).toBe('code');
       expect(url.searchParams.get('scope')).toBe('openid email profile');
-      expect(url.searchParams.get('code_challenge')).toBe('test-challenge');
+      expect(url.searchParams.get('code_challenge')).toBe(capturedCodeChallenge);
       expect(url.searchParams.get('code_challenge_method')).toBe('S256');
+      expect(url.searchParams.get('state')).toBe(capturedState);
       
       // Check cleanup was called
       expect(mockPopupHandler.cleanup).toHaveBeenCalled();
     });
 
+
+    it('should handle authorization endpoint errors', async () => {
+      mockHonoClient.oauth.authorize.$get.mockResolvedValueOnce({
+        ok: false,
+        status: 400
+      });
+      
+      await expect(client.startAuthFlow()).rejects.toThrow('Failed to get authorization URL: 400');
+    });
+
+    it('should handle authorization response errors', async () => {
+      mockHonoClient.oauth.authorize.$get.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          success: false,
+          error: 'invalid_request',
+          error_description: 'Missing parameters'
+        })
+      });
+      
+      await expect(client.startAuthFlow()).rejects.toThrow('OAuth authorization error: invalid_request: Missing parameters');
+    });
 
     it('should handle popup blocked error', async () => {
       mockPopupHandler.openPopup.mockImplementation(() => {
@@ -191,19 +239,20 @@ describe('OAuthClient', () => {
     });
 
     it('should handle worker errors during token exchange', async () => {
-      // Mock successful popup callback
-      mockPopupHandler.waitForCallback.mockResolvedValue({
-        code: 'auth-code',
-        state: 'test-state'
-      });
-      
-      // Mock state validation
+      // Mock successful authorize call
       let capturedState: string | null = null;
-      mockPopupHandler.openPopup.mockImplementation((url: string) => {
-        const urlObj = new URL(url);
-        capturedState = urlObj.searchParams.get('state');
+      mockHonoClient.oauth.authorize.$get.mockImplementation(async ({ query }) => {
+        capturedState = query.state;
+        return {
+          ok: true,
+          json: async () => ({
+            success: true,
+            authorizationUrl: 'https://accounts.google.com/o/oauth2/v2/auth?state=' + query.state
+          })
+        };
       });
       
+      // Mock successful popup callback
       mockPopupHandler.waitForCallback.mockImplementation(async () => ({
         code: 'auth-code',
         state: capturedState
@@ -468,23 +517,33 @@ describe('OAuthClient', () => {
       try {
         await client.startAuthFlow();
       } catch (error) {
-        // Check error message doesn't contain verifier
-        expect((error as Error).message).not.toContain('test-verifier');
+        // Check error message doesn't contain any long base64 strings that could be verifiers
+        const errorMsg = (error as Error).message;
+        // PKCE verifiers are 43+ character base64 strings  
+        const hasLongBase64 = /[A-Za-z0-9_-]{40,}/.test(errorMsg);
+        expect(hasLongBase64).toBe(false);
       }
       
-      // Check console logs don't contain verifier
+      // Check console logs don't contain long base64 strings
       const consoleCallsStr = JSON.stringify(consoleSpy.mock.calls);
-      expect(consoleCallsStr).not.toContain('test-verifier');
+      const hasLongBase64 = /[A-Za-z0-9_-]{40,}/.test(consoleCallsStr);
+      expect(hasLongBase64).toBe(false);
       
       consoleSpy.mockRestore();
     });
 
     it('should validate message origin strictly', async () => {
-      // Mock successful popup callback with matching state
+      // Mock successful authorize call
       let capturedState: string | null = null;
-      mockPopupHandler.openPopup.mockImplementation((url: string) => {
-        const urlObj = new URL(url);
-        capturedState = urlObj.searchParams.get('state');
+      mockHonoClient.oauth.authorize.$get.mockImplementation(async ({ query }) => {
+        capturedState = query.state;
+        return {
+          ok: true,
+          json: async () => ({
+            success: true,
+            authorizationUrl: 'https://accounts.google.com/o/oauth2/v2/auth?state=' + query.state
+          })
+        };
       });
       
       mockPopupHandler.waitForCallback.mockImplementation(async () => ({
@@ -507,11 +566,17 @@ describe('OAuthClient', () => {
     });
 
     it('should store PKCE parameters in memory only, not sessionStorage', async () => {
-      // Mock successful popup flow with matching state
+      // Mock successful authorize call
       let capturedState: string | null = null;
-      mockPopupHandler.openPopup.mockImplementation((url: string) => {
-        const urlObj = new URL(url);
-        capturedState = urlObj.searchParams.get('state');
+      mockHonoClient.oauth.authorize.$get.mockImplementation(async ({ query }) => {
+        capturedState = query.state;
+        return {
+          ok: true,
+          json: async () => ({
+            success: true,
+            authorizationUrl: 'https://accounts.google.com/o/oauth2/v2/auth?state=' + query.state
+          })
+        };
       });
       
       mockPopupHandler.waitForCallback.mockImplementation(async () => ({
@@ -544,11 +609,17 @@ describe('OAuthClient', () => {
     });
 
     it('should clear memory after successful authentication', async () => {
-      // Mock successful popup flow with matching state
+      // Mock successful authorize call
       let capturedState: string | null = null;
-      mockPopupHandler.openPopup.mockImplementation((url: string) => {
-        const urlObj = new URL(url);
-        capturedState = urlObj.searchParams.get('state');
+      mockHonoClient.oauth.authorize.$get.mockImplementation(async ({ query }) => {
+        capturedState = query.state;
+        return {
+          ok: true,
+          json: async () => ({
+            success: true,
+            authorizationUrl: 'https://accounts.google.com/o/oauth2/v2/auth?state=' + query.state
+          })
+        };
       });
       
       mockPopupHandler.waitForCallback.mockImplementation(async () => ({

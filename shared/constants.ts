@@ -46,5 +46,13 @@ export function getAuthorizationUrl(provider: 'google' | 'github'): string {
   return `${OAUTH_PROVIDERS[provider].authServer}${OAUTH_PROVIDERS[provider].authPath}`;
 }
 
+// OAuth Client Configuration
+export interface OAuthConfig {
+  workerUrl: string;
+  clientId: string;
+  redirectUri: string;
+  provider: 'google' | 'github';
+}
+
 // Note: HTTP Status codes have been moved to shared/api/http.ts
 // Import HttpStatus enum from shared/api/index or shared/index

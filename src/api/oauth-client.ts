@@ -5,7 +5,6 @@
  * Sessions are managed via HttpOnly cookies set by the backend
  */
 
-import * as oauth from "oauth4webapi";
 import { 
   OAuthProvider, 
   OAuthSession, 
@@ -13,8 +12,8 @@ import {
   OAuthCallbackRequest,
   OAuthCallbackResponse,
   OAuthConfig,
-  OAUTH_PROVIDERS,
-  getAuthorizationUrl
+  OAuthAuthorizeRequest,
+  OAuthAuthorizeResponse
 } from "@app/shared";
 import { createHonoClient } from "./hono-client";
 import { validateSessionWithWorker } from "./oauth-session";
@@ -23,9 +22,8 @@ import { OAuthPopupHandler } from "./oauth-popup-handler";
 export class OAuthClient {
   private readonly config: OAuthConfig;
   private readonly honoClient: ReturnType<typeof createHonoClient>;
-  // Store PKCE parameters in memory for security
+  // Store PKCE verifier and state parameter in memory for security
   private codeVerifier: string | null = null;
-  private codeChallenge: string | null = null;
   private state: string | null = null;
 
   constructor(config: OAuthConfig) {
@@ -37,15 +35,34 @@ export class OAuthClient {
   }
 
   /**
+   * Generate a random code verifier for PKCE
+   */
+  private generateCodeVerifier(): string {
+    const array = new Uint8Array(32);
+    crypto.getRandomValues(array);
+    return btoa(String.fromCharCode(...array))
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=/g, "");
+  }
+
+  /**
+   * Calculate code challenge from verifier for PKCE
+   */
+  private async calculateCodeChallenge(verifier: string): Promise<string> {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(verifier);
+    const hash = await crypto.subtle.digest("SHA-256", data);
+    return btoa(String.fromCharCode(...new Uint8Array(hash)))
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=/g, "");
+  }
+
+  /**
    * Start OAuth authorization flow (popup mode only)
    */
   async startAuthFlow(): Promise<void> {
-    // Generate PKCE parameters
-    this.codeVerifier = oauth.generateRandomCodeVerifier();
-    this.codeChallenge = await oauth.calculatePKCECodeChallenge(
-      this.codeVerifier
-    );
-
     // Generate secure random state for CSRF protection
     const randomBytes = new Uint8Array(32);
     crypto.getRandomValues(randomBytes);
@@ -54,29 +71,34 @@ export class OAuthClient {
       .replace(/\//g, "_")
       .replace(/=/g, "");
 
-    // Get provider configuration directly from shared constants
+    // Generate PKCE code challenge on client side (will be sent to server)
+    const codeVerifier = this.generateCodeVerifier();
+    const codeChallenge = await this.calculateCodeChallenge(codeVerifier);
+    
+    // Store verifier for later use in token exchange
+    this.codeVerifier = codeVerifier;
+
+    // Call server's /oauth/authorize endpoint to get authorization URL
     const providerKey = this.config.provider.toLowerCase() as 'google' | 'github';
-    const provider = OAUTH_PROVIDERS[providerKey];
-    const scopes = provider.scopes;
+    const authorizeResponse = await this.honoClient.oauth.authorize.$get({
+      query: {
+        code_challenge: codeChallenge,
+        state: this.state,
+        provider: providerKey
+      }
+    });
 
-    // Build authorization URL
-    const authUrl = new URL(getAuthorizationUrl(providerKey));
-    authUrl.searchParams.set("client_id", this.config.clientId);
-    authUrl.searchParams.set("redirect_uri", this.config.redirectUri);
-    authUrl.searchParams.set("response_type", "code");
-    authUrl.searchParams.set("scope", scopes.join(" "));
-    authUrl.searchParams.set("state", this.state);
-    authUrl.searchParams.set("code_challenge", this.codeChallenge);
-    authUrl.searchParams.set("code_challenge_method", "S256");
-
-    // Add provider-specific parameters
-    if (provider.additionalParams) {
-      Object.entries(provider.additionalParams).forEach(
-        ([key, value]) => {
-          authUrl.searchParams.set(key, value);
-        }
-      );
+    if (!authorizeResponse.ok) {
+      throw new Error(`Failed to get authorization URL: ${authorizeResponse.status}`);
     }
+
+    const authorizeData = (await authorizeResponse.json()) as OAuthAuthorizeResponse;
+    
+    if (!authorizeData.success) {
+      throw new Error(`OAuth authorization error: ${authorizeData.error}: ${authorizeData.error_description}`);
+    }
+
+    const authUrl = authorizeData.authorizationUrl;
 
     // Use popup mode only
     const popupHandler = new OAuthPopupHandler();
@@ -157,7 +179,6 @@ export class OAuthClient {
    */
   private clearMemory(): void {
     this.codeVerifier = null;
-    this.codeChallenge = null;
     this.state = null;
   }
 
