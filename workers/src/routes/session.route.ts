@@ -25,8 +25,15 @@ const AuthHeaderSchema = z.object({
 const app = new Hono<{ Bindings: Env }>()
   .get(
     '/oauth/session',
-    zValidator('header', AuthHeaderSchema, (result, c) => {
-      if (!result.success) {
+    async (c) => {
+      // Try to get session from cookie first
+      const sessionId = getSessionFromCookie(c.req.raw);
+      
+      // If no cookie, check for Bearer token
+      const authHeader = c.req.header('authorization');
+      const headers = authHeader ? { authorization: authHeader } : null;
+      
+      if (!sessionId && !headers) {
         return c.json(
           {
             error: 'invalid_request',
@@ -35,13 +42,16 @@ const app = new Hono<{ Bindings: Env }>()
           HttpStatus.BAD_REQUEST
         );
       }
-    }),
-    async (c) => {
-      const headers = c.req.valid('header');
       
-      // Create a new request with the validated headers
+      // Create request with session info
       const newHeaders = new Headers(c.req.raw.headers);
-      newHeaders.set('Authorization', headers.authorization);
+      
+      // If we have a sessionId from cookie, use it as Bearer token
+      if (sessionId) {
+        newHeaders.set('Authorization', `Bearer ${sessionId}`);
+      } else if (headers?.authorization) {
+        newHeaders.set('Authorization', headers.authorization);
+      }
       
       const newRequest = new Request(c.req.url, {
         method: 'GET',

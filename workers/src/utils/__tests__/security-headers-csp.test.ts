@@ -12,7 +12,7 @@ describe('Content Security Policy Tests', () => {
       
       // Check for all required directives
       expect(csp).toContain("default-src 'self'");
-      expect(csp).toContain("script-src 'self' https://accounts.google.com");
+      expect(csp).toContain("script-src 'self' 'unsafe-inline' https://accounts.google.com");
       expect(csp).toContain("style-src 'self' 'unsafe-inline'");
       expect(csp).toContain("img-src 'self' data: https:");
       expect(csp).toContain("connect-src 'self'");
@@ -25,8 +25,8 @@ describe('Content Security Policy Tests', () => {
       const headers = getSecurityHeaders();
       const csp = headers['Content-Security-Policy'];
       
-      // Should not allow unsafe-inline scripts
-      expect(csp).not.toContain("script-src 'unsafe-inline'");
+      // Note: unsafe-inline is temporarily allowed for OAuth callback auto-submit
+      expect(csp).toContain("script-src 'self' 'unsafe-inline'");
       expect(csp).not.toContain("script-src *");
       
       // Should not allow unsafe-eval
@@ -123,9 +123,9 @@ describe('Content Security Policy Tests', () => {
       
       // Should replace with secure CSP
       expect(csp).not.toContain("default-src *");
-      expect(csp).not.toContain("script-src 'unsafe-inline'"); // script-src should not have unsafe-inline
       expect(csp).toContain("default-src 'self'");
-      expect(csp).toContain("style-src 'self' 'unsafe-inline'"); // style-src can have unsafe-inline for OAuth
+      expect(csp).toContain("script-src 'self' 'unsafe-inline'"); // script-src has unsafe-inline for OAuth
+      expect(csp).toContain("style-src 'self' 'unsafe-inline'"); // style-src has unsafe-inline for OAuth
     });
   });
 
@@ -217,13 +217,13 @@ describe('Content Security Policy Tests', () => {
       });
     });
 
-    it('should block inline event handlers', () => {
+    it('should allow inline scripts for OAuth callback', () => {
       const headers = getSecurityHeaders();
       const csp = headers['Content-Security-Policy'];
       
-      // Without unsafe-inline in script-src, inline event handlers are blocked
+      // We allow unsafe-inline for OAuth callback auto-submit
       expect(csp).toContain('script-src');
-      expect(csp.match(/script-src[^;]*'unsafe-inline'/)).toBeNull();
+      expect(csp).toContain("script-src 'self' 'unsafe-inline'");
     });
 
     it('should prevent plugin-based attacks', () => {

@@ -20,7 +20,7 @@ export class OAuthFlowStart extends BaseComponent {
     this.oauthClient = new OAuthClient({
       provider: OAuthProvider.Google,
       clientId: '577515652450-example.apps.googleusercontent.com',
-      redirectUri: `${window.location.origin}/oauth/callback`,
+      redirectUri: `${window.location.origin}/oauth-callback`,
       workerUrl
     });
     // Subscribe to auth state changes

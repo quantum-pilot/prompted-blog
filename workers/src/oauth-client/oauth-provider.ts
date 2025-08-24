@@ -43,14 +43,14 @@ export function getProvider(provider: string, env: Env, context?: RequestContext
     if (host === 'localhost' || host === '127.0.0.1' || host.startsWith('192.168.') || host.endsWith('.local')) {
       // Use http for local development
       const portSuffix = port && port !== '80' && port !== '443' ? `:${port}` : '';
-      redirectUri = `http://${host}${portSuffix}/oauth-callback`;
+      redirectUri = `http://${host}${portSuffix}/oauth/callback`;
     } else {
       // Use https for production/staging
-      redirectUri = `https://${host}/oauth-callback`;
+      redirectUri = `https://${host}/oauth/callback`;
     }
   } else {
     // Fallback to production domain if no context provided
-    redirectUri = 'https://promptedblog.com/oauth-callback';
+    redirectUri = 'https://promptedblog.com/oauth/callback';
   }
   
   return {

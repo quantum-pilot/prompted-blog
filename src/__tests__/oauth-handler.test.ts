@@ -2,10 +2,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 // Create mock functions
 const mockStartAuthFlow = vi.fn();
-const mockHandleCallback = vi.fn();
-const mockValidateSession = vi.fn();
 const mockLogout = vi.fn();
 const mockCheckAndShowUsernameSetup = vi.fn();
+const mockCheckAuthStatus = vi.fn();
+const mockRefreshAuth = vi.fn();
+const mockGetState = vi.fn();
 
 // Mock the API client module with factory function
 vi.mock("../api/oauth-client", () => {
@@ -16,8 +17,6 @@ vi.mock("../api/oauth-client", () => {
     },
     OAuthClient: vi.fn(() => ({
       startAuthFlow: mockStartAuthFlow,
-      handleCallback: mockHandleCallback,
-      validateSession: mockValidateSession,
       logout: mockLogout,
     })),
   };
@@ -26,6 +25,28 @@ vi.mock("../api/oauth-client", () => {
 // Mock username setup handler
 vi.mock("../username-setup-handler", () => ({
   checkAndShowUsernameSetup: mockCheckAndShowUsernameSetup
+}));
+
+// Mock auth state
+vi.mock("../auth-state", () => ({
+  authState: {
+    checkAuthStatus: mockCheckAuthStatus,
+    refreshAuth: mockRefreshAuth,
+    getState: mockGetState,
+  }
+}));
+
+// Mock OAUTH_PROVIDERS
+vi.mock("@app/shared", () => ({
+  OAuthProvider: {
+    Google: "google",
+    GitHub: "github",
+  },
+  OAUTH_PROVIDERS: {
+    google: {
+      clientId: "test-client-id",
+    },
+  },
 }));
 
 describe("OAuth Handler", () => {
@@ -39,16 +60,17 @@ describe("OAuth Handler", () => {
 
     // Reset all mock functions
     mockStartAuthFlow.mockReset();
-    mockHandleCallback.mockReset();
-    mockValidateSession.mockReset();
     mockLogout.mockReset();
     mockCheckAndShowUsernameSetup.mockReset();
+    mockCheckAuthStatus.mockReset();
+    mockRefreshAuth.mockReset();
+    mockGetState.mockReset();
 
     // Mock console methods
     vi.spyOn(console, "log").mockImplementation(() => {});
     vi.spyOn(console, "error").mockImplementation(() => {});
 
-    // Reset modules to ensure fresh instance
+    // Reset modules
     vi.resetModules();
   });
 
@@ -58,11 +80,9 @@ describe("OAuth Handler", () => {
 
   describe("setupOAuthHandler", () => {
     it("should register oauth-start event listener", async () => {
-      // Dynamically import to get fresh module with mocks
-      const module = await import("../oauth-handler");
-
       const addEventListenerSpy = vi.spyOn(document, "addEventListener");
-
+      
+      const module = await import("../oauth-handler");
       module.setupOAuthHandler();
 
       expect(addEventListenerSpy).toHaveBeenCalledWith(
@@ -72,20 +92,15 @@ describe("OAuth Handler", () => {
     });
 
     it("should start OAuth flow when oauth-start event is dispatched", async () => {
-      // Set production environment
-      Object.defineProperty(window, "location", {
-        value: {
-          ...window.location,
-          hostname: "app.example.com",
-          origin: "https://app.example.com",
-        },
-        writable: true,
-        configurable: true,
+      mockStartAuthFlow.mockResolvedValue(undefined);
+      mockRefreshAuth.mockResolvedValue(undefined);
+      mockGetState.mockReturnValue({
+        isAuthenticated: true,
+        session: { username: "testuser" },
+        user: null,
+        isChecking: false,
       });
 
-      // Production OAuth flow should always be used
-
-      // Dynamically import to get fresh module with mocks
       const module = await import("../oauth-handler");
       module.setupOAuthHandler();
 
@@ -94,60 +109,18 @@ describe("OAuth Handler", () => {
       });
 
       document.dispatchEvent(event);
-
-      // Wait for async operations
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await new Promise(resolve => setTimeout(resolve, 0));
 
       expect(mockStartAuthFlow).toHaveBeenCalled();
+      // refreshAuth is not called immediately since OAuth now uses redirect flow
+      expect(mockRefreshAuth).not.toHaveBeenCalled();
     });
 
-    it("should always use real OAuth flow regardless of environment", async () => {
-      // Set development environment (localhost)
-      Object.defineProperty(window, "location", {
-        value: {
-          ...window.location,
-          hostname: "localhost",
-          origin: "http://localhost",
-        },
-        writable: true,
-        configurable: true,
-      });
+    // Removed test - OAuth now uses redirect flow, username setup happens after redirect
 
-      // Dynamically import to get fresh module with mocks
-      const module = await import("../oauth-handler");
-      module.setupOAuthHandler();
+    it("should dispatch oauth-error event on OAuth failure", async () => {
+      mockStartAuthFlow.mockRejectedValue(new Error("OAuth failed"));
 
-      const event = new CustomEvent("oauth-start", {
-        detail: { provider: "google" },
-      });
-
-      document.dispatchEvent(event);
-
-      // Wait for async operations
-      await new Promise((resolve) => setTimeout(resolve, 10));
-
-      // Should always call real OAuth, never mock
-      expect(mockStartAuthFlow).toHaveBeenCalled();
-    });
-
-    it("should dispatch oauth-error event on failure", async () => {
-      // Set production environment
-      Object.defineProperty(window, "location", {
-        value: {
-          ...window.location,
-          hostname: "app.example.com",
-          origin: "https://app.example.com",
-        },
-        writable: true,
-        configurable: true,
-      });
-
-      // Production OAuth flow is always used
-
-      // Mock failure
-      mockStartAuthFlow.mockRejectedValueOnce(new Error("Network error"));
-
-      // Dynamically import to get fresh module with mocks
       const module = await import("../oauth-handler");
       module.setupOAuthHandler();
 
@@ -159,141 +132,99 @@ describe("OAuth Handler", () => {
       });
 
       document.dispatchEvent(event);
-
-      // Wait for async operations
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await new Promise(resolve => setTimeout(resolve, 0));
 
       expect(errorListener).toHaveBeenCalledWith(
         expect.objectContaining({
-          detail: { error: "Network error" },
+          detail: expect.objectContaining({
+            error: "OAuth failed",
+          }),
         })
-      );
-      expect(console.error).toHaveBeenCalledWith(
-        "Failed to start OAuth flow:",
-        expect.any(Error)
       );
     });
 
-    it("should check existing session on setup", async () => {
-      // Set up location
-      Object.defineProperty(window, "location", {
-        value: { ...window.location, origin: "https://app.example.com" },
-        writable: true,
-        configurable: true,
+    it("should check existing session on initialization", async () => {
+      mockGetState.mockReturnValue({
+        isAuthenticated: false,
+        session: null,
+        user: null,
+        isChecking: false,
       });
 
-      mockValidateSession.mockResolvedValueOnce({
-        userId: "user-123",
-        email: "user@example.com",
-        name: "Test User",
-        expiresAt: Date.now() + 3600000,
+      const module = await import("../oauth-handler");
+      module.setupOAuthHandler();
+
+      // Wait for async operations
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      expect(mockCheckAuthStatus).toHaveBeenCalled();
+    });
+
+    it("should dispatch oauth-restored event for existing session", async () => {
+      const existingUser = { username: "existinguser", email: "existing@example.com" };
+      
+      mockCheckAuthStatus.mockResolvedValue(undefined);
+      mockGetState.mockReturnValue({
+        isAuthenticated: true,
+        session: existingUser,
+        user: existingUser,
+        isChecking: false,
       });
 
       const restoredListener = vi.fn();
       document.addEventListener("oauth-restored", restoredListener);
 
-      // Dynamically import to get fresh module with mocks
       const module = await import("../oauth-handler");
       module.setupOAuthHandler();
 
       // Wait for async operations
-      await new Promise((resolve) => setTimeout(resolve, 20));
+      await new Promise(resolve => setTimeout(resolve, 0));
 
-      expect(mockValidateSession).toHaveBeenCalled();
       expect(restoredListener).toHaveBeenCalledWith(
         expect.objectContaining({
-          detail: {
-            user: expect.objectContaining({
-              userId: "user-123",
-              email: "user@example.com",
-            }),
-          },
+          detail: expect.objectContaining({
+            user: existingUser,
+          }),
         })
       );
-      expect(mockCheckAndShowUsernameSetup).toHaveBeenCalled();
     });
 
-    it("should check username setup after OAuth callback success", async () => {
-      // Mock successful callback and session
-      mockHandleCallback.mockImplementation(() => 
-        Promise.resolve({ success: true })
-      );
-      mockValidateSession.mockImplementation(() =>
-        Promise.resolve({
-          userId: "user-456",
-          email: "newuser@example.com",
-          name: "New User",
-          expiresAt: Date.now() + 3600000,
-        })
-      );
-      mockCheckAndShowUsernameSetup.mockImplementation(() => 
-        Promise.resolve(undefined)
-      );
-
-      // Mock window.history.replaceState to prevent navigation
-      const replaceStateSpy = vi.spyOn(window.history, "replaceState").mockImplementation(() => {});
-
-      const successListener = vi.fn();
-      document.addEventListener("oauth-success", successListener);
-
-      // Set up OAuth callback URL before importing module
-      Object.defineProperty(window, "location", {
-        value: {
-          ...window.location,
-          pathname: "/oauth/callback",
-          href: "https://app.example.com/oauth/callback?code=abc123",
-          origin: "https://app.example.com",
-        },
-        writable: true,
-        configurable: true,
+    it("should check username setup for existing session with no username", async () => {
+      const userWithoutUsername = { email: "test@example.com" };
+      
+      mockCheckAuthStatus.mockResolvedValue(undefined);
+      mockGetState.mockReturnValue({
+        isAuthenticated: true,
+        session: userWithoutUsername,
+        user: userWithoutUsername,
+        isChecking: false,
       });
 
-      // Import and setup OAuth handler which will trigger callback handling
-      const module = await import("../oauth-handler");
-      module.setupOAuthHandler();
-
-      // Wait for all async operations to complete
-      await vi.waitFor(() => {
-        expect(mockHandleCallback).toHaveBeenCalled();
-        expect(mockValidateSession).toHaveBeenCalled();
-        expect(successListener).toHaveBeenCalled();
-        expect(mockCheckAndShowUsernameSetup).toHaveBeenCalled();
-      }, { timeout: 1000 });
-
-      replaceStateSpy.mockRestore();
-    });
-
-    it("should not check username on OAuth errors", async () => {
-      // Set up OAuth callback URL with error
-      Object.defineProperty(window, "location", {
-        value: {
-          ...window.location,
-          pathname: "/oauth/callback",
-          href: "https://app.example.com/oauth/callback?error=access_denied",
-          origin: "https://app.example.com",
-        },
-        writable: true,
-        configurable: true,
-      });
-
-      // Mock failed callback
-      mockHandleCallback.mockResolvedValueOnce({ 
-        success: false, 
-        error: "OAuth callback failed" 
-      });
-
-      const errorListener = vi.fn();
-      document.addEventListener("oauth-error", errorListener);
-
-      // Import and setup OAuth handler
       const module = await import("../oauth-handler");
       module.setupOAuthHandler();
 
       // Wait for async operations
-      await new Promise((resolve) => setTimeout(resolve, 20));
+      await new Promise(resolve => setTimeout(resolve, 0));
 
-      expect(mockCheckAndShowUsernameSetup).not.toHaveBeenCalled();
-      expect(errorListener).toHaveBeenCalled();
+      expect(mockCheckAndShowUsernameSetup).toHaveBeenCalledWith(userWithoutUsername);
     });
+
+    it("should handle errors in existing session check gracefully", async () => {
+      mockCheckAuthStatus.mockRejectedValue(new Error("Session check failed"));
+
+      const module = await import("../oauth-handler");
+      module.setupOAuthHandler();
+
+      // Wait for async operations
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      // Should log error but not throw
+      expect(console.error).toHaveBeenCalledWith(
+        "Failed to check existing session:",
+        expect.any(Error)
+      );
+    });
+
+    // Removed test - OAuth now uses redirect flow, success event fires after redirect
   });
 });

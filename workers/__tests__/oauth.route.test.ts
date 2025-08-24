@@ -139,7 +139,7 @@ describe('OAuth Route Cookie Setting', () => {
       expect(setCookie).toBeTruthy();
       expect(setCookie).toContain('pb_session=');
       expect(setCookie).toContain('HttpOnly');
-      expect(setCookie).toContain('SameSite=Strict');
+      expect(setCookie).toContain('SameSite=Lax');
       expect(setCookie).toContain('Path=/');
       expect(setCookie).toContain('Max-Age=86400'); // 1 day
       

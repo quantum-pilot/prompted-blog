@@ -1,5 +1,7 @@
 ## Prompted Blog
 
+This was a benchmark idea to see current LLM capabilities when it comes to mid-level projects (i.e., more features than simple apps like PDF converters, drawing tools, image enhancer, etc.). If I provide enough documentation, tools and atomic stories to an LLM and ask it to follow test-driven development, will it be able to work effectively with little human interaction?
+
 Idea: LLMs as writing assistants for blogging i.e., enable an LLM to write _for_ the user when they suffer in grammar, spelling or language nuances. User flow looks like this:
 
 - Signup/signin with OAuth.
@@ -11,21 +13,13 @@ Idea: LLMs as writing assistants for blogging i.e., enable an LLM to write _for_
 - Save as draft or publish for public visibility.
 - History view showing a diff of how the prompts and output evolved with each revision (can be public or private).
 
-This was a benchmark idea to see current LLM capabilities when it comes to mid-level projects (i.e., more features than simple apps like PDF converters, drawing tools, image enhancer, etc.). If I provide enough documentation, tools and atomic stories to an LLM and ask it to follow test-driven development, will it be able to work effectively with little human interaction?
-
 I started off with ChatGPT (through Canvas), then switched to Claude Code along the way. I hit my limits on Max 5x and upgraded to Max 20x... for no practical use.
 
-**Result:** Prolly wasted some of my brain cells in the past month.
-
-**Update 2025-08-22:** I'm now trying out this [workflow](https://github.com/automazeio/ccpm) 
+**Result?** Prolly wasted some of my brain cells in the past month.
 
 As of now, the only features it has implemented:
 
-- **OAuth Authentication**: Server-driven PKCE flow with Google OAuth
-  - Secure popup-based authentication (no redirects)
-  - PKCE challenges stored server-side in Cloudflare KV
-  - HttpOnly session cookies for enhanced security
-  - Comprehensive error handling with retry logic
+- **OAuth Authentication** with Google + PKCE
 
 ### Problems with current Agentic Coding
 
@@ -45,3 +39,5 @@ My problems in no particular order:
 - **Illusional feedback loop** - LLMs give this amazing feedback loop (dopamine?) - that coding is always happening. I'm honestly tired of it because I cannot trust the code emitted by it and the more I work with it, the more I feel like I can't trust it anymore and I have to do it by myself. It gets to you eventually when you have to keep shouting at an intern who only charges $200/month but has constant amnesia. Blatantly stupid security issues, ignored test cases (especially when the story is dead simple), ignored practices and instructions (see earlier points), invalid assumptions, flawed understanding of requirements, etc. And no, I've been dead clear. I'm sure I've only gotten better in writing stories as clear as possible, provided that if I don't write it properly in the first attempt, I have to battle with it backfiring on me.
 
 After wasting my time on this, now I know it's bullshit when people make questionable claims with Claude Code - or even [Claude teams themselves](https://www-cdn.anthropic.com/58284b19e702b49db9302d5b6f135ad8871e7658.pdf) for that matter. I'm happy with a $20/mo plan using it to write one-off scripts, which is all it's good for in the current state of LLMs. I no longer feel FOMO in the present AI hype train.
+
+**Update 2025-08-24:** I attempted [this workflow](https://github.com/automazeio/ccpm) soon after, but I realized I'm not ready to attempt guiding LLMs and I've suspended this for now.

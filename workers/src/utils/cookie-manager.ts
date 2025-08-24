@@ -22,7 +22,7 @@ export function setSessionCookie(sessionId: string, env: Env): Headers {
   const cookieParts = [
     `${COOKIE_NAME}=${sessionId}`,
     'HttpOnly',
-    'SameSite=Strict',
+    'SameSite=Lax',  // Changed from Strict to Lax to allow OAuth flow
     'Path=/',
     `Max-Age=${MAX_AGE}`
   ];
@@ -74,7 +74,7 @@ export function clearSessionCookie(): Headers {
   const cookieParts = [
     `${COOKIE_NAME}=`,
     'HttpOnly',
-    'SameSite=Strict',
+    'SameSite=Lax',
     'Path=/',
     'Max-Age=0'
   ];

@@ -14,7 +14,7 @@ describe("Security Headers", () => {
         "strict-origin-when-cross-origin"
       );
       expect(headers["Content-Security-Policy"]).toBe(
-        "default-src 'self'; script-src 'self' https://accounts.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
+        "default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
       );
       expect(headers["Strict-Transport-Security"]).toBe(
         "max-age=31536000; includeSubDomains"
@@ -56,7 +56,7 @@ describe("Security Headers", () => {
         "strict-origin-when-cross-origin"
       );
       expect(securedResponse.headers.get("Content-Security-Policy")).toBe(
-        "default-src 'self'; script-src 'self' https://accounts.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
+        "default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
       );
       expect(securedResponse.headers.get("Strict-Transport-Security")).toBe(
         "max-age=31536000; includeSubDomains"

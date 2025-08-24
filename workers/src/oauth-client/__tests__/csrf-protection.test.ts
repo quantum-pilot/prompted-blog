@@ -146,12 +146,14 @@ describe('CSRF Protection Tests', () => {
       // Current implementation allows overwrite (could be made stricter)
       expect(secondResponse.status).toBe(200);
       
-      // Verify only one state is active
+      // Verify state was stored (server generates its own PKCE data)
       const storedData = await env.OAUTH_SESSIONS.get(`pkce:${duplicateState}`);
+      expect(storedData).toBeDefined();
       if (storedData) {
         const parsed = JSON.parse(storedData);
-        // Should have the second challenge
-        expect(parsed.challenge).toBe(challenge2);
+        // Server generates its own codeVerifier, not using client's challenge
+        expect(parsed.codeVerifier).toBeDefined();
+        expect(parsed.state).toBe(duplicateState);
       }
     });
 
@@ -479,8 +481,7 @@ describe('CSRF Protection Tests', () => {
     });
 
     it('should prevent GET-based state changes', async () => {
-      // OAuth callback should not accept GET for state-changing operations
-      // GET requests are now rejected for security
+      // OAuth callback GET requests serve HTML form, not perform state changes
       const getCallback = new Request(
         'http://localhost/oauth/callback?code=test&state=test&code_verifier=test',
         {
@@ -492,9 +493,16 @@ describe('CSRF Protection Tests', () => {
       
       const response = await worker.fetch(getCallback, env, {});
       
-      // Should reject the request - any error proves it's not vulnerable
-      // (GET requests shouldn't perform state changes)
-      expect(response.status).toBeGreaterThanOrEqual(400);
+      // GET returns HTML form (safe), actual state change requires POST
+      expect(response.status).toBe(200);
+      expect(response.headers.get('Content-Type')).toContain('text/html');
+      
+      // Verify no session was created from GET request (filter out rate-limit calls)
+      const putCalls = (env.OAUTH_SESSIONS.put as any).mock.calls || [];
+      const nonRateLimitPutCalls = putCalls.filter((call: any[]) => 
+        call[0] && !call[0].startsWith("rate-limit:")
+      );
+      expect(nonRateLimitPutCalls).toHaveLength(0);
     });
 
     it('should validate Content-Type for POST requests', async () => {

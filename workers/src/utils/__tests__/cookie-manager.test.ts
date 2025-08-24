@@ -21,7 +21,7 @@ describe('Cookie Manager', () => {
       expect(cookieHeader).toContain(`${COOKIE_NAME}=${sessionId}`);
       expect(cookieHeader).toContain('HttpOnly');
       expect(cookieHeader).toContain('Secure');
-      expect(cookieHeader).toContain('SameSite=Strict');
+      expect(cookieHeader).toContain('SameSite=Lax');
       expect(cookieHeader).toContain('Path=/');
       expect(cookieHeader).toContain(`Max-Age=${MAX_AGE}`);
       expect(cookieHeader).toContain('Domain=.promptedblog.com');
@@ -38,7 +38,7 @@ describe('Cookie Manager', () => {
       expect(cookieHeader).toContain(`${COOKIE_NAME}=${sessionId}`);
       expect(cookieHeader).toContain('HttpOnly');
       expect(cookieHeader).not.toContain('Secure');
-      expect(cookieHeader).toContain('SameSite=Strict');
+      expect(cookieHeader).toContain('SameSite=Lax');
       expect(cookieHeader).toContain('Path=/');
       expect(cookieHeader).toContain(`Max-Age=${MAX_AGE}`);
       expect(cookieHeader).not.toContain('Domain=');
@@ -123,7 +123,7 @@ describe('Cookie Manager', () => {
       expect(cookieHeader).toContain('Max-Age=0');
       expect(cookieHeader).toContain('Path=/');
       expect(cookieHeader).toContain('HttpOnly');
-      expect(cookieHeader).toContain('SameSite=Strict');
+      expect(cookieHeader).toContain('SameSite=Lax');
     });
   });
 

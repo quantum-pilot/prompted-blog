@@ -19,15 +19,23 @@ import { getProvider } from "./oauth-provider";
 import type { Env } from "./types";
 import { isValidStateParameter } from "./session-validation";
 
-function generateCodeChallenge(verifier: string): Promise<string> {
+function generateCodeVerifier(): string {
+  const array = new Uint8Array(32);
+  crypto.getRandomValues(array);
+  return btoa(String.fromCharCode(...array))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=/g, "");
+}
+
+async function generateCodeChallenge(verifier: string): Promise<string> {
   const encoder = new TextEncoder();
   const data = encoder.encode(verifier);
-  return crypto.subtle.digest("SHA-256", data).then((buffer) =>
-    btoa(String.fromCharCode(...new Uint8Array(buffer)))
-      .replace(/\+/g, "-")
-      .replace(/\//g, "_")
-      .replace(/=/g, "")
-  );
+  const buffer = await crypto.subtle.digest("SHA-256", data);
+  return btoa(String.fromCharCode(...new Uint8Array(buffer)))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=/g, "");
 }
 
 export async function handleInitiateOAuth(
@@ -35,15 +43,18 @@ export async function handleInitiateOAuth(
   context: RequestContext
 ): Promise<Response> {
   const url = context.url;
-  const codeChallenge = url.searchParams.get("code_challenge");
+  const clientCodeChallenge = url.searchParams.get("code_challenge"); // ignore client's challenge
   const state = url.searchParams.get("state");
   const provider = url.searchParams.get("provider") as
     | "google"
     | "github"
     | null;
 
+  // Generate server-side PKCE verifier and challenge
+  const codeVerifier = generateCodeVerifier();
+  const codeChallenge = await generateCodeChallenge(codeVerifier);
+
   if (
-    !codeChallenge ||
     !state ||
     !provider ||
     (provider !== "google" && provider !== "github") ||
@@ -72,9 +83,10 @@ export async function handleInitiateOAuth(
     provider,
   };
 
-  // Store the PKCE challenge with a 10-minute expiration
+  // Store the PKCE verifier and challenge with a 10-minute expiration
   const challengeData: PKCEChallengeData = {
     challenge: codeChallenge,
+    codeVerifier, // Store the verifier for later use
     state,
     provider,
     createdAt: Date.now(),

@@ -227,9 +227,9 @@ describe("OAuth Callback POST endpoint", () => {
       expect(duration).toBeLessThan(50); // < 50ms requirement
     });
 
-    it("should reject GET requests for security", async () => {
+    it("should serve HTML form for GET requests", async () => {
       const request = new Request(
-        "http://localhost/oauth/callback?code=test-code&state=test-state&code_verifier=test-verifier",
+        "http://localhost/oauth/callback?code=test-code&state=test-state",
         {
           headers: {
             "CF-Connecting-IP": "192.168.1.100"
@@ -238,10 +238,11 @@ describe("OAuth Callback POST endpoint", () => {
       );
       const response = await worker.fetch(request, env, {});
 
-      // Should get 404 because GET route doesn't exist
-      expect(response.status).toBe(404);
-      const data = (await response.json()) as any;
-      expect(data.error).toBe("not_found");
+      // Should serve HTML form for auto-submit
+      expect(response.status).toBe(200);
+      expect(response.headers.get('Content-Type')).toContain('text/html');
+      const html = await response.text();
+      expect(html).toContain('Completing sign in');
     });
   });
 });

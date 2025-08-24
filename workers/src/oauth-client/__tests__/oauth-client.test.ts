@@ -115,24 +115,25 @@ describe("OAuth Client Worker", () => {
       expect(data.authorizationUrl).toContain(
         "https://accounts.google.com/o/oauth2/v2/auth"
       );
-      expect(data.authorizationUrl).toContain(`code_challenge=${validChallenge}`);
+      // Server generates its own PKCE challenge now
+      expect(data.authorizationUrl).toContain("code_challenge=");
       expect(data.authorizationUrl).toContain("code_challenge_method=S256");
 
       // Verify PKCE challenge was stored
       expect(storedKey).toBe(`pkce:${validState}`);
       expect(storedValue).toBeDefined();
       const storedData = JSON.parse(storedValue!);
-      expect(storedData.challenge).toBe(validChallenge);
+      expect(storedData.codeVerifier).toBeDefined(); // Server stores verifier now
       expect(storedData.state).toBe(validState); // Verify state is stored
       expect(storedData.provider).toBe("google"); // Verify provider is stored
     });
   });
 
   describe("GET /oauth/callback", () => {
-    it("should reject GET requests to callback endpoint for security", async () => {
-      // GET requests to callback are not allowed (prevents CSRF)
+    it("should serve HTML form for GET requests to callback endpoint", async () => {
+      // GET requests to callback serve an HTML form for auto-submit
       const request = new Request(
-        "http://localhost/oauth/callback?code=test-code&state=test-state&code_verifier=test-verifier",
+        "http://localhost/oauth/callback?code=test-code&state=test-state",
         {
           method: "GET",
           headers: {
@@ -142,10 +143,11 @@ describe("OAuth Client Worker", () => {
       );
       const response = await worker.fetch(request, env, {});
 
-      // Should get 404 since GET route doesn't exist
-      expect(response.status).toBe(404);
-      const data = (await response.json()) as any;
-      expect(data.error).toBe("not_found");
+      // Should serve HTML form with auto-submit
+      expect(response.status).toBe(200);
+      expect(response.headers.get('Content-Type')).toContain('text/html');
+      const html = await response.text();
+      expect(html).toContain('Completing sign in');
     });
 
   });

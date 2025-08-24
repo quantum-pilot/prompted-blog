@@ -18,7 +18,7 @@ describe("OAuth Provider Dynamic Redirect URI", () => {
 
     const provider = getProvider("google", mockEnv, mockContext);
     
-    expect(provider.redirectUri).toBe("http://localhost:8787/oauth-callback");
+    expect(provider.redirectUri).toBe("http://localhost:8787/oauth/callback");
   });
 
   it("should use localhost redirect URI for 127.0.0.1 requests", () => {
@@ -33,7 +33,7 @@ describe("OAuth Provider Dynamic Redirect URI", () => {
 
     const provider = getProvider("google", mockEnv, mockContext);
     
-    expect(provider.redirectUri).toBe("http://127.0.0.1:3000/oauth-callback");
+    expect(provider.redirectUri).toBe("http://127.0.0.1:3000/oauth/callback");
   });
 
   it("should use https for production domain requests", () => {
@@ -48,7 +48,7 @@ describe("OAuth Provider Dynamic Redirect URI", () => {
 
     const provider = getProvider("google", mockEnv, mockContext);
     
-    expect(provider.redirectUri).toBe("https://promptedblog.com/oauth-callback");
+    expect(provider.redirectUri).toBe("https://promptedblog.com/oauth/callback");
   });
 
   it("should use https for custom domain requests", () => {
@@ -63,7 +63,7 @@ describe("OAuth Provider Dynamic Redirect URI", () => {
 
     const provider = getProvider("google", mockEnv, mockContext);
     
-    expect(provider.redirectUri).toBe("https://example.com/oauth-callback");
+    expect(provider.redirectUri).toBe("https://example.com/oauth/callback");
   });
 
   it("should handle local network IPs", () => {
@@ -78,7 +78,7 @@ describe("OAuth Provider Dynamic Redirect URI", () => {
 
     const provider = getProvider("google", mockEnv, mockContext);
     
-    expect(provider.redirectUri).toBe("http://192.168.1.100:3000/oauth-callback");
+    expect(provider.redirectUri).toBe("http://192.168.1.100:3000/oauth/callback");
   });
 
   it("should handle .local domains", () => {
@@ -93,12 +93,12 @@ describe("OAuth Provider Dynamic Redirect URI", () => {
 
     const provider = getProvider("google", mockEnv, mockContext);
     
-    expect(provider.redirectUri).toBe("http://mycomputer.local:8787/oauth-callback");
+    expect(provider.redirectUri).toBe("http://mycomputer.local:8787/oauth/callback");
   });
 
   it("should fall back to production domain when no context provided", () => {
     const provider = getProvider("google", mockEnv);
     
-    expect(provider.redirectUri).toBe("https://promptedblog.com/oauth-callback");
+    expect(provider.redirectUri).toBe("https://promptedblog.com/oauth/callback");
   });
 });
